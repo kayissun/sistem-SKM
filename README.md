@@ -240,6 +240,7 @@ MAIL_PORT=1025
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
+kayess
 ```
 
 **Untuk production**, ganti ke SMTP asli (Gmail, provider hosting, dsb) sesuai kredensial yang tersedia.
