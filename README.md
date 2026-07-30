@@ -240,7 +240,6 @@ MAIL_PORT=1025
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
-kayess
 ```
 
 **Untuk production**, ganti ke SMTP asli (Gmail, provider hosting, dsb) sesuai kredensial yang tersedia.
@@ -254,6 +253,105 @@ Route `survei.store` (submit jawaban) sudah dipasangi rate limit: maksimal **15 
 Kalau limit ini kelampaui, Laravel otomatis menampilkan halaman error 429 "Too Many Requests" bawaan —
 belum ada halaman error kustom untuk ini, cukup memadai untuk cegah spam kasar/bot, tapi kalau butuh pesan
 yang lebih ramah untuk responden, itu bisa ditambahkan lewat custom exception handler nanti.
+
+## Checklist keamanan sebelum production
+
+Lihat file **`PRODUCTION_CHECKLIST.md`** dan **`db-user-setup.sql`** di root paket ini — mencakup
+konfigurasi `.env`, HTTPS, permission file, dan setup user database dengan hak akses terbatas.
+Kerjakan sebelum sistem ini dipakai dengan data sungguhan di 29 unit.
+
+## Audit trail / log aktivitas
+
+File tambahan:
+- 4 model (`User`, `Puskesmas`, `UnsurPelayanan`, `PeriodeSurvei`) sudah ditambah trait `LogsActivity`
+  dari package `spatie/laravel-activitylog` — otomatis mencatat setiap create/update/delete.
+- `app/Http/Controllers/Dinkes/AktivitasController.php` — halaman untuk dinkes melihat log
+- `resources/views/dinkes/aktivitas/index.blade.php`
+- Route `dinkes.aktivitas.index`, menu "Log Aktivitas" sudah ditambah di navbar dinkes
+
+### Package yang wajib di-install dulu
+
+```bash
+composer require spatie/laravel-activitylog
+php artisan vendor:publish --provider="Spatie\Activitylog\ActivitylogServiceProvider" --tag="activitylog-migrations"
+php artisan migrate
+```
+
+### Cara pasang
+
+1. Jalankan 3 perintah di atas (urutannya penting: publish dulu baru migrate).
+2. Copy semua file dari paket ini ke lokasi yang sama (akan menimpa 4 model + `routes/dinkes.php` +
+   `layouts/dinkes.blade.php` yang lama — sudah termasuk semua fitur sebelumnya + audit trail baru).
+
+### Yang dicatat vs yang tidak
+
+| Dicatat | Tidak dicatat |
+|---|---|
+| Buat/edit/nonaktifkan Puskesmas | Isi jawaban survei responden (volumenya terlalu tinggi, tidak relevan untuk audit) |
+| Buat/edit/hapus Unsur Pelayanan | |
+| Buat/edit periode survei | |
+| Buat/edit akun user (admin-puskesmas, petugas, dinkes) — **kecuali kolom password**, supaya hash password tidak pernah ikut tercatat di log | |
+
+### Yang bisa dites
+
+- **Dinkes > Log Aktivitas**: coba edit salah satu Puskesmas atau nonaktifkan unsur pelayanan,
+  lalu cek halaman ini — harusnya muncul baris baru dengan detail field apa yang berubah, dari nilai
+  apa ke nilai apa, dan siapa yang melakukannya.
+- Coba juga buat petugas baru dari akun admin-puskesmas, lalu cek dari sisi dinkes — walaupun
+  petugas dibuat oleh admin-puskesmas (bukan dinkes), aktivitasnya tetap tercatat dan bisa dilihat dinkes.
+
+## Backup otomatis terenkripsi
+
+File tambahan (di folder `config-tambahan/`, **bukan** langsung ditimpa otomatis — baca cara pasang di bawah):
+- `config-tambahan/backup.php` — contoh konfigurasi `spatie/laravel-backup` dengan enkripsi aktif
+- `config-tambahan/console-schedule-snippet.php` — kode jadwal otomatis untuk ditempel ke `routes/console.php`
+
+### Package yang wajib di-install dulu
+
+```bash
+composer require spatie/laravel-backup
+php artisan vendor:publish --provider="Spatie\Backup\BackupServiceProvider"
+```
+
+### Cara pasang (perlu penyesuaian manual, tidak bisa asal timpa)
+
+1. Setelah publish, akan muncul `config/backup.php` bawaan package. **Bandingkan** dengan
+   `config-tambahan/backup.php` di paket ini, lalu sesuaikan bagian `source`, `destination`,
+   `password`, `encryption`, dan `notifications` sesuai contoh — jangan asal timpa seluruh file
+   kalau kamu sudah custom bagian lain.
+2. Tambah ke `.env`:
+   ```env
+   BACKUP_ARCHIVE_PASSWORD=password-panjang-dan-acak-disini
+   BACKUP_NOTIFICATION_EMAIL=dinkes@example.test
+   ```
+   **Password ini beda dari password login manapun** — kalau hilang, backup terenkripsi tidak bisa
+   dibuka sama sekali (termasuk oleh kamu sendiri). Simpan di password manager, bukan cuma di `.env`.
+3. Konfigurasi disk tujuan backup di `config/filesystems.php`, tambahkan disk baru misalnya:
+   ```php
+   'backup-remote' => [
+       'driver' => 's3', // atau 'sftp', tergantung storage yang kamu punya
+       // ... kredensial sesuai provider (AWS S3, DigitalOcean Spaces, dll)
+   ],
+   ```
+   **Penting:** disk tujuan backup **jangan** disk yang sama dengan server aplikasi utama —
+   kalau server utama kena masalah (hardware rusak, ransomware, dst), backup yang nyimpan di
+   server yang sama ikut hilang. Idealnya simpan di cloud storage terpisah.
+4. Tempel isi `config-tambahan/console-schedule-snippet.php` ke `routes/console.php` (project kamu),
+   di bagian bawah, tanpa menghapus isi yang sudah ada di sana.
+5. **Wajib** aktifkan Laravel Scheduler di server (bukan cuma nulis kode-nya) — tambahkan 1 baris ini
+   di crontab server (`crontab -e` di Linux, atau Task Scheduler kalau di Windows Laragon):
+   ```
+   * * * * * cd /path-ke-project && php artisan schedule:run >> /dev/null 2>&1
+   ```
+   Tanpa baris ini, jadwal backup **tidak akan pernah jalan otomatis**, meskipun kodenya sudah benar.
+
+### Cara tes manual (tanpa nunggu jadwal otomatis)
+
+```bash
+php artisan backup:run
+php artisan backup:list
+```
+Cek juga email masuk ke `BACKUP_NOTIFICATION_EMAIL` (kalau `MAIL_MAILER=log`, cek `storage/logs/laravel.log`).
 
 ## Belum termasuk di paket ini (langkah selanjutnya)
 

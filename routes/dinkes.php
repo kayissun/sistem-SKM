@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dinkes\AktivitasController;
 use App\Http\Controllers\Dinkes\DashboardController;
 use App\Http\Controllers\Dinkes\LaporanController;
 use App\Http\Controllers\Dinkes\PeriodeSurveiController;
@@ -39,4 +40,6 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/laporan/{puskesma}/export/pdf', [LaporanController::class, 'exportPdfDetail'])->name('laporan.detail.export-pdf');
         Route::get('/laporan/{puskesma}/export/excel', [LaporanController::class, 'exportExcelDetail'])->name('laporan.detail.export-excel');
         Route::get('/laporan/{puskesma}', [LaporanController::class, 'detail'])->name('laporan.detail');
+
+        Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
     });
