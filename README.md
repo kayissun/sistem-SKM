@@ -1,0 +1,260 @@
+# Struktur database SKM (Dinkes - Puskesmas/RSU - Responden)
+
+## Cara pasang di project Laravel kamu
+
+1. Copy file-file ini ke folder project Laravel:
+   - `database/migrations/*` -> `database/migrations/`
+   - `database/seeders/*` -> `database/seeders/`
+   - `app/Models/*` -> `app/Models/` (User.php akan menimpa yang lama, cek dulu isi customisasimu)
+   - `app/Services/*` -> `app/Services/`
+
+2. Pastikan Spatie Permission sudah publish migration-nya (kalau belum):
+   ```
+   php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+   ```
+
+3. Jalankan migration (urutan sudah diatur lewat nama file timestamp):
+   ```
+   php artisan migrate
+   ```
+
+4. Jalankan seeder (isi role, permission, 9 master unsur pelayanan, dan akun contoh):
+   ```
+   php artisan db:seed
+   ```
+
+5. Akun contoh setelah seeding:
+   - Dinkes: `dinkes@example.test` / `password`
+   - Admin Puskesmas: `admin.puskesmas@example.test` / `password`
+
+## Alur data
+
+- `puskesmas` — data instansi (dikelola dinkes)
+- `users` — 1 tabel untuk dinkes & admin-puskesmas, dibedakan lewat kolom `puskesmas_id` (null = dinkes) dan role Spatie
+- `unsur_pelayanan` — 9 unsur Permenpan RB 14/2017, dikelola dinkes, dipakai bersama semua puskesmas
+- `periode_survei` — periode aktif (triwulan/semester), dikelola dinkes
+- `survei_jawaban` — 1 baris per responden yang mengisi survei (publik, tanpa login), terikat ke `puskesmas_id` + `periode_survei_id`
+- `survei_jawaban_detail` — nilai 1-4 per unsur pelayanan untuk setiap `survei_jawaban`
+
+## Kalkulasi SKM
+
+Logika rumus lama kamu (total, NRR, NRR skala 100, kategori, NRR tertimbang, nilai akhir)
+sudah dipindah ke `app/Services/SkmCalculatorService.php`, method `hitung()`.
+Tinggal dipanggil dari controller:
+
+```php
+$service = new \App\Services\SkmCalculatorService();
+$hasil = $service->hitung($puskesmas, $periodeAktif);
+```
+
+Untuk rekap gabungan semua puskesmas (khusus dinkes), pakai `hitungGabungan()`.
+
+## Scoping akses (Dinkes vs Admin Puskesmas)
+
+Contoh pola scoping di controller admin:
+
+```php
+$jawaban = \App\Models\SurveiJawaban::untukUser(auth()->user())->get();
+```
+
+Scope `untukUser()` di model `SurveiJawaban` otomatis mem-filter berdasarkan `puskesmas_id`
+milik user yang login, kecuali role-nya `dinkes` (bisa lihat semua).
+
+## Modul Dinkes (superadmin)
+
+File tambahan di paket ini:
+- `app/Http/Controllers/Dinkes/*` — Dashboard, Puskesmas, UnsurPelayanan, PeriodeSurvei, Laporan
+- `resources/views/dinkes/*` — view Bootstrap untuk semua controller di atas
+- `resources/views/layouts/dinkes.blade.php` — layout navbar Bootstrap
+- `routes/dinkes.php` — semua route modul dinkes
+
+### Cara pasang
+
+1. Copy semua file ke lokasi yang sama di project Laravel kamu.
+
+2. Daftarkan alias middleware `role` dari Spatie di `bootstrap/app.php` (kalau belum ada):
+   ```php
+   ->withMiddleware(function (Middleware $middleware) {
+       $middleware->alias([
+           'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+       ]);
+   })
+   ```
+
+3. Include route dinkes di `routes/web.php`:
+   ```php
+   require __DIR__.'/dinkes.php';
+   ```
+
+4. Jalankan `php artisan route:list --name=dinkes` untuk memastikan semua route terdaftar.
+
+5. Login pakai akun `dinkes@example.test` / `password` (dari `DemoDataSeeder`), lalu buka `/dinkes/dashboard`.
+
+### Alur fitur
+
+- **Tambah Puskesmas/RSU** otomatis membuat 1 akun `admin-puskesmas` terkait, dengan password acak yang ditampilkan sekali lewat flash message — sebaiknya nanti ditambah fitur kirim email/reset password, bukan ditampilkan di layar produksi.
+- **Hapus Puskesmas** sebenarnya soft-disable (`is_active = false`), bukan hard delete, supaya histori survei tidak hilang.
+- **Unsur pelayanan** hanya bisa dihapus kalau belum pernah ada jawaban responden yang memakainya; kalau sudah ada, tombol hapus akan menolak dan menyarankan nonaktifkan saja.
+- **Periode survei aktif** dijaga cuma satu dalam satu waktu — mencentang "jadikan aktif" otomatis menonaktifkan periode aktif lainnya.
+- **Laporan** memakai `SkmCalculatorService` yang sudah dibuat sebelumnya; halaman index untuk rekap semua unit, halaman detail untuk rincian per unsur di satu unit.
+
+## Modul survei publik (responden)
+
+File tambahan:
+- `app/Http/Controllers/SurveiPublikController.php` — tanpa middleware auth, bisa diakses siapa saja
+- `resources/views/survei/*` — form + halaman terima kasih
+- `resources/views/layouts/publik.blade.php` — layout sederhana tanpa navbar admin
+- `routes/survei.php` — route publik
+
+### Cara pasang
+
+1. Copy semua file ke lokasi yang sama.
+2. Include di `routes/web.php`:
+   ```php
+   require __DIR__.'/survei.php';
+   ```
+3. Ambil link survei tiap unit dari halaman **Dinkes > Puskesmas/RSU**, tombol "Link survei" — formatnya `/survei/{slug-puskesmas}`. Link ini yang nanti dijadikan QR code untuk ditempel di loket pelayanan.
+
+### Perilaku penting
+
+- Kalau belum ada **periode survei aktif**, form tidak akan tampil — responden akan lihat pesan "survei sedang tidak dibuka".
+- Kalau puskesmas di-nonaktifkan dinkes (`is_active = false`), link survei-nya otomatis 404.
+- Periode yang dipakai saat submit diambil ulang dari server (bukan dari form), supaya kalau dinkes ganti periode aktif saat form sedang dibuka orang lain, datanya tetap konsisten dan tidak bisa dimanipulasi lewat request.
+- Semua unsur pelayanan aktif wajib dinilai (skala 1-4, radio button), tidak ada default kosong.
+- Data demografis (jenis kelamin, usia, pendidikan, pekerjaan, unit layanan) semuanya opsional.
+
+## Modul admin-Puskesmas / petugas
+
+File tambahan:
+- `app/Http/Controllers/Puskesmas/*` — Dashboard, Petugas, Laporan
+- `resources/views/puskesmas/*` — view Bootstrap untuk semua controller di atas
+- `resources/views/layouts/puskesmas.blade.php` — layout navbar (menu "Petugas" hanya tampil untuk role admin-puskesmas, dijaga pakai `@role('admin-puskesmas')` directive dari Spatie)
+- `routes/puskesmas.php` — route modul ini
+
+### Cara pasang
+
+1. Copy semua file ke lokasi yang sama.
+2. Include di `routes/web.php`:
+   ```php
+   require __DIR__.'/puskesmas.php';
+   ```
+3. Login sebagai admin unit contoh: `admin.puskesmas@example.test` / `password` (dari `DemoDataSeeder`), otomatis diarahkan ke `/puskesmas/dashboard`.
+
+### Pembagian akses admin-puskesmas vs petugas
+
+| Fitur | admin-puskesmas | petugas |
+|---|---|---|
+| Dashboard unit | ✅ | ❌ (langsung diarahkan ke laporan saat login) |
+| Kelola petugas (CRUD) | ✅ | ❌ |
+| Lihat laporan unit sendiri | ✅ | ✅ |
+
+Semua query di modul ini otomatis di-scope ke `puskesmas_id` milik user yang login (bukan dari input/URL), termasuk method `pastikanSatuUnit()` di `PetugasController` yang menolak akses (403) kalau ada admin-puskesmas mencoba edit/hapus akun petugas milik unit lain lewat manipulasi URL.
+
+## Export PDF & Excel (dinkes + admin-puskesmas)
+
+File tambahan:
+- `app/Exports/LaporanUnsurExport.php` — Excel rincian per unsur (dipakai dinkes-detail & puskesmas-laporan)
+- `app/Exports/RekapGabunganExport.php` — Excel rekap semua unit (khusus dinkes)
+- `resources/views/exports/laporan-pdf.blade.php` — PDF rincian per unsur
+- `resources/views/exports/rekap-gabungan-pdf.blade.php` — PDF rekap semua unit
+- Controller `Dinkes\LaporanController` & `Puskesmas\LaporanController` sudah ditambah method `exportPdf*` dan `exportExcel*`
+- Route export sudah ditambahkan di `routes/dinkes.php` dan `routes/puskesmas.php`
+
+### Package yang wajib di-install dulu
+
+```bash
+composer require barryvdh/laravel-dompdf
+composer require maatwebsite/excel
+```
+
+Kedua package ini auto-discover service provider-nya sendiri, tidak perlu registrasi manual di `bootstrap/app.php` (Laravel 13 pakai package auto-discovery bawaan Composer).
+
+### Cara pasang
+
+1. Jalankan 2 perintah composer di atas.
+2. Copy semua file dari paket ini ke lokasi yang sama (akan menimpa `LaporanController` dinkes & puskesmas yang lama — sudah termasuk semua fitur sebelumnya + export baru).
+3. Tidak perlu migration/seeder tambahan untuk fitur ini.
+
+### Yang bisa dites
+
+- **Dinkes > Laporan** (rekap semua unit): tombol "Export PDF" dan "Export Excel" di atas tabel.
+- **Dinkes > Laporan > Lihat detail** salah satu unit: tombol export lagi, tapi datanya rincian per unsur unit tsb.
+- **Puskesmas > Laporan** (punya sendiri): tombol export yang sama, otomatis cuma data unit yang login.
+
+Kalau nanti muncul error "Class dompdf\Dompdf\Dompdf not found" atau semacamnya, biasanya composer belum selesai/gagal install — cek dulu `composer.json` apakah dua package itu sudah masuk `require`.
+
+## QR code otomatis untuk link survei
+
+File tambahan:
+- `app/Http/Controllers/QrCodeController.php` — generate QR sebagai gambar (`tampil`) atau file unduhan (`unduh`)
+- Route baru di `routes/survei.php`: `qrcode.tampil` dan `qrcode.unduh`
+- Update view: **Dinkes > Puskesmas/RSU** (thumbnail QR + tombol unduh per baris) dan **Puskesmas > Dashboard** (QR besar + tombol unduh)
+
+### Package yang wajib di-install dulu
+
+```bash
+composer require endroid/qr-code
+```
+
+Package ini murni PHP (pakai GD, bukan Imagick), jadi tidak perlu ekstensi tambahan di server.
+
+### Cara pasang
+
+1. Jalankan composer di atas.
+2. Copy semua file ke lokasi yang sama (`routes/survei.php` akan menimpa yang lama — sudah termasuk route survei + QR).
+3. Tidak ada migration/seeder tambahan.
+
+### Cara kerja
+
+- QR di-generate on-the-fly setiap request (bukan disimpan sebagai file), jadi kalau slug puskesmas berubah, QR otomatis ikut berubah tanpa perlu regenerate manual.
+- QR berisi URL langsung ke halaman survei publik (`/survei/{slug}`), bukan data lain — jadi discan pakai kamera HP biasa langsung buka form survei.
+- Kalau puskesmas dinonaktifkan (`is_active = false`), endpoint QR ikut menolak (404) sama seperti halaman survei-nya.
+
+### Yang bisa dites
+
+- **Dinkes > Puskesmas/RSU**: kolom QR muncul di tiap baris, klik "Unduh QR" untuk download PNG resolusi besar (siap cetak/tempel).
+- **Puskesmas > Dashboard**: QR besar + tombol unduh, supaya admin unit bisa cetak sendiri tanpa perlu minta ke dinkes.
+- Coba scan QR-nya pakai HP, pastikan langsung membuka form survei unit yang benar.
+
+## Keamanan pembuatan akun (link set-password via email)
+
+Perubahan di `PuskesmasController@store` (dinkes) dan `PetugasController@store` (puskesmas):
+sebelumnya password sementara ditampilkan langsung di layar, sekarang diganti kirim
+**link "buat password"** ke email akun baru, pakai sistem reset password bawaan Breeze
+(`Password::sendResetLink()`) — tidak perlu setup notifikasi/mailable baru.
+
+### Supaya email benar-benar terkirim, atur `.env`:
+
+**Untuk testing lokal** (email tidak benar-benar terkirim, cuma dicatat ke log):
+```env
+MAIL_MAILER=log
+```
+Setelah tambah puskesmas/petugas baru, buka `storage/logs/laravel.log`, cari baris paling bawah
+yang berisi link `reset-password/...` — itu link yang seharusnya diterima admin/petugas lewat email.
+
+**Untuk lihat email beneran di local** (opsional, lebih nyaman daripada baca log), pakai [Mailtrap](https://mailtrap.io) atau `Mailpit` (Laragon versi baru biasanya sudah menyediakan Mailpit):
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+```
+
+**Untuk production**, ganti ke SMTP asli (Gmail, provider hosting, dsb) sesuai kredensial yang tersedia.
+
+Akun demo dari `DemoDataSeeder` (`dinkes@example.test`, `admin.puskesmas@example.test`) **tidak terpengaruh**
+perubahan ini — password-nya tetap `password` seperti biasa karena dibuat langsung lewat seeder, bukan lewat form.
+
+## Proteksi spam di form survei publik
+
+Route `survei.store` (submit jawaban) sudah dipasangi rate limit: maksimal **15 submit per 10 menit per IP**.
+Kalau limit ini kelampaui, Laravel otomatis menampilkan halaman error 429 "Too Many Requests" bawaan —
+belum ada halaman error kustom untuk ini, cukup memadai untuk cegah spam kasar/bot, tapi kalau butuh pesan
+yang lebih ramah untuk responden, itu bisa ditambahkan lewat custom exception handler nanti.
+
+## Belum termasuk di paket ini (langkah selanjutnya)
+
+- Form request class terpisah (validasi saat ini masih inline di controller)
+- Halaman error 429 kustom yang lebih ramah untuk responden
