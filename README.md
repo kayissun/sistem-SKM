@@ -353,6 +353,66 @@ php artisan backup:list
 ```
 Cek juga email masuk ke `BACKUP_NOTIFICATION_EMAIL` (kalau `MAIL_MAILER=log`, cek `storage/logs/laravel.log`).
 
+## Pertanyaan survei kustom per unit + unit layanan (poli)
+
+Perubahan besar: setiap Puskesmas/RSU sekarang bisa atur pertanyaan surveinya sendiri
+(boleh lebih dari 9, boleh beda kata-kata), tapi nilai SKM resmi tetap dihitung dari 9 unsur
+baku Permenpan RB 14/2017 — bukan dari jumlah pertanyaan.
+
+### Konsep intinya
+
+- Tabel baru `pertanyaan_survei`: milik satu puskesmas, opsional dikaitkan ke salah satu
+  unsur baku (`unsur_pelayanan_id`). Dikaitkan → ikut rumus SKM resmi. Kosong (`null`) →
+  "pertanyaan tambahan", tetap tersimpan & ditampilkan di laporan, tapi di luar rumus.
+- Tabel baru `unit_layanan`: daftar poli/layanan milik tiap puskesmas (mis. "Poli Umum",
+  "UGD"), muncul sebagai dropdown di form survei publik — menggantikan input teks bebas yang lama.
+- **Saat dinkes membuat Puskesmas baru**, sistem otomatis bikin 9 `pertanyaan_survei` dari
+  master `unsur_pelayanan` (teks awalnya sama persis dengan master, admin-puskesmas tinggal
+  edit kata-katanya atau tambah pertanyaan baru lewat menu **Pertanyaan Survei**).
+- `SkmCalculatorService` sekarang menghitung ulang per unsur berdasarkan pertanyaan mana
+  saja milik unit tsb yang dikaitkan ke unsur itu (bisa juga lebih dari 1 pertanyaan per
+  unsur, otomatis dirata-rata). Kalau ada unsur yang belum dikaitkan ke pertanyaan aktif
+  apa pun, sistem kasih peringatan di halaman **Pertanyaan Survei** (puskesmas) dan halaman
+  **Laporan** (dinkes & puskesmas) — supaya kelihatan kalau ada unsur yang "bolong".
+
+### Menu baru di panel admin-puskesmas
+
+- **Pertanyaan Survei**: CRUD pertanyaan, tiap pertanyaan bisa dikaitkan ke salah satu U1-U9
+  atau dibiarkan sebagai pertanyaan tambahan. Tidak bisa dihapus kalau sudah ada jawaban
+  responden (nonaktifkan saja).
+- **Unit Layanan**: CRUD poli/layanan, otomatis muncul di dropdown form survei publik unit tsb.
+
+### Migration baru (urutan penting, jalankan berurutan)
+
+1. `create_pertanyaan_survei_table`
+2. `create_unit_layanan_table`
+3. `update_survei_jawaban_detail_table` — mengganti kolom `unsur_pelayanan_id` jadi `pertanyaan_survei_id`
+4. `update_survei_jawaban_table` — mengganti kolom teks `unit_layanan` jadi FK `unit_layanan_id`
+
+**Penting:** kalau kamu sudah pernah isi data survei pakai skema lama (skema `unsur_pelayanan_id`
+langsung), migration #3 akan **menghapus kolom lama beserta datanya**. Karena sejauh ini yang
+ada baru data hasil testing, cara paling aman adalah:
+```bash
+php artisan migrate:fresh --seed
+```
+Ini akan reset total database + isi ulang data demo (termasuk 9 pertanyaan baseline &
+3 contoh unit layanan untuk "Puskesmas Contoh"). **Jangan** pakai `migrate:fresh` kalau
+sudah ada data survei sungguhan yang tidak boleh hilang — hubungi saya dulu kalau sudah
+di tahap itu, supaya migration-nya dibuat lebih hati-hati (migrasi data lama, bukan drop kolom).
+
+### Cara pasang
+
+1. Copy semua file ke lokasi yang sama.
+2. Jalankan `php artisan migrate:fresh --seed` (lihat catatan di atas).
+3. Login sebagai admin-puskesmas → cek menu **Pertanyaan Survei**, harusnya sudah ada 9
+   baris otomatis dari seeder.
+4. Tambah 1-2 pertanyaan baru tanpa kaitan unsur (pertanyaan tambahan), coba juga tambah
+   unit layanan baru.
+5. Buka link survei publik unit itu → pastikan semua pertanyaan (9 baku + tambahan) muncul,
+   dan dropdown unit layanan terisi.
+6. Isi survei, submit, lalu cek **Laporan** — nilai SKM resmi harusnya cuma dari 9 unsur baku,
+   dan pertanyaan tambahan muncul terpisah di tabel bawahnya dengan rata-rata sendiri.
+
 ## Belum termasuk di paket ini (langkah selanjutnya)
 
 - Form request class terpisah (validasi saat ini masih inline di controller)

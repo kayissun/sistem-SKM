@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Puskesmas\DashboardController;
 use App\Http\Controllers\Puskesmas\LaporanController;
+use App\Http\Controllers\Puskesmas\PertanyaanSurveiController;
 use App\Http\Controllers\Puskesmas\PetugasController;
+use App\Http\Controllers\Puskesmas\UnitLayananController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 | Cara pakai: require file ini dari routes/web.php, contoh:
 |   require __DIR__.'/puskesmas.php';
 |
-| - Kelola petugas: hanya role admin-puskesmas (petugas tidak boleh kelola akun lain)
+| - Kelola petugas, pertanyaan survei, unit layanan: hanya role admin-puskesmas
 | - Laporan: admin-puskesmas & petugas boleh lihat
 */
 
@@ -22,6 +24,8 @@ Route::middleware(['auth', 'role:admin-puskesmas'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('petugas', PetugasController::class)->except(['show']);
+        Route::resource('pertanyaan', PertanyaanSurveiController::class)->except(['show']);
+        Route::resource('unit-layanan', UnitLayananController::class)->except(['show']);
     });
 
 Route::middleware(['auth', 'role:admin-puskesmas|petugas'])

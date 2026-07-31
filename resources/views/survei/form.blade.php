@@ -16,7 +16,7 @@
                 <div class="alert alert-warning">
                     Survei sedang tidak dibuka saat ini. Silakan hubungi petugas {{ $puskesmas->nama }}.
                 </div>
-            @elseif ($unsurAktif->isEmpty())
+            @elseif ($daftarPertanyaan->isEmpty())
                 <div class="alert alert-warning">
                     Kuesioner belum tersedia. Silakan coba lagi nanti.
                 </div>
@@ -28,7 +28,18 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Unit layanan yang dikunjungi</label>
-                            <input type="text" name="unit_layanan" class="form-control" value="{{ old('unit_layanan') }}" placeholder="contoh: Poli Umum">
+                            @if ($daftarUnitLayanan->isNotEmpty())
+                                <select name="unit_layanan_id" class="form-select">
+                                    <option value="">Tidak menjawab</option>
+                                    @foreach ($daftarUnitLayanan as $unit)
+                                        <option value="{{ $unit->id }}" @selected(old('unit_layanan_id') == $unit->id)>
+                                            {{ $unit->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="text" class="form-control" disabled placeholder="Belum ada unit layanan terdaftar">
+                            @endif
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Jenis kelamin</label>
@@ -61,15 +72,15 @@
                     <h6 class="mb-2">Penilaian layanan</h6>
                     <p class="text-muted small">Skala 1 = sangat tidak baik, 4 = sangat baik.</p>
 
-                    @foreach ($unsurAktif as $unsur)
+                    @foreach ($daftarPertanyaan as $pertanyaan)
                         <div class="mb-3 pb-3 border-bottom">
-                            <label class="form-label">{{ $loop->iteration }}. {{ $unsur->pertanyaan }}</label>
+                            <label class="form-label">{{ $loop->iteration }}. {{ $pertanyaan->teks_pertanyaan }}</label>
                             <div class="btn-group w-100" role="group">
                                 @foreach ([1, 2, 3, 4] as $skala)
-                                    <input type="radio" class="btn-check" name="jawaban[{{ $unsur->id }}]"
-                                           id="u{{ $unsur->id }}_{{ $skala }}" value="{{ $skala }}"
-                                           @checked(old('jawaban.' . $unsur->id) == $skala) required>
-                                    <label class="btn btn-outline-primary" for="u{{ $unsur->id }}_{{ $skala }}">{{ $skala }}</label>
+                                    <input type="radio" class="btn-check" name="jawaban[{{ $pertanyaan->id }}]"
+                                           id="p{{ $pertanyaan->id }}_{{ $skala }}" value="{{ $skala }}"
+                                           @checked(old('jawaban.' . $pertanyaan->id) == $skala) required>
+                                    <label class="btn btn-outline-primary" for="p{{ $pertanyaan->id }}_{{ $skala }}">{{ $skala }}</label>
                                 @endforeach
                             </div>
                         </div>

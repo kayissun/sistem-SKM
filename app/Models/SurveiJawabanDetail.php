@@ -13,7 +13,7 @@ class SurveiJawabanDetail extends Model
     protected $table = 'survei_jawaban_detail';
 
     protected $fillable = [
-        'survei_jawaban_id', 'unsur_pelayanan_id', 'nilai',
+        'survei_jawaban_id', 'pertanyaan_survei_id', 'nilai',
     ];
 
     public function surveiJawaban(): BelongsTo
@@ -21,8 +21,8 @@ class SurveiJawabanDetail extends Model
         return $this->belongsTo(SurveiJawaban::class);
     }
 
-    public function unsurPelayanan(): BelongsTo
+    public function pertanyaanSurvei(): BelongsTo
     {
-        return $this->belongsTo(UnsurPelayanan::class);
+        return $this->belongsTo(PertanyaanSurvei::class);
     }
 }

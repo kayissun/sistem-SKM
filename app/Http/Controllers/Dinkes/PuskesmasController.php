@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Dinkes;
 
 use App\Http\Controllers\Controller;
+use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
+use App\Models\UnsurPelayanan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -47,6 +49,18 @@ class PuskesmasController extends Controller
             'no_telepon' => $data['no_telepon'] ?? null,
             'is_active' => true,
         ]);
+
+        // otomatis buatkan pertanyaan awal untuk 9 unsur wajib, tinggal diedit/ditambah
+        // sendiri oleh admin unit lewat menu "Pertanyaan Survei"
+        foreach (UnsurPelayanan::aktif()->get() as $unsur) {
+            PertanyaanSurvei::create([
+                'puskesmas_id' => $puskesmas->id,
+                'unsur_pelayanan_id' => $unsur->id,
+                'teks_pertanyaan' => $unsur->pertanyaan,
+                'urutan' => $unsur->urutan,
+                'is_active' => true,
+            ]);
+        }
 
         // password acak sebagai placeholder di database, tidak pernah diberitahu ke siapa pun;
         // admin akan mengatur passwordnya sendiri lewat link yang dikirim ke email

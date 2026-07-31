@@ -40,4 +40,14 @@ class Puskesmas extends Model
     {
         return $this->hasMany(SurveiJawaban::class);
     }
+
+    public function pertanyaanSurvei(): HasMany
+    {
+        return $this->hasMany(PertanyaanSurvei::class);
+    }
+
+    public function unitLayanan(): HasMany
+    {
+        return $this->hasMany(UnitLayanan::class);
+    }
 }

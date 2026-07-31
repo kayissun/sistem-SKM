@@ -31,9 +31,9 @@ class UnsurPelayanan extends Model
             ->useLogName('unsur-pelayanan');
     }
 
-    public function surveiJawabanDetail(): HasMany
+    public function pertanyaanSurvei(): HasMany
     {
-        return $this->hasMany(SurveiJawabanDetail::class);
+        return $this->hasMany(PertanyaanSurvei::class);
     }
 
     public function scopeAktif($query)

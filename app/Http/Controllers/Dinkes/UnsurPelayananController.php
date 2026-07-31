@@ -64,11 +64,12 @@ class UnsurPelayananController extends Controller
 
     public function destroy(UnsurPelayanan $unsur_pelayanan)
     {
-        // cegah hapus kalau sudah pernah dipakai responden, supaya histori nilai tidak rusak
-        if ($unsur_pelayanan->surveiJawabanDetail()->exists()) {
+        // cegah hapus kalau sudah dipakai/dikaitkan oleh pertanyaan survei di puskesmas manapun,
+        // supaya histori nilai SKM tidak rusak dan mapping puskesmas tidak jadi anak yatim
+        if ($unsur_pelayanan->pertanyaanSurvei()->exists()) {
             return redirect()
                 ->route('dinkes.unsur-pelayanan.index')
-                ->with('error', 'Unsur ini sudah punya data jawaban, nonaktifkan saja daripada dihapus.');
+                ->with('error', 'Unsur ini sudah dipakai di pertanyaan survei salah satu unit, nonaktifkan saja daripada dihapus.');
         }
 
         $unsur_pelayanan->delete();

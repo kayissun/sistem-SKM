@@ -8,6 +8,18 @@
     <h3 class="mb-1">{{ $puskesmas->nama }}</h3>
     <p class="text-muted">Periode: {{ $periode->nama }} &middot; Responden: {{ $hasil['jumlah_responden'] }}</p>
 
+    @if (!empty($hasil['unsur_belum_terpetakan']))
+        <div class="alert alert-warning">
+            <strong>Perhatian:</strong> unit ini belum punya pertanyaan aktif untuk unsur berikut,
+            nilai SKM di bawah kurang akurat sampai unit menambahkannya sendiri:
+            <ul class="mb-0 mt-1">
+                @foreach ($hasil['unsur_belum_terpetakan'] as $unsur)
+                    <li>{{ $unsur }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="mb-3">
         <a href="{{ route('dinkes.laporan.detail.export-pdf', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-outline-danger btn-sm">Export PDF</a>
         <a href="{{ route('dinkes.laporan.detail.export-excel', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-outline-success btn-sm">Export Excel</a>
@@ -39,6 +51,28 @@
             @endforeach
         </tbody>
     </table>
+
+    @if (!empty($hasil['pertanyaan_tambahan']))
+        <h5 class="mt-4">Pertanyaan Tambahan (di luar nilai SKM resmi)</h5>
+        <table class="table table-bordered bg-white">
+            <thead>
+                <tr>
+                    <th>Pertanyaan</th>
+                    <th style="width:140px">Jumlah jawaban</th>
+                    <th style="width:140px">Rata-rata</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($hasil['pertanyaan_tambahan'] as $tambahan)
+                    <tr>
+                        <td>{{ $tambahan['teks_pertanyaan'] }}</td>
+                        <td>{{ $tambahan['jumlah_jawaban'] }}</td>
+                        <td>{{ $tambahan['rata_rata'] }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     <div class="card d-inline-block">
         <div class="card-body">

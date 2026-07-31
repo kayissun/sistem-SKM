@@ -14,7 +14,7 @@ class SurveiJawaban extends Model
     protected $table = 'survei_jawaban';
 
     protected $fillable = [
-        'puskesmas_id', 'periode_survei_id', 'unit_layanan',
+        'puskesmas_id', 'periode_survei_id', 'unit_layanan_id',
         'jenis_kelamin', 'usia_rentang', 'pendidikan', 'pekerjaan',
     ];
 
@@ -26,6 +26,11 @@ class SurveiJawaban extends Model
     public function periodeSurvei(): BelongsTo
     {
         return $this->belongsTo(PeriodeSurvei::class);
+    }
+
+    public function unitLayanan(): BelongsTo
+    {
+        return $this->belongsTo(UnitLayanan::class);
     }
 
     public function detail(): HasMany

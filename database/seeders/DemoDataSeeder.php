@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\PeriodeSurvei;
+use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
+use App\Models\UnitLayanan;
+use App\Models\UnsurPelayanan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +37,27 @@ class DemoDataSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        // pertanyaan baseline dari 9 unsur wajib (kalau puskesmas ini baru dibuat lewat seeder,
+        // bukan lewat form dinkes, jadi belum otomatis punya pertanyaan seperti di PuskesmasController)
+        foreach (UnsurPelayanan::aktif()->get() as $unsur) {
+            PertanyaanSurvei::firstOrCreate(
+                ['puskesmas_id' => $puskesmas->id, 'unsur_pelayanan_id' => $unsur->id],
+                [
+                    'teks_pertanyaan' => $unsur->pertanyaan,
+                    'urutan' => $unsur->urutan,
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        // contoh unit layanan supaya dropdown di form survei tidak kosong saat dites
+        foreach (['Poli Umum', 'Poli Gigi', 'UGD'] as $nama) {
+            UnitLayanan::firstOrCreate(
+                ['puskesmas_id' => $puskesmas->id, 'nama' => $nama],
+                ['is_active' => true]
+            );
+        }
 
         // akun admin untuk puskesmas tsb
         $admin = User::firstOrCreate(

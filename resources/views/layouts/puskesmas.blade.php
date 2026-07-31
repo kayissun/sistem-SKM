@@ -21,6 +21,8 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.dashboard') }}">Dashboard</a></li>
                 @role('admin-puskesmas')
                 <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.petugas.index') }}">Petugas</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.pertanyaan.index') }}">Pertanyaan Survei</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.unit-layanan.index') }}">Unit Layanan</a></li>
                 @endrole
                 <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.laporan.index') }}">Laporan</a></li>
                 <li class="nav-item">

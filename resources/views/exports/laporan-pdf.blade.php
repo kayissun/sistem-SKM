@@ -60,5 +60,27 @@
             <td>{{ $hasil['mutu_akhir'] }}</td>
         </tr>
     </table>
+
+    @if (!empty($hasil['pertanyaan_tambahan']))
+        <h3 style="margin-top:24px">Pertanyaan Tambahan (di luar nilai SKM resmi)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pertanyaan</th>
+                    <th>Jumlah Jawaban</th>
+                    <th>Rata-rata</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($hasil['pertanyaan_tambahan'] as $tambahan)
+                    <tr>
+                        <td>{{ $tambahan['teks_pertanyaan'] }}</td>
+                        <td>{{ $tambahan['jumlah_jawaban'] }}</td>
+                        <td>{{ $tambahan['rata_rata'] }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 </body>
 </html>

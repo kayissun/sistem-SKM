@@ -27,6 +27,18 @@
     @if (!$periode || !$hasil)
         <div class="alert alert-warning">Belum ada periode survei yang dipilih atau tersedia.</div>
     @else
+        @if (!empty($hasil['unsur_belum_terpetakan']))
+            <div class="alert alert-warning">
+                <strong>Perhatian:</strong> unit ini belum punya pertanyaan aktif untuk unsur berikut,
+                tambahkan lewat menu "Pertanyaan Survei" supaya nilai SKM lebih akurat:
+                <ul class="mb-0 mt-1">
+                    @foreach ($hasil['unsur_belum_terpetakan'] as $unsur)
+                        <li>{{ $unsur }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <p class="text-muted">Jumlah responden: {{ $hasil['jumlah_responden'] }}</p>
 
         <table class="table table-bordered bg-white">
@@ -55,6 +67,28 @@
                 @endforeach
             </tbody>
         </table>
+
+        @if (!empty($hasil['pertanyaan_tambahan']))
+            <h5 class="mt-4">Pertanyaan Tambahan (di luar nilai SKM resmi)</h5>
+            <table class="table table-bordered bg-white">
+                <thead>
+                    <tr>
+                        <th>Pertanyaan</th>
+                        <th style="width:140px">Jumlah jawaban</th>
+                        <th style="width:140px">Rata-rata</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($hasil['pertanyaan_tambahan'] as $tambahan)
+                        <tr>
+                            <td>{{ $tambahan['teks_pertanyaan'] }}</td>
+                            <td>{{ $tambahan['jumlah_jawaban'] }}</td>
+                            <td>{{ $tambahan['rata_rata'] }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
 
         <div class="card d-inline-block">
             <div class="card-body">
