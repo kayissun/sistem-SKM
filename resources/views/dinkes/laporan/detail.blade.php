@@ -58,6 +58,7 @@
             <thead>
                 <tr>
                     <th>Pertanyaan</th>
+                    <th style="width:100px">Tipe</th>
                     <th style="width:140px">Jumlah jawaban</th>
                     <th style="width:140px">Rata-rata</th>
                 </tr>
@@ -66,8 +67,9 @@
                 @foreach ($hasil['pertanyaan_tambahan'] as $tambahan)
                     <tr>
                         <td>{{ $tambahan['teks_pertanyaan'] }}</td>
+                        <td>{{ $tambahan['tipe_input'] === 'teks' ? 'Teks' : 'Skala' }}</td>
                         <td>{{ $tambahan['jumlah_jawaban'] }}</td>
-                        <td>{{ $tambahan['rata_rata'] }}</td>
+                        <td>{{ $tambahan['rata_rata'] ?? '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>

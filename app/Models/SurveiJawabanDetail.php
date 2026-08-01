@@ -13,7 +13,7 @@ class SurveiJawabanDetail extends Model
     protected $table = 'survei_jawaban_detail';
 
     protected $fillable = [
-        'survei_jawaban_id', 'pertanyaan_survei_id', 'nilai',
+        'survei_jawaban_id', 'pertanyaan_survei_id', 'nilai', 'jawaban_teks',
     ];
 
     public function surveiJawaban(): BelongsTo

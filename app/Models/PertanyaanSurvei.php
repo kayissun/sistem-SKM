@@ -16,12 +16,28 @@ class PertanyaanSurvei extends Model
     protected $table = 'pertanyaan_survei';
 
     protected $fillable = [
-        'puskesmas_id', 'unsur_pelayanan_id', 'teks_pertanyaan', 'urutan', 'is_active',
+        'puskesmas_id', 'unsur_pelayanan_id', 'teks_pertanyaan', 'tipe_input',
+        'gaya_tampilan', 'label_skala_1', 'label_skala_2', 'label_skala_3', 'label_skala_4',
+        'urutan', 'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Label tampilan untuk tiap level skala 1-4. Kalau admin-puskesmas tidak isi label kustom,
+     * jatuh ke angka biasa supaya form tetap bisa dipakai.
+     */
+    public function labelSkala(): array
+    {
+        return [
+            1 => $this->label_skala_1 ?: '1',
+            2 => $this->label_skala_2 ?: '2',
+            3 => $this->label_skala_3 ?: '3',
+            4 => $this->label_skala_4 ?: '4',
+        ];
+    }
 
     public function getActivitylogOptions(): LogOptions
     {

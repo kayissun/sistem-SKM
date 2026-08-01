@@ -75,14 +75,31 @@
                     @foreach ($daftarPertanyaan as $pertanyaan)
                         <div class="mb-3 pb-3 border-bottom">
                             <label class="form-label">{{ $loop->iteration }}. {{ $pertanyaan->teks_pertanyaan }}</label>
-                            <div class="btn-group w-100" role="group">
-                                @foreach ([1, 2, 3, 4] as $skala)
-                                    <input type="radio" class="btn-check" name="jawaban[{{ $pertanyaan->id }}]"
-                                           id="p{{ $pertanyaan->id }}_{{ $skala }}" value="{{ $skala }}"
-                                           @checked(old('jawaban.' . $pertanyaan->id) == $skala) required>
-                                    <label class="btn btn-outline-primary" for="p{{ $pertanyaan->id }}_{{ $skala }}">{{ $skala }}</label>
-                                @endforeach
-                            </div>
+
+                            @if ($pertanyaan->tipe_input === 'teks')
+                                <textarea name="jawaban[{{ $pertanyaan->id }}]" class="form-control" rows="3"
+                                          placeholder="Tulis masukan Anda di sini (opsional)">{{ old('jawaban.' . $pertanyaan->id) }}</textarea>
+                            @elseif ($pertanyaan->gaya_tampilan === 'dropdown')
+                                <select name="jawaban[{{ $pertanyaan->id }}]" class="form-select" required>
+                                    <option value="">-- Pilih --</option>
+                                    @foreach ($pertanyaan->labelSkala() as $nilai => $label)
+                                        <option value="{{ $nilai }}" @selected(old('jawaban.' . $pertanyaan->id) == $nilai)>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <div class="btn-group-vertical w-100" role="group">
+                                    @foreach ($pertanyaan->labelSkala() as $nilai => $label)
+                                        <input type="radio" class="btn-check" name="jawaban[{{ $pertanyaan->id }}]"
+                                               id="p{{ $pertanyaan->id }}_{{ $nilai }}" value="{{ $nilai }}"
+                                               @checked(old('jawaban.' . $pertanyaan->id) == $nilai) required>
+                                        <label class="btn btn-outline-primary text-start" for="p{{ $pertanyaan->id }}_{{ $nilai }}">
+                                            {{ $nilai }} — {{ $label }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endforeach
 

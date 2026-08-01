@@ -25,6 +25,7 @@
             <tr>
                 <th style="width:60px">Urutan</th>
                 <th>Pertanyaan</th>
+                <th style="width:140px">Tipe</th>
                 <th style="width:160px">Terkait unsur</th>
                 <th style="width:100px">Status</th>
                 <th style="width:160px">Aksi</th>
@@ -35,6 +36,13 @@
                 <tr>
                     <td>{{ $pertanyaan->urutan }}</td>
                     <td>{{ $pertanyaan->teks_pertanyaan }}</td>
+                    <td>
+                        @if ($pertanyaan->tipe_input === 'teks')
+                            <span class="badge bg-info text-dark">Teks bebas</span>
+                        @else
+                            <span class="badge bg-light text-dark border">Skala · {{ $pertanyaan->gaya_tampilan === 'dropdown' ? 'Dropdown' : 'Radio' }}</span>
+                        @endif
+                    </td>
                     <td>
                         @if ($pertanyaan->unsurPelayanan)
                             <span class="badge bg-primary">{{ $pertanyaan->unsurPelayanan->kode }}</span>
@@ -60,7 +68,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-center text-muted">Belum ada pertanyaan</td></tr>
+                <tr><td colspan="6" class="text-center text-muted">Belum ada pertanyaan. Tambahkan pertanyaan pertama Anda lewat tombol di atas.</td></tr>
             @endforelse
         </tbody>
     </table>

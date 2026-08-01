@@ -106,12 +106,14 @@ class SkmCalculatorService
                 });
 
             $jumlah = $jawaban->count();
-            $rataRata = $jumlah > 0 ? $jawaban->avg('nilai') : 0;
 
             return [
                 'teks_pertanyaan' => $pertanyaan->teks_pertanyaan,
+                'tipe_input' => $pertanyaan->tipe_input,
                 'jumlah_jawaban' => $jumlah,
-                'rata_rata' => round($rataRata, 2),
+                'rata_rata' => ($pertanyaan->tipe_input === 'skala' && $jumlah > 0)
+                    ? round($jawaban->avg('nilai'), 2)
+                    : null,
             ];
         })->all();
     }

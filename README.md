@@ -413,7 +413,55 @@ di tahap itu, supaya migration-nya dibuat lebih hati-hati (migrasi data lama, bu
 6. Isi survei, submit, lalu cek **Laporan** — nilai SKM resmi harusnya cuma dari 9 unsur baku,
    dan pertanyaan tambahan muncul terpisah di tabel bawahnya dengan rata-rata sendiri.
 
+## Update: pertanyaan bisa kustom penuh (tipe input, gaya tampilan, label skala) + mulai kosong
+
+Perubahan lanjutan dari fitur "pertanyaan survei kustom" sebelumnya:
+
+- **Unit baru mulai kosong.** Waktu dinkes bikin Puskesmas/RSU baru, sistem **tidak lagi**
+  otomatis mengisi 9 pertanyaan baseline. Admin-puskesmas menyusun kuesionernya sendiri
+  dari nol, termasuk memutuskan sendiri mana yang mau dikaitkan ke unsur U1-U9.
+- **Tipe jawaban per pertanyaan**: `skala` (dinilai 1-4) atau `teks` (masukan bebas/opsional,
+  tidak bisa dikaitkan ke unsur karena bukan angka).
+- **Gaya tampilan** (khusus tipe skala): `radio` (tombol pilihan) atau `dropdown`.
+- **Label skala kustom per pertanyaan** — admin bisa isi manual atau pakai salah satu preset
+  cepat: Mutu umum (Buruk-Sangat Baik), Frekuensi (Tidak Pernah-Selalu), Ketersediaan sarana,
+  Keramahan petugas, Kompetensi petugas — atau kosongkan semua supaya tampil angka 1-4 biasa.
+  Preset ada di `app/Support/PresetLabelSkala.php`, gampang ditambah/diubah kalau perlu preset lain.
+
+### Migration tambahan (jalankan setelah migration sebelumnya)
+
+- `add_tipe_input_to_pertanyaan_survei_table` — kolom `tipe_input`, `gaya_tampilan`, 4 kolom label
+- `add_jawaban_teks_to_survei_jawaban_detail_table` — kolom `nilai` jadi nullable, tambah kolom `jawaban_teks`
+
+**Catatan teknis:** migration kedua memakai `->change()` untuk mengubah kolom `nilai` jadi nullable.
+Kalau muncul error terkait ini saat `php artisan migrate`, jalankan dulu:
+```bash
+composer require doctrine/dbal
+```
+lalu migrate ulang.
+
+### Cara pasang
+
+```bash
+php artisan migrate:fresh --seed
+```
+(sama seperti sebelumnya — karena masih tahap development, reset total lebih aman daripada
+migration bertahap. Kabari saya kalau sudah ada data survei sungguhan yang tidak boleh hilang.)
+
+### Yang bisa dites
+
+1. Login admin-puskesmas → menu **Pertanyaan Survei** → data demo dari seeder sekarang punya
+   label kustom per unsur (bukan cuma angka 1-4), coba buka salah satu buat lihat.
+2. Coba **Tambah pertanyaan** baru: pilih tipe "Teks bebas" → field unsur & label otomatis hilang.
+   Ganti balik ke "Skala" → coba pilih salah satu preset label, lihat 4 kotak label terisi otomatis,
+   lalu edit manual kalau mau beda dari preset.
+3. Buka link survei publik unit ini → pertanyaan skala tampil sesuai gaya (radio/dropdown) dengan
+   label kustomnya, pertanyaan teks tampil sebagai kotak isian bebas (boleh dikosongkan).
+4. Coba juga bikin Puskesmas baru dari sisi dinkes → login sebagai admin unit baru itu →
+   pastikan menu **Pertanyaan Survei** memang kosong total, sesuai yang diminta.
+
 ## Belum termasuk di paket ini (langkah selanjutnya)
 
 - Form request class terpisah (validasi saat ini masih inline di controller)
 - Halaman error 429 kustom yang lebih ramah untuk responden
+- Daftar isi masukan teks bebas belum ditampilkan satu-satu di laporan (baru jumlah + tipe saja)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Puskesmas;
 use App\Http\Controllers\Controller;
 use App\Models\PertanyaanSurvei;
 use App\Models\UnsurPelayanan;
+use App\Support\PresetLabelSkala;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -31,24 +32,19 @@ class PertanyaanSurveiController extends Controller
     public function create()
     {
         $daftarUnsur = UnsurPelayanan::aktif()->get();
+        $presetLabel = PresetLabelSkala::daftar();
         $urutanBerikutnya = (PertanyaanSurvei::where('puskesmas_id', Auth::user()->puskesmas_id)->max('urutan') ?? 0) + 1;
 
-        return view('puskesmas.pertanyaan.create', compact('daftarUnsur', 'urutanBerikutnya'));
+        return view('puskesmas.pertanyaan.create', compact('daftarUnsur', 'presetLabel', 'urutanBerikutnya'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'unsur_pelayanan_id' => ['nullable', 'exists:unsur_pelayanan,id'],
-            'teks_pertanyaan' => ['required', 'string', 'max:255'],
-            'urutan' => ['required', 'integer', 'min:1'],
-        ]);
+        $data = $this->validasi($request);
 
         PertanyaanSurvei::create([
             'puskesmas_id' => Auth::user()->puskesmas_id,
-            'unsur_pelayanan_id' => $data['unsur_pelayanan_id'] ?: null,
-            'teks_pertanyaan' => $data['teks_pertanyaan'],
-            'urutan' => $data['urutan'],
+            ...$data,
             'is_active' => true,
         ]);
 
@@ -62,22 +58,16 @@ class PertanyaanSurveiController extends Controller
         $this->pastikanSatuUnit($pertanyaan);
 
         $daftarUnsur = UnsurPelayanan::aktif()->get();
+        $presetLabel = PresetLabelSkala::daftar();
 
-        return view('puskesmas.pertanyaan.edit', compact('pertanyaan', 'daftarUnsur'));
+        return view('puskesmas.pertanyaan.edit', compact('pertanyaan', 'daftarUnsur', 'presetLabel'));
     }
 
     public function update(Request $request, PertanyaanSurvei $pertanyaan)
     {
         $this->pastikanSatuUnit($pertanyaan);
 
-        $data = $request->validate([
-            'unsur_pelayanan_id' => ['nullable', 'exists:unsur_pelayanan,id'],
-            'teks_pertanyaan' => ['required', 'string', 'max:255'],
-            'urutan' => ['required', 'integer', 'min:1'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
-        $data['unsur_pelayanan_id'] = $data['unsur_pelayanan_id'] ?: null;
+        $data = $this->validasi($request);
         $data['is_active'] = $request->boolean('is_active');
 
         $pertanyaan->update($data);
@@ -102,6 +92,37 @@ class PertanyaanSurveiController extends Controller
         return redirect()
             ->route('puskesmas.pertanyaan.index')
             ->with('success', 'Pertanyaan survei berhasil dihapus.');
+    }
+
+    /**
+     * Validasi + aturan bisnis: pertanyaan tipe teks tidak boleh dikaitkan ke unsur baku
+     * (jawaban teks bukan angka, tidak bisa masuk rumus SKM), dan gaya tampilan/label
+     * cuma relevan untuk tipe skala.
+     */
+    private function validasi(Request $request): array
+    {
+        $data = $request->validate([
+            'unsur_pelayanan_id' => ['nullable', 'exists:unsur_pelayanan,id'],
+            'teks_pertanyaan' => ['required', 'string', 'max:255'],
+            'tipe_input' => ['required', 'in:skala,teks'],
+            'gaya_tampilan' => ['nullable', 'in:radio,dropdown', 'required_if:tipe_input,skala'],
+            'label_skala_1' => ['nullable', 'string', 'max:100'],
+            'label_skala_2' => ['nullable', 'string', 'max:100'],
+            'label_skala_3' => ['nullable', 'string', 'max:100'],
+            'label_skala_4' => ['nullable', 'string', 'max:100'],
+            'urutan' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $data['unsur_pelayanan_id'] = $data['unsur_pelayanan_id'] ?: null;
+
+        if ($data['tipe_input'] === 'teks') {
+            // paksa null di server-side, jangan cuma andalkan disabled di frontend
+            $data['unsur_pelayanan_id'] = null;
+            $data['gaya_tampilan'] = null;
+            $data['label_skala_1'] = $data['label_skala_2'] = $data['label_skala_3'] = $data['label_skala_4'] = null;
+        }
+
+        return $data;
     }
 
     /**

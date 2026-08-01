@@ -42,6 +42,10 @@ class SurveiPublikController extends Controller
 
         $daftarPertanyaan = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)->aktif()->get();
 
+        if ($daftarPertanyaan->isEmpty()) {
+            return back()->with('error', 'Kuesioner belum tersedia untuk unit ini.');
+        }
+
         $rules = [
             'unit_layanan_id' => [
                 'nullable',
@@ -54,14 +58,16 @@ class SurveiPublikController extends Controller
         ];
 
         foreach ($daftarPertanyaan as $pertanyaan) {
-            $rules["jawaban.{$pertanyaan->id}"] = ['required', 'integer', 'between:1,4'];
+            $rules["jawaban.{$pertanyaan->id}"] = $pertanyaan->tipe_input === 'teks'
+                ? ['nullable', 'string', 'max:2000']
+                : ['required', 'integer', 'between:1,4'];
         }
 
         $data = $request->validate($rules, [
-            'jawaban.*.required' => 'Semua pertanyaan wajib dinilai.',
+            'jawaban.*.required' => 'Semua pertanyaan skala wajib dinilai.',
         ]);
 
-        DB::transaction(function () use ($data, $puskesmas, $periodeAktif) {
+        DB::transaction(function () use ($data, $puskesmas, $periodeAktif, $daftarPertanyaan) {
             $jawaban = SurveiJawaban::create([
                 'puskesmas_id' => $puskesmas->id,
                 'periode_survei_id' => $periodeAktif->id,
@@ -72,11 +78,26 @@ class SurveiPublikController extends Controller
                 'pekerjaan' => $data['pekerjaan'] ?? null,
             ]);
 
-            foreach ($data['jawaban'] as $pertanyaanId => $nilai) {
-                $jawaban->detail()->create([
-                    'pertanyaan_survei_id' => $pertanyaanId,
-                    'nilai' => $nilai,
-                ]);
+            foreach ($daftarPertanyaan as $pertanyaan) {
+                $nilaiMentah = $data['jawaban'][$pertanyaan->id] ?? null;
+
+                if ($pertanyaan->tipe_input === 'teks') {
+                    // lewati kalau responden tidak isi masukan teks (opsional)
+                    if (blank($nilaiMentah)) {
+                        continue;
+                    }
+
+                    $jawaban->detail()->create([
+                        'pertanyaan_survei_id' => $pertanyaan->id,
+                        'nilai' => null,
+                        'jawaban_teks' => $nilaiMentah,
+                    ]);
+                } else {
+                    $jawaban->detail()->create([
+                        'pertanyaan_survei_id' => $pertanyaan->id,
+                        'nilai' => $nilaiMentah,
+                    ]);
+                }
             }
         });
 
