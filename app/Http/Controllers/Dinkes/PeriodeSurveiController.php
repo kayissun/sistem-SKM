@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Dinkes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Dinkes\PeriodeSurveiRequest;
 use App\Models\PeriodeSurvei;
-use Illuminate\Http\Request;
 
 class PeriodeSurveiController extends Controller
 {
@@ -20,15 +20,9 @@ class PeriodeSurveiController extends Controller
         return view('dinkes.periode-survei.create');
     }
 
-    public function store(Request $request)
+    public function store(PeriodeSurveiRequest $request)
     {
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-            'tanggal_mulai' => ['required', 'date'],
-            'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
+        $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
         if ($data['is_active']) {
@@ -48,15 +42,9 @@ class PeriodeSurveiController extends Controller
         return view('dinkes.periode-survei.edit', ['periode' => $periode_survei]);
     }
 
-    public function update(Request $request, PeriodeSurvei $periode_survei)
+    public function update(PeriodeSurveiRequest $request, PeriodeSurvei $periode_survei)
     {
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-            'tanggal_mulai' => ['required', 'date'],
-            'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
+        $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
         if ($data['is_active']) {

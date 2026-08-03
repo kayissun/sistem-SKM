@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Dinkes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Dinkes\StorePuskesmasRequest;
+use App\Http\Requests\Dinkes\UpdatePuskesmasRequest;
 use App\Models\Puskesmas;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -27,17 +28,9 @@ class PuskesmasController extends Controller
         return view('dinkes.puskesmas.create');
     }
 
-    public function store(Request $request)
+    public function store(StorePuskesmasRequest $request)
     {
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-            'jenis' => ['required', 'in:puskesmas,rsu'],
-            'alamat' => ['nullable', 'string', 'max:255'],
-            'kecamatan' => ['nullable', 'string', 'max:255'],
-            'no_telepon' => ['nullable', 'string', 'max:30'],
-            'admin_nama' => ['required', 'string', 'max:255'],
-            'admin_email' => ['required', 'email', 'unique:users,email'],
-        ]);
+        $data = $request->validated();
 
         $puskesmas = Puskesmas::create([
             'nama' => $data['nama'],
@@ -75,16 +68,9 @@ class PuskesmasController extends Controller
         return view('dinkes.puskesmas.edit', ['puskesmas' => $puskesma]);
     }
 
-    public function update(Request $request, Puskesmas $puskesma)
+    public function update(UpdatePuskesmasRequest $request, Puskesmas $puskesma)
     {
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-            'jenis' => ['required', 'in:puskesmas,rsu'],
-            'alamat' => ['nullable', 'string', 'max:255'],
-            'kecamatan' => ['nullable', 'string', 'max:255'],
-            'no_telepon' => ['nullable', 'string', 'max:30'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
+        $data = $request->validated();
 
         $data['is_active'] = $request->boolean('is_active');
 

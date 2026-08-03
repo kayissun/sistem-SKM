@@ -61,6 +61,7 @@
                     <th style="width:100px">Tipe</th>
                     <th style="width:140px">Jumlah jawaban</th>
                     <th style="width:140px">Rata-rata</th>
+                    <th style="width:120px">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,6 +71,12 @@
                         <td>{{ $tambahan['tipe_input'] === 'teks' ? 'Teks' : 'Skala' }}</td>
                         <td>{{ $tambahan['jumlah_jawaban'] }}</td>
                         <td>{{ $tambahan['rata_rata'] ?? '-' }}</td>
+                        <td>
+                            @if ($tambahan['tipe_input'] === 'teks' && $tambahan['jumlah_jawaban'] > 0)
+                                <a href="{{ route('dinkes.laporan.jawaban-teks', ['puskesma' => $puskesmas, 'pertanyaan' => $tambahan['id'], 'periode_survei_id' => $periode->id]) }}"
+                                   class="btn btn-sm btn-outline-primary">Lihat jawaban</a>
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

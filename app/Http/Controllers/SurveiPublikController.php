@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSurveiJawabanRequest;
 use App\Models\PeriodeSurvei;
 use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
 use App\Models\SurveiJawaban;
 use App\Models\UnitLayanan;
 use App\Support\OpsiDataDiri;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class SurveiPublikController extends Controller
 {
@@ -34,48 +33,13 @@ class SurveiPublikController extends Controller
         ));
     }
 
-    public function store(Request $request, Puskesmas $puskesmas)
+    public function store(StoreSurveiJawabanRequest $request, Puskesmas $puskesmas)
     {
-        if (! $puskesmas->is_active) {
-            abort(404);
-        }
-
-        // periode aktif diambil ulang dari server, bukan dari input form,
-        // supaya tidak bisa dimanipulasi/telat berubah kalau periode ganti saat isi form
-        $periodeAktif = PeriodeSurvei::where('is_active', true)->first();
-
-        if (! $periodeAktif) {
-            return back()->with('error', 'Survei sedang tidak dibuka untuk periode ini.');
-        }
-
-        $daftarPertanyaan = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)->aktif()->get();
-
-        if ($daftarPertanyaan->isEmpty()) {
-            return back()->with('error', 'Kuesioner belum tersedia untuk unit ini.');
-        }
-
-        $rules = [
-            'unit_layanan_id' => [
-                'nullable',
-                Rule::exists('unit_layanan', 'id')->where('puskesmas_id', $puskesmas->id),
-            ],
-            'nama' => ['required', 'string', 'max:255'],
-            'no_hp' => ['required', 'string', 'max:25'],
-            'jenis_kelamin' => ['nullable', 'in:L,P'],
-            'usia_rentang' => ['required', Rule::in(OpsiDataDiri::usia())],
-            'pendidikan' => ['required', Rule::in(OpsiDataDiri::pendidikan())],
-            'pekerjaan' => ['required', Rule::in(OpsiDataDiri::pekerjaan())],
-        ];
-
-        foreach ($daftarPertanyaan as $pertanyaan) {
-            $rules["jawaban.{$pertanyaan->id}"] = $pertanyaan->tipe_input === 'teks'
-                ? ['nullable', 'string', 'max:2000']
-                : ['required', 'integer', 'between:1,4'];
-        }
-
-        $data = $request->validate($rules, [
-            'jawaban.*.required' => 'Semua pertanyaan skala wajib dinilai.',
-        ]);
+        // 3 prasyarat (unit aktif, periode aktif ada, kuesioner tidak kosong) sudah dicek
+        // di StoreSurveiJawabanRequest::authorize(), begitu juga aturan validasi tiap field.
+        $data = $request->validated();
+        $periodeAktif = $request->periodeAktif();
+        $daftarPertanyaan = $request->daftarPertanyaanAktif();
 
         DB::transaction(function () use ($data, $puskesmas, $periodeAktif, $daftarPertanyaan) {
             $jawaban = SurveiJawaban::create([

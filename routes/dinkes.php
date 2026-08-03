@@ -39,6 +39,7 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/laporan/export/excel', [LaporanController::class, 'exportExcelGabungan'])->name('laporan.export-excel');
         Route::get('/laporan/{puskesma}/export/pdf', [LaporanController::class, 'exportPdfDetail'])->name('laporan.detail.export-pdf');
         Route::get('/laporan/{puskesma}/export/excel', [LaporanController::class, 'exportExcelDetail'])->name('laporan.detail.export-excel');
+        Route::get('/laporan/{puskesma}/pertanyaan/{pertanyaan}/jawaban-teks', [LaporanController::class, 'jawabanTeks'])->name('laporan.jawaban-teks');
         Route::get('/laporan/{puskesma}', [LaporanController::class, 'detail'])->name('laporan.detail');
 
         Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');

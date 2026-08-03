@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Puskesmas;
 use App\Exports\LaporanUnsurExport;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
+use App\Models\PertanyaanSurvei;
+use App\Models\SurveiJawabanDetail;
 use App\Services\SkmCalculatorService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class LaporanController extends Controller
 {
@@ -41,6 +44,34 @@ class LaporanController extends Controller
             new LaporanUnsurExport($hasil, 'SKM ' . $puskesmas->nama),
             "skm-{$puskesmas->slug}.xlsx"
         );
+    }
+
+    public function jawabanTeks(Request $request, PertanyaanSurvei $pertanyaan)
+    {
+        if ($pertanyaan->puskesmas_id !== Auth::user()->puskesmas_id) {
+            throw new AccessDeniedHttpException('Pertanyaan ini bukan milik unit Anda.');
+        }
+
+        abort_unless($pertanyaan->tipe_input === 'teks', 404);
+
+        $puskesmas = Auth::user()->puskesmas;
+
+        $periodeId = $request->integer('periode_survei_id')
+            ?: PeriodeSurvei::where('is_active', true)->value('id');
+
+        $periode = PeriodeSurvei::findOrFail($periodeId);
+
+        $daftarJawaban = SurveiJawabanDetail::where('pertanyaan_survei_id', $pertanyaan->id)
+            ->whereNotNull('jawaban_teks')
+            ->whereHas('surveiJawaban', function ($q) use ($puskesmas, $periode) {
+                $q->where('puskesmas_id', $puskesmas->id)->where('periode_survei_id', $periode->id);
+            })
+            ->with('surveiJawaban')
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('puskesmas.laporan.jawaban-teks', compact('puskesmas', 'pertanyaan', 'periode', 'daftarJawaban'));
     }
 
     private function ambilData(Request $request, SkmCalculatorService $service): array

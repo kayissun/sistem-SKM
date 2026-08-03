@@ -108,6 +108,7 @@ class SkmCalculatorService
             $jumlah = $jawaban->count();
 
             return [
+                'id' => $pertanyaan->id,
                 'teks_pertanyaan' => $pertanyaan->teks_pertanyaan,
                 'tipe_input' => $pertanyaan->tipe_input,
                 'jumlah_jawaban' => $jumlah,

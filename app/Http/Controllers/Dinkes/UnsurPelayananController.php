@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Dinkes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Dinkes\StoreUnsurPelayananRequest;
+use App\Http\Requests\Dinkes\UpdateUnsurPelayananRequest;
 use App\Models\UnsurPelayanan;
-use Illuminate\Http\Request;
 
 class UnsurPelayananController extends Controller
 {
@@ -22,14 +23,9 @@ class UnsurPelayananController extends Controller
         return view('dinkes.unsur-pelayanan.create', compact('urutanBerikutnya'));
     }
 
-    public function store(Request $request)
+    public function store(StoreUnsurPelayananRequest $request)
     {
-        $data = $request->validate([
-            'kode' => ['required', 'string', 'max:10', 'unique:unsur_pelayanan,kode'],
-            'pertanyaan' => ['required', 'string', 'max:255'],
-            'urutan' => ['required', 'integer', 'min:1'],
-        ]);
-
+        $data = $request->validated();
         $data['is_active'] = true;
 
         UnsurPelayanan::create($data);
@@ -44,15 +40,9 @@ class UnsurPelayananController extends Controller
         return view('dinkes.unsur-pelayanan.edit', ['unsur' => $unsur_pelayanan]);
     }
 
-    public function update(Request $request, UnsurPelayanan $unsur_pelayanan)
+    public function update(UpdateUnsurPelayananRequest $request, UnsurPelayanan $unsur_pelayanan)
     {
-        $data = $request->validate([
-            'kode' => ['required', 'string', 'max:10', 'unique:unsur_pelayanan,kode,' . $unsur_pelayanan->id],
-            'pertanyaan' => ['required', 'string', 'max:255'],
-            'urutan' => ['required', 'integer', 'min:1'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
+        $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
         $unsur_pelayanan->update($data);

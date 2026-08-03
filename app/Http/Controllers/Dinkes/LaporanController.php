@@ -6,7 +6,9 @@ use App\Exports\LaporanUnsurExport;
 use App\Exports\RekapGabunganExport;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
+use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
+use App\Models\SurveiJawabanDetail;
 use App\Services\SkmCalculatorService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -76,6 +78,34 @@ class LaporanController extends Controller
             new LaporanUnsurExport($hasil, 'SKM ' . $puskesma->nama),
             "skm-{$puskesma->slug}.xlsx"
         );
+    }
+
+    public function jawabanTeks(Request $request, Puskesmas $puskesma, PertanyaanSurvei $pertanyaan)
+    {
+        abort_unless($pertanyaan->puskesmas_id === $puskesma->id, 404);
+        abort_unless($pertanyaan->tipe_input === 'teks', 404);
+
+        $periodeId = $request->integer('periode_survei_id')
+            ?: PeriodeSurvei::where('is_active', true)->value('id');
+
+        $periode = PeriodeSurvei::findOrFail($periodeId);
+
+        $daftarJawaban = SurveiJawabanDetail::where('pertanyaan_survei_id', $pertanyaan->id)
+            ->whereNotNull('jawaban_teks')
+            ->whereHas('surveiJawaban', function ($q) use ($puskesma, $periode) {
+                $q->where('puskesmas_id', $puskesma->id)->where('periode_survei_id', $periode->id);
+            })
+            ->with('surveiJawaban')
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('dinkes.laporan.jawaban-teks', [
+            'puskesmas' => $puskesma,
+            'pertanyaan' => $pertanyaan,
+            'periode' => $periode,
+            'daftarJawaban' => $daftarJawaban,
+        ]);
     }
 
     /**

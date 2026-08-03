@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Puskesmas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Puskesmas\UnitLayananRequest;
 use App\Models\UnitLayanan;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -24,11 +24,9 @@ class UnitLayananController extends Controller
         return view('puskesmas.unit-layanan.create');
     }
 
-    public function store(Request $request)
+    public function store(UnitLayananRequest $request)
     {
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-        ]);
+        $data = $request->validated();
 
         UnitLayanan::create([
             'puskesmas_id' => Auth::user()->puskesmas_id,
@@ -48,15 +46,10 @@ class UnitLayananController extends Controller
         return view('puskesmas.unit-layanan.edit', ['unitLayanan' => $unit_layanan]);
     }
 
-    public function update(Request $request, UnitLayanan $unit_layanan)
+    public function update(UnitLayananRequest $request, UnitLayanan $unit_layanan)
     {
-        $this->pastikanSatuUnit($unit_layanan);
-
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
+        // kepemilikan unit sudah divalidasi di UnitLayananRequest::authorize()
+        $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
         $unit_layanan->update($data);
@@ -83,6 +76,11 @@ class UnitLayananController extends Controller
             ->with('success', 'Unit layanan berhasil dihapus.');
     }
 
+    /**
+     * Dipakai untuk edit() (tampilan form) dan destroy() (tidak ada FormRequest karena
+     * tidak ada input body) — untuk store()/update() proteksi serupa sudah dilakukan
+     * di UnitLayananRequest::authorize().
+     */
     private function pastikanSatuUnit(UnitLayanan $unitLayanan): void
     {
         if ($unitLayanan->puskesmas_id !== Auth::user()->puskesmas_id) {

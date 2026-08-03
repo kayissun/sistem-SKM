@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Puskesmas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Puskesmas\StorePetugasRequest;
+use App\Http\Requests\Puskesmas\UpdatePetugasRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -28,12 +29,9 @@ class PetugasController extends Controller
         return view('puskesmas.petugas.create');
     }
 
-    public function store(Request $request)
+    public function store(StorePetugasRequest $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
-        ]);
+        $data = $request->validated();
 
         $petugas = User::create([
             'name' => $data['name'],
@@ -57,16 +55,10 @@ class PetugasController extends Controller
         return view('puskesmas.petugas.edit', compact('petugas'));
     }
 
-    public function update(Request $request, User $petugas)
+    public function update(UpdatePetugasRequest $request, User $petugas)
     {
-        $this->pastikanSatuUnit($petugas);
-
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email,' . $petugas->id],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
+        // kepemilikan unit sudah divalidasi di UpdatePetugasRequest::authorize()
+        $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
         $petugas->update($data);
@@ -89,7 +81,8 @@ class PetugasController extends Controller
 
     /**
      * Cegah admin-puskesmas mengedit/menghapus akun milik unit lain
-     * lewat manipulasi URL (mis. /puskesmas/petugas/5/edit).
+     * lewat manipulasi URL (mis. /puskesmas/petugas/5/edit). Dipakai untuk edit() (tampilan
+     * form) dan destroy() (tidak ada FormRequest karena tidak ada input body).
      */
     private function pastikanSatuUnit(User $petugas): void
     {

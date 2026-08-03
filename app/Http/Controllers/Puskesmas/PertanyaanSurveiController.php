@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Puskesmas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Puskesmas\PertanyaanSurveiRequest;
 use App\Models\PertanyaanSurvei;
 use App\Models\UnsurPelayanan;
 use App\Support\PresetLabelSkala;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -38,13 +38,11 @@ class PertanyaanSurveiController extends Controller
         return view('puskesmas.pertanyaan.create', compact('daftarUnsur', 'presetLabel', 'urutanBerikutnya'));
     }
 
-    public function store(Request $request)
+    public function store(PertanyaanSurveiRequest $request)
     {
-        $data = $this->validasi($request);
-
         PertanyaanSurvei::create([
             'puskesmas_id' => Auth::user()->puskesmas_id,
-            ...$data,
+            ...$request->validated(),
             'is_active' => true,
         ]);
 
@@ -63,11 +61,10 @@ class PertanyaanSurveiController extends Controller
         return view('puskesmas.pertanyaan.edit', compact('pertanyaan', 'daftarUnsur', 'presetLabel'));
     }
 
-    public function update(Request $request, PertanyaanSurvei $pertanyaan)
+    public function update(PertanyaanSurveiRequest $request, PertanyaanSurvei $pertanyaan)
     {
-        $this->pastikanSatuUnit($pertanyaan);
-
-        $data = $this->validasi($request);
+        // kepemilikan unit sudah divalidasi di PertanyaanSurveiRequest::authorize()
+        $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
         $pertanyaan->update($data);
@@ -95,39 +92,9 @@ class PertanyaanSurveiController extends Controller
     }
 
     /**
-     * Validasi + aturan bisnis: pertanyaan tipe teks tidak boleh dikaitkan ke unsur baku
-     * (jawaban teks bukan angka, tidak bisa masuk rumus SKM), dan gaya tampilan/label
-     * cuma relevan untuk tipe skala.
-     */
-    private function validasi(Request $request): array
-    {
-        $data = $request->validate([
-            'unsur_pelayanan_id' => ['nullable', 'exists:unsur_pelayanan,id'],
-            'teks_pertanyaan' => ['required', 'string', 'max:255'],
-            'tipe_input' => ['required', 'in:skala,teks'],
-            'gaya_tampilan' => ['nullable', 'in:radio,dropdown', 'required_if:tipe_input,skala'],
-            'label_skala_1' => ['nullable', 'string', 'max:100'],
-            'label_skala_2' => ['nullable', 'string', 'max:100'],
-            'label_skala_3' => ['nullable', 'string', 'max:100'],
-            'label_skala_4' => ['nullable', 'string', 'max:100'],
-            'urutan' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $data['unsur_pelayanan_id'] = $data['unsur_pelayanan_id'] ?: null;
-
-        if ($data['tipe_input'] === 'teks') {
-            // paksa null di server-side, jangan cuma andalkan disabled di frontend
-            $data['unsur_pelayanan_id'] = null;
-            $data['gaya_tampilan'] = null;
-            $data['label_skala_1'] = $data['label_skala_2'] = $data['label_skala_3'] = $data['label_skala_4'] = null;
-        }
-
-        return $data;
-    }
-
-    /**
-     * Pastikan admin-puskesmas cuma bisa kelola pertanyaan milik unitnya sendiri,
-     * meskipun ID pertanyaan unit lain ditebak lewat URL.
+     * Dipakai untuk edit() (tampilan form) dan destroy() (tidak ada FormRequest karena
+     * tidak ada input body). Untuk store()/update(), pengecekan yang sama sudah dilakukan
+     * di PertanyaanSurveiRequest::authorize().
      */
     private function pastikanSatuUnit(PertanyaanSurvei $pertanyaan): void
     {

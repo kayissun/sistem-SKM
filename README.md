@@ -549,8 +549,89 @@ teks) dan 3 unit layanan contoh ("Loket Pengaduan", dll) untuk Dinas Kesehatan.
 5. Balik ke **Panel Pengawasan Dinkes**, cek `/dinkes/puskesmas` dan `/dinkes/laporan` — pastikan
    "Dinas Kesehatan" **tidak muncul** di kedua daftar itu.
 
-## Belum termasuk di paket ini (langkah selanjutnya)
+## Form Request class terpisah (validasi tidak lagi inline)
 
-- Form request class terpisah (validasi saat ini masih inline di controller)
-- Halaman error 429 kustom yang lebih ramah untuk responden
-- Daftar isi masukan teks bebas belum ditampilkan satu-satu di laporan (baru jumlah + tipe saja)
+Semua `$request->validate([...])` inline di controller sudah dipindah ke class `FormRequest`
+tersendiri di `app/Http/Requests/`:
+
+| Controller | Form Request |
+|---|---|
+| `Dinkes\PuskesmasController` | `StorePuskesmasRequest`, `UpdatePuskesmasRequest` |
+| `Dinkes\UnsurPelayananController` | `StoreUnsurPelayananRequest`, `UpdateUnsurPelayananRequest` |
+| `Dinkes\PeriodeSurveiController` | `PeriodeSurveiRequest` (dipakai bersama store & update) |
+| `Puskesmas\PetugasController` | `StorePetugasRequest`, `UpdatePetugasRequest` |
+| `Puskesmas\PertanyaanSurveiController` | `PertanyaanSurveiRequest` |
+| `Puskesmas\UnitLayananController` | `UnitLayananRequest` |
+| `SurveiPublikController` | `StoreSurveiJawabanRequest` (rules dinamis sesuai kuesioner unit) |
+
+Beberapa hal yang ikut dirapikan sekalian:
+
+- **Proteksi lintas-unit dipindah ke `authorize()`.** Controller yang tadinya punya method privat
+  `pastikanSatuUnit()` dipanggil manual di setiap action, sekarang pengecekannya juga hidup di
+  `authorize()` milik Form Request-nya untuk `store()`/`update()` — jadi kalau ada yang lupa
+  memanggilnya di masa depan, validasi tetap otomatis jalan. Method `pastikanSatuUnit()` masih
+  dipertahankan untuk `edit()`/`destroy()` yang memang tidak punya body request untuk divalidasi.
+- **`StoreSurveiJawabanRequest` yang paling rumit** — karena aturan validasinya dinamis (jumlah
+  & tipe pertanyaan beda-beda per unit), 3 pengecekan prasyarat (unit aktif, periode aktif ada,
+  kuesioner tidak kosong) juga dipindah ke `authorize()`, dilempar sebagai exception supaya
+  responnya tetap sama seperti sebelumnya (404 kalau unit nonaktif, redirect + pesan kalau
+  periode/kuesioner belum siap) — bukan pesan error 403 generik bawaan Form Request.
+
+Tidak ada perubahan perilaku dari sisi pengguna — cuma perapian struktur kode.
+
+## Halaman error 429 kustom (terlalu banyak percobaan)
+
+File baru: `resources/views/errors/429.blade.php`.
+
+Laravel otomatis pakai file ini setiap ada response HTTP 429 di seluruh aplikasi — tidak perlu
+ubah route, controller, atau daftarkan apa pun secara manual, cukup taruh file-nya di lokasi ini
+dan Laravel akan menemukannya sendiri. Saat ini satu-satunya tempat yang bisa memicu 429 adalah
+rate limit di form submit survei publik (`throttle:15,10` yang sudah dipasang sebelumnya).
+
+Halaman ini pakai layout publik yang sama dengan form survei (`layouts.publik`) supaya konsisten,
+dan otomatis menghitung "coba lagi dalam X menit" dari header `Retry-After` yang dikirim Laravel,
+bukan angka yang di-hardcode.
+
+### Cara pasang
+
+Cukup copy file `resources/views/errors/429.blade.php` ke lokasi yang sama. Tidak ada migration,
+tidak ada perubahan controller/route.
+
+### Cara tes
+
+Submit form survei publik lebih dari 15 kali dalam 10 menit dari device/browser yang sama —
+percobaan ke-16 dst harusnya menampilkan halaman ini (bukan lagi halaman 429 putih polos bawaan
+Laravel), lengkap dengan estimasi waktu tunggu dan tombol "Kembali ke Form".
+
+## Daftar isi masukan teks bebas di laporan
+
+Sebelumnya tabel "Pertanyaan Tambahan" cuma nampilin jumlah jawaban + rata-rata (khusus tipe
+skala). Sekarang pertanyaan tipe **teks** dapat tombol "Lihat jawaban" yang membuka halaman
+daftar isi masukan satu-satu (dengan paginasi), lengkap dengan nama & no HP pengisi — supaya
+kalau ada keluhan/saran yang perlu ditindaklanjuti, dinkes/admin-puskesmas bisa langsung tahu
+siapa yang menulisnya.
+
+### File baru
+
+- `Dinkes\LaporanController@jawabanTeks` + `resources/views/dinkes/laporan/jawaban-teks.blade.php`
+- `Puskesmas\LaporanController@jawabanTeks` + `resources/views/puskesmas/laporan/jawaban-teks.blade.php`
+- Route baru: `dinkes.laporan.jawaban-teks`, `puskesmas.laporan.jawaban-teks`
+
+`SkmCalculatorService` juga sedikit diubah — tiap entri `pertanyaan_tambahan` sekarang menyertakan
+`id` pertanyaan, dipakai untuk bikin link "Lihat jawaban" tsb.
+
+### Cara pasang
+
+Tidak ada migration baru. Copy semua file di atas, pastikan `LaporanController` (dinkes & puskesmas)
+dan `SkmCalculatorService` yang lama ditimpa dengan versi ini.
+
+### Cara tes
+
+1. Isi survei publik yang punya pertanyaan tambahan tipe teks (dari data demo: "Ada saran atau
+   masukan lain untuk kami?"), isi kotak teksnya, submit.
+2. Buka **Laporan** (dinkes atau puskesmas) → tabel "Pertanyaan Tambahan" → klik **Lihat jawaban**
+   di baris pertanyaan teks tsb.
+3. Pastikan muncul isi masukannya, nama & no HP pengisi, dan tanggal submit — kalau lebih dari
+   20 masukan, coba juga paginasinya.
+4. Dari sisi dinkes, coba buka halaman ini untuk salah satu puskesmas — pastikan cuma nampilin
+   masukan milik puskesmas itu, bukan campur semua unit.
