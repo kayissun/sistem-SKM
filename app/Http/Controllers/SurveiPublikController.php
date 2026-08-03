@@ -7,6 +7,7 @@ use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
 use App\Models\SurveiJawaban;
 use App\Models\UnitLayanan;
+use App\Support\OpsiDataDiri;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -23,7 +24,14 @@ class SurveiPublikController extends Controller
         $daftarPertanyaan = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)->aktif()->get();
         $daftarUnitLayanan = UnitLayanan::where('puskesmas_id', $puskesmas->id)->aktif()->get();
 
-        return view('survei.form', compact('puskesmas', 'periodeAktif', 'daftarPertanyaan', 'daftarUnitLayanan'));
+        $opsiUsia = OpsiDataDiri::usia();
+        $opsiPendidikan = OpsiDataDiri::pendidikan();
+        $opsiPekerjaan = OpsiDataDiri::pekerjaan();
+
+        return view('survei.form', compact(
+            'puskesmas', 'periodeAktif', 'daftarPertanyaan', 'daftarUnitLayanan',
+            'opsiUsia', 'opsiPendidikan', 'opsiPekerjaan'
+        ));
     }
 
     public function store(Request $request, Puskesmas $puskesmas)
@@ -51,10 +59,12 @@ class SurveiPublikController extends Controller
                 'nullable',
                 Rule::exists('unit_layanan', 'id')->where('puskesmas_id', $puskesmas->id),
             ],
+            'nama' => ['required', 'string', 'max:255'],
+            'no_hp' => ['required', 'string', 'max:25'],
             'jenis_kelamin' => ['nullable', 'in:L,P'],
-            'usia_rentang' => ['nullable', 'string', 'max:50'],
-            'pendidikan' => ['nullable', 'string', 'max:100'],
-            'pekerjaan' => ['nullable', 'string', 'max:100'],
+            'usia_rentang' => ['required', Rule::in(OpsiDataDiri::usia())],
+            'pendidikan' => ['required', Rule::in(OpsiDataDiri::pendidikan())],
+            'pekerjaan' => ['required', Rule::in(OpsiDataDiri::pekerjaan())],
         ];
 
         foreach ($daftarPertanyaan as $pertanyaan) {
@@ -72,10 +82,12 @@ class SurveiPublikController extends Controller
                 'puskesmas_id' => $puskesmas->id,
                 'periode_survei_id' => $periodeAktif->id,
                 'unit_layanan_id' => $data['unit_layanan_id'] ?? null,
+                'nama' => $data['nama'],
+                'no_hp' => $data['no_hp'],
                 'jenis_kelamin' => $data['jenis_kelamin'] ?? null,
-                'usia_rentang' => $data['usia_rentang'] ?? null,
-                'pendidikan' => $data['pendidikan'] ?? null,
-                'pekerjaan' => $data['pekerjaan'] ?? null,
+                'usia_rentang' => $data['usia_rentang'],
+                'pendidikan' => $data['pendidikan'],
+                'pekerjaan' => $data['pekerjaan'],
             ]);
 
             foreach ($daftarPertanyaan as $pertanyaan) {

@@ -15,6 +15,7 @@ class PuskesmasController extends Controller
     public function index()
     {
         $daftarPuskesmas = Puskesmas::withCount('users')
+            ->whereIn('jenis', ['puskesmas', 'rsu']) // unit Dinas Kesehatan sendiri tidak muncul di sini
             ->orderBy('nama')
             ->paginate(10);
 

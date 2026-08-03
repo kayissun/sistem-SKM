@@ -28,6 +28,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('survei.create', auth()->user()->puskesmas) }}" target="_blank">Link survei</a>
                 </li>
+                @role('dinkes')
+                <li class="nav-item">
+                    <a class="nav-link bg-dark bg-opacity-25 rounded" href="{{ route('dinkes.dashboard') }}">
+                        &larr; Panel Pengawasan Dinkes
+                    </a>
+                </li>
+                @endrole
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">

@@ -14,7 +14,7 @@ class SurveiJawaban extends Model
     protected $table = 'survei_jawaban';
 
     protected $fillable = [
-        'puskesmas_id', 'periode_survei_id', 'unit_layanan_id',
+        'puskesmas_id', 'periode_survei_id', 'unit_layanan_id', 'nama', 'no_hp',
         'jenis_kelamin', 'usia_rentang', 'pendidikan', 'pekerjaan',
     ];
 

@@ -460,6 +460,95 @@ migration bertahap. Kabari saya kalau sudah ada data survei sungguhan yang tidak
 4. Coba juga bikin Puskesmas baru dari sisi dinkes → login sebagai admin unit baru itu →
    pastikan menu **Pertanyaan Survei** memang kosong total, sesuai yang diminta.
 
+## Update: field data diri responden (nama, no HP, dropdown usia/pendidikan/pekerjaan)
+
+Perubahan di form survei publik:
+
+| Field | Sebelum | Sesudah |
+|---|---|---|
+| Nama | tidak ada | **Baru**, wajib diisi |
+| No. WA/HP | tidak ada | **Baru**, wajib diisi |
+| Unit layanan (poli) | dropdown, opsional | dropdown (sama), **sekarang wajib** |
+| Jenis kelamin | dropdown, opsional | tidak berubah (masih opsional) |
+| Rentang usia | dropdown generik | diganti 8 kategori resmi Kemenkes, wajib |
+| Pendidikan terakhir | input teks bebas | diganti dropdown (SD/SMP/SMA/D3/S1/S2/S3), wajib |
+| Pekerjaan | input teks bebas | diganti dropdown (PNS/Wirausaha/dst), wajib |
+
+Opsi dropdown-nya saya taruh di satu tempat: `app/Support/OpsiDataDiri.php` — kalau nanti mau
+tambah/ubah pilihan, cukup edit array di situ, tidak perlu ubah controller atau view.
+
+**Catatan privasi:** dengan nama & no HP sekarang wajib diisi, form ini bukan lagi anonim
+sepenuhnya seperti desain awal. Ini konsekuensi wajar dari kebutuhan kamu, cuma perlu diingat
+untuk bagian kepatuhan UU PDP yang pernah kita bahas — sebaiknya ada keterangan singkat di
+form soal data ini dipakai untuk apa (misal: tindak lanjut keluhan), dan dijaga aksesnya
+cuma oleh dinkes/admin unit terkait (yang sudah otomatis kejamin lewat scope per unit).
+
+### Migration tambahan
+
+`add_nama_no_hp_to_survei_jawaban_table` — tambah kolom `nama`, `no_hp` di tabel `survei_jawaban`.
+
+### Cara pasang
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+### Yang bisa dites
+
+Buka link survei publik mana pun → pastikan field Nama & No. WA/HP muncul dan wajib diisi,
+dropdown usia sudah 8 kategori Kemenkes, pendidikan & pekerjaan sudah jadi dropdown (bukan teks
+bebas lagi), dan submit tanpa isi salah satu field wajib akan ditolak validasi.
+
+## Dinkes juga punya SKM sendiri (kuesioner, laporan, link & QR)
+
+Alih-alih bikin modul baru dari nol, Dinas Kesehatan sekarang diperlakukan sebagai **"unit" juga**
+di tabel `puskesmas` (jenis baru: `dinkes`) — supaya otomatis dapat semua fitur yang sudah ada:
+pertanyaan survei kustom, unit layanan, laporan (+ export PDF/Excel), link survei publik, dan QR code.
+Tidak ada controller/view baru yang ditulis khusus untuk ini — murni reuse.
+
+### Cara kerjanya
+
+- User dengan role `dinkes` sekarang **juga** diberi role `admin-puskesmas` (dobel role), dan
+  `puskesmas_id`-nya dikaitkan ke 1 baris khusus di tabel `puskesmas` bernama "Dinas Kesehatan"
+  (`jenis = 'dinkes'`).
+- Karena itu, halaman-halaman yang sebelumnya cuma bisa diakses admin-puskesmas biasa
+  (`/puskesmas/dashboard`, `/puskesmas/pertanyaan`, `/puskesmas/unit-layanan`, `/puskesmas/laporan`)
+  otomatis bisa diakses user dinkes juga — datanya otomatis punya Dinas Kesehatan sendiri, terpisah
+  dari data milik puskesmas/RSU lain (karena tetap di-scope lewat `puskesmas_id`).
+- Unit "Dinas Kesehatan" ini **sengaja disembunyikan** dari daftar Puskesmas/RSU yang dikelola
+  di panel dinkes (`/dinkes/puskesmas`), dan **tidak ikut campur** ke rekap gabungan semua unit
+  di `/dinkes/laporan` — supaya dinkes tidak bisa nonaktifkan diri sendiri secara tidak sengaja,
+  dan SKM Dinkes dilihat terpisah, bukan tercampur ke rata-rata 29 puskesmas.
+- Navbar dinkes sekarang ada menu **"SKM Dinkes Sendiri"** → masuk ke panel yang persis sama
+  seperti panel admin-puskesmas, tapi datanya milik Dinas Kesehatan. Dari situ ada juga tombol
+  balik **"Panel Pengawasan Dinkes"** untuk kembali ke mode pengawasan semua unit.
+
+### Migration baru
+
+`add_dinkes_as_puskesmas_jenis` — menambah nilai `dinkes` ke enum `jenis`, membuat baris
+"Dinas Kesehatan" di tabel `puskesmas`, dan (untuk instalasi yang sudah ada datanya, bukan baru)
+otomatis mengaitkan user ber-role `dinkes` yang sudah ada ke unit ini + kasih role tambahan
+`admin-puskesmas`.
+
+### Cara pasang
+
+```bash
+php artisan migrate:fresh --seed
+```
+Data demo dari `DemoDataSeeder` sekarang juga mengisi kuesioner contoh (9 unsur baku + 1 pertanyaan
+teks) dan 3 unit layanan contoh ("Loket Pengaduan", dll) untuk Dinas Kesehatan.
+
+### Yang bisa dites
+
+1. Login sebagai `dinkes@example.test` → klik **SKM Dinkes Sendiri** di navbar.
+2. Cek menu **Pertanyaan Survei** & **Unit Layanan** — sudah ada data contoh, bisa diedit/ditambah
+   persis seperti admin-puskesmas biasa.
+3. Cek **Dashboard** — ada QR code & link survei publik milik Dinas Kesehatan sendiri, coba scan/buka.
+4. Isi survei publik itu, submit, cek **Laporan** — nilai SKM-nya cuma dari data Dinas Kesehatan,
+   terpisah dari 29 puskesmas lain.
+5. Balik ke **Panel Pengawasan Dinkes**, cek `/dinkes/puskesmas` dan `/dinkes/laporan` — pastikan
+   "Dinas Kesehatan" **tidak muncul** di kedua daftar itu.
+
 ## Belum termasuk di paket ini (langkah selanjutnya)
 
 - Form request class terpisah (validasi saat ini masih inline di controller)

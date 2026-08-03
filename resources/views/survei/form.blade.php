@@ -24,13 +24,22 @@
                 <form method="POST" action="{{ route('survei.store', $puskesmas) }}">
                     @csrf
 
-                    <h6 class="mt-2 mb-3">Data diri (opsional)</h6>
+                    <h6 class="mt-2 mb-3">Data diri <span class="text-danger">(wajib diisi)</span></h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label">Unit layanan yang dikunjungi</label>
+                            <label class="form-label">Nama <span class="text-danger">*</span></label>
+                            <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No. WA/HP <span class="text-danger">*</span></label>
+                            <input type="tel" name="no_hp" class="form-control" value="{{ old('no_hp') }}" required
+                                   placeholder="contoh: 081234567890">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Unit layanan yang dikunjungi <span class="text-danger">*</span></label>
                             @if ($daftarUnitLayanan->isNotEmpty())
-                                <select name="unit_layanan_id" class="form-select">
-                                    <option value="">Tidak menjawab</option>
+                                <select name="unit_layanan_id" class="form-select" required>
+                                    <option value="">-- Pilih --</option>
                                     @foreach ($daftarUnitLayanan as $unit)
                                         <option value="{{ $unit->id }}" @selected(old('unit_layanan_id') == $unit->id)>
                                             {{ $unit->nama }}
@@ -50,22 +59,31 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Rentang usia</label>
-                            <select name="usia_rentang" class="form-select">
-                                <option value="">Tidak menjawab</option>
-                                <option value="17-30" @selected(old('usia_rentang') === '17-30')>17-30 tahun</option>
-                                <option value="31-45" @selected(old('usia_rentang') === '31-45')>31-45 tahun</option>
-                                <option value="46-60" @selected(old('usia_rentang') === '46-60')>46-60 tahun</option>
-                                <option value=">60" @selected(old('usia_rentang') === '>60')>Di atas 60 tahun</option>
+                            <label class="form-label">Rentang usia <span class="text-danger">*</span></label>
+                            <select name="usia_rentang" class="form-select" required>
+                                <option value="">-- Pilih --</option>
+                                @foreach ($opsiUsia as $opsi)
+                                    <option value="{{ $opsi }}" @selected(old('usia_rentang') === $opsi)>{{ $opsi }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Pendidikan terakhir</label>
-                            <input type="text" name="pendidikan" class="form-control" value="{{ old('pendidikan') }}">
+                            <label class="form-label">Pendidikan terakhir <span class="text-danger">*</span></label>
+                            <select name="pendidikan" class="form-select" required>
+                                <option value="">-- Pilih --</option>
+                                @foreach ($opsiPendidikan as $opsi)
+                                    <option value="{{ $opsi }}" @selected(old('pendidikan') === $opsi)>{{ $opsi }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Pekerjaan</label>
-                            <input type="text" name="pekerjaan" class="form-control" value="{{ old('pekerjaan') }}">
+                            <label class="form-label">Pekerjaan <span class="text-danger">*</span></label>
+                            <select name="pekerjaan" class="form-select" required>
+                                <option value="">-- Pilih --</option>
+                                @foreach ($opsiPekerjaan as $opsi)
+                                    <option value="{{ $opsi }}" @selected(old('pekerjaan') === $opsi)>{{ $opsi }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
