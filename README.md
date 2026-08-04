@@ -635,3 +635,58 @@ dan `SkmCalculatorService` yang lama ditimpa dengan versi ini.
    20 masukan, coba juga paginasinya.
 4. Dari sisi dinkes, coba buka halaman ini untuk salah satu puskesmas — pastikan cuma nampilin
    masukan milik puskesmas itu, bukan campur semua unit.
+
+## Redesign landing page (font Poppins, warna ungu, ilustrasi)
+
+File yang diganti total: `resources/views/welcome.blade.php` — halaman default Laravel
+(yang isinya link dokumentasi Laravel/Laracast) sudah dihapus, diganti landing page profesional.
+
+### Yang dipakai
+
+- **Font**: Poppins (dari Google Fonts CDN), dipakai konsisten di seluruh halaman — bobot 300-800
+  untuk variasi hierarki (heading tebal 800, body 400, label 600).
+- **Warna primary**: ungu, mirip nuansa Google Forms — `#6D28D9` sebagai warna utama, dengan
+  beberapa turunan (`#7C3AED` untuk hover, `#2E1065` untuk footer/gradient gelap, `#EDE9FE`
+  untuk background lembut). Semua didefinisikan sebagai CSS custom property (`:root { --purple-700: ... }`)
+  di bagian atas file, jadi gampang di-adjust nanti kalau mau ganti sedikit shade-nya.
+- **Ilustrasi**: bukan file dari storyset.com (situsnya butuh interaksi JS untuk pilih & unduh,
+  di luar akses jaringan sandbox saya) — saya buat **ilustrasi orisinal** bergaya flat illustration
+  serupa (orang + kartu kuesioner + checklist + rating bintang 1-4), langsung sebagai inline SVG
+  di dalam file, jadi tidak butuh request ke server luar sama sekali (lebih cepat & tidak rawan putus).
+- **Layout hero**: teks di kiri, ilustrasi di kanan (sesuai diminta), otomatis stack jadi 1 kolom
+  di layar sempit (mobile).
+
+### Struktur halaman
+
+Navbar → Hero (headline + CTA) → strip kepercayaan → 4 kartu fitur → 3 langkah cara kerja →
+CTA banner → footer. Tombol "Masuk ke Sistem" mengarah ke `route('login')` (halaman login Breeze
+yang sudah ada, tidak diubah).
+
+### Cara pasang
+
+Copy `resources/views/welcome.blade.php` ke lokasi yang sama (timpa file lama). Tidak ada
+migration, tidak ada perubahan controller/route — halaman ini dipakai oleh route `/` yang
+sudah ada bawaan Laravel.
+
+### Kalau nanti mau ganti ilustrasi jadi asli dari storyset.com
+
+1. Buka storyset.com, cari ilustrasi bertema survei/kuesioner/checklist, pilih warna ungu
+   biar senada, lalu download sebagai SVG.
+2. Simpan file itu di `public/images/hero-illustration.svg`.
+3. Di `welcome.blade.php`, cari blok `<svg viewBox="0 0 520 480" ...> ... </svg>` di bagian
+   `.hero-illustration`, ganti seluruhnya jadi:
+   ```html
+   <img src="{{ asset('images/hero-illustration.svg') }}" alt="Ilustrasi survei kepuasan">
+   ```
+
+### Catatan
+
+Ini baru landing page-nya saja sesuai permintaan awal ("mulai dari halaman landing dulu").
+Halaman lain (login, dashboard dinkes/puskesmas, form survei publik) masih pakai tampilan
+Bootstrap yang lama — belum ikut dirombak ke tema Poppins + ungu ini. Kalau nanti mau lanjut
+ke halaman-halaman itu, warna & fontnya bisa ditarik dari variabel `:root` di file ini supaya
+konsisten satu tema di seluruh sistem.
+
+## Belum termasuk di paket ini (langkah selanjutnya)
+
+- Redesign halaman-halaman lain (login, dashboard, form survei) ke tema Poppins + ungu yang sama
