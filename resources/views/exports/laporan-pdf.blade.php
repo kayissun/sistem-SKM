@@ -3,48 +3,26 @@
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: sans-serif; font-size: 12px; color: #222; }
+        body { font-family: sans-serif; font-size: 11px; color: #222; }
         h2 { margin-bottom: 0; }
+        h3 { margin-top: 22px; margin-bottom: 6px; font-size: 13px; }
         p.sub { color: #666; margin-top: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
-        th { background: #f2f2f2; }
-        .ringkasan { margin-top: 20px; }
-        .ringkasan td { border: none; padding: 2px 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 5px 6px; text-align: center; }
+        th { background: #f7f0da; }
+        td.label { text-align: left; }
+        th.label { text-align: left; }
+        tfoot td { background: #f2f2f2; font-weight: bold; }
+        .ringkasan { margin-top: 14px; width: auto; }
+        .ringkasan td { border: none; padding: 2px 8px; text-align: left; }
         .ringkasan .label { color: #666; }
-        .nilai-akhir { font-size: 18px; font-weight: bold; }
+        .nilai-akhir { font-size: 16px; font-weight: bold; }
+        .poli-block { margin-top: 18px; }
     </style>
 </head>
 <body>
     <h2>Laporan Survei Kepuasan Masyarakat</h2>
     <p class="sub">{{ $puskesmas->nama }} &middot; Periode: {{ $periode->nama }} &middot; Dicetak: {{ now()->format('d M Y H:i') }}</p>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Kode</th>
-                <th>Unsur Pelayanan</th>
-                <th>Total Nilai</th>
-                <th>NRR</th>
-                <th>NRR Skala 100</th>
-                <th>Kategori</th>
-                <th>NRR Tertimbang</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($hasil['per_unsur'] as $kode => $unsur)
-                <tr>
-                    <td>{{ $kode }}</td>
-                    <td>{{ $unsur['pertanyaan'] }}</td>
-                    <td>{{ $unsur['total_nilai'] }}</td>
-                    <td>{{ $unsur['nrr'] }}</td>
-                    <td>{{ $unsur['nrr_skala_100'] }}</td>
-                    <td>{{ $unsur['kategori'] }}</td>
-                    <td>{{ $unsur['nrr_tertimbang'] }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
 
     <table class="ringkasan">
         <tr>
@@ -61,12 +39,24 @@
         </tr>
     </table>
 
+    <h3>Indeks Kepuasan Masyarakat — Seluruh Layanan</h3>
+    @include('exports.partials.matriks-skm-pdf', ['hasil' => $hasil])
+
+    @isset($hasilPerPoli)
+        @foreach ($hasilPerPoli as $poli)
+            <div class="poli-block">
+                <h3>IKM Poli/Layanan: {{ $poli['unit_layanan_nama'] }}</h3>
+                @include('exports.partials.matriks-skm-pdf', ['hasil' => $poli])
+            </div>
+        @endforeach
+    @endisset
+
     @if (!empty($hasil['pertanyaan_tambahan']))
-        <h3 style="margin-top:24px">Pertanyaan Tambahan (di luar nilai SKM resmi)</h3>
+        <h3>Pertanyaan Tambahan (di luar nilai SKM resmi)</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Pertanyaan</th>
+                    <th class="label">Pertanyaan</th>
                     <th>Jumlah Jawaban</th>
                     <th>Rata-rata</th>
                 </tr>
@@ -74,9 +64,9 @@
             <tbody>
                 @foreach ($hasil['pertanyaan_tambahan'] as $tambahan)
                     <tr>
-                        <td>{{ $tambahan['teks_pertanyaan'] }}</td>
+                        <td class="label">{{ $tambahan['teks_pertanyaan'] }}</td>
                         <td>{{ $tambahan['jumlah_jawaban'] }}</td>
-                        <td>{{ $tambahan['rata_rata'] }}</td>
+                        <td>{{ $tambahan['rata_rata'] ?? '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>

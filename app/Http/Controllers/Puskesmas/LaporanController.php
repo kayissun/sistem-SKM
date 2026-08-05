@@ -20,7 +20,9 @@ class LaporanController extends Controller
     {
         [$puskesmas, $periode, $daftarPeriode, $hasil] = $this->ambilData($request, $service);
 
-        return view('puskesmas.laporan.index', compact('puskesmas', 'daftarPeriode', 'periode', 'hasil'));
+        $hasilPerPoli = ($puskesmas && $periode) ? $service->hitungPerUnitLayanan($puskesmas, $periode) : collect();
+
+        return view('puskesmas.laporan.index', compact('puskesmas', 'daftarPeriode', 'periode', 'hasil', 'hasilPerPoli'));
     }
 
     public function exportPdf(Request $request, SkmCalculatorService $service)
@@ -29,7 +31,9 @@ class LaporanController extends Controller
 
         abort_if(! $periode || ! $hasil, 404, 'Periode survei tidak ditemukan.');
 
-        $pdf = Pdf::loadView('exports.laporan-pdf', compact('puskesmas', 'periode', 'hasil'));
+        $hasilPerPoli = $service->hitungPerUnitLayanan($puskesmas, $periode);
+
+        $pdf = Pdf::loadView('exports.laporan-pdf', compact('puskesmas', 'periode', 'hasil', 'hasilPerPoli'));
 
         return $pdf->download("skm-{$puskesmas->slug}-{$periode->id}.pdf");
     }

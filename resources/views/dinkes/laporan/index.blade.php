@@ -27,7 +27,13 @@
     @if (!$periode)
         <div class="alert alert-warning">Belum ada periode survei. Buat periode terlebih dahulu.</div>
     @else
-        <table class="table table-bordered bg-white">
+        <div class="d-flex justify-content-end mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="salinTabelKeClipboard('tabel-rekap-gabungan', this)">
+                Salin Tabel
+            </button>
+        </div>
+
+        <table id="tabel-rekap-gabungan" class="table table-bordered bg-white">
             <thead>
                 <tr>
                     <th>Unit</th>

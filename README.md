@@ -690,3 +690,96 @@ konsisten satu tema di seluruh sistem.
 ## Belum termasuk di paket ini (langkah selanjutnya)
 
 - Redesign halaman-halaman lain (login, dashboard, form survei) ke tema Poppins + ungu yang sama
+
+## Upgrade laporan: tabel matriks resmi + IKM per poli/layanan
+
+Berdasarkan contoh format laporan yang kamu kirim, ada 2 upgrade di laporan **Puskesmas/RSU
+dan SKM milik Dinkes sendiri** (karena Dinkes reuse halaman yang sama). Laporan rekap gabungan
+semua unit di panel superadmin dinkes (`/dinkes/laporan`) **belum** ikut diubah — sesuai
+kesepakatan, itu nanti dulu.
+
+### 1. Tabel matriks IKM (format resmi)
+
+Sebelumnya tabel per-unsur ditampilkan per baris (U1, U2, ... masing-masing 1 baris).
+Sekarang formatnya jadi matriks — kolom U1-U9 di atas, baris-baris perhitungan di bawahnya
+(Total Nilai, IKM per unsur, Nilai Interval Konversi, Mutu Layanan, NRR Tertimbang), persis
+seperti contoh yang kamu kirim. File baru: `resources/views/partials/matriks-skm.blade.php`
+(dipakai berulang, bukan copy-paste per halaman).
+
+### 2. IKM per poli/unit layanan
+
+Sebelumnya nilai SKM cuma dihitung gabungan untuk seluruh puskesmas, tidak dipecah per poli.
+Sekarang `SkmCalculatorService::hitung()` bisa difilter per `UnitLayanan` (poli), dan ada
+method baru `hitungPerUnitLayanan()` yang otomatis menghitung IKM terpisah untuk **setiap**
+poli yang terdaftar di unit tsb — persis seperti contoh "Instalasi Radiologi" yang kamu kirim.
+
+Di halaman **Puskesmas > Laporan**, sekarang ada bagian accordion "IKM per Poli/Unit Layanan"
+di bawah tabel utama — klik salah satu poli untuk lihat tabel matriks lengkapnya.
+
+### File yang berubah/ditambah
+
+- `app/Services/SkmCalculatorService.php` — tambah parameter `$unitLayanan` opsional di `hitung()`,
+  tambah method `hitungPerUnitLayanan()`
+- `app/Http/Controllers/Puskesmas/LaporanController.php` — kirim `$hasilPerPoli` ke view & PDF
+- `resources/views/partials/matriks-skm.blade.php` — tabel matriks versi web (Bootstrap)
+- `resources/views/exports/partials/matriks-skm-pdf.blade.php` — tabel matriks versi PDF (plain HTML)
+- `resources/views/exports/laporan-pdf.blade.php` — pakai partial matriks + loop per poli
+- `resources/views/puskesmas/laporan/index.blade.php` — pakai partial matriks + accordion per poli
+
+**Catatan:** karena template PDF ini dipakai bersama oleh laporan detail dinkes juga
+(`Dinkes\LaporanController::exportPdfDetail`), PDF detail per-unit dari sisi dinkes ikut
+otomatis dapat tabel matriks yang lebih rapi — tapi belum ada breakdown per poli di sana
+(sesuai kesepakatan, bagian dinkes ditunda dulu). Export Excel **belum** diubah ke format
+matriks (masih format tabel lama), karena butuh kerja tambahan untuk merge cell di
+PhpSpreadsheet — bisa disusulkan kalau dibutuhkan.
+
+### Cara pasang
+
+Tidak ada migration baru. Copy semua file di atas.
+
+### Cara tes
+
+1. Pastikan sudah ada unit layanan/poli terdaftar (dari seeder: Poli Umum, Poli Gigi, UGD)
+   dan sudah ada beberapa jawaban survei yang milih poli-poli itu.
+2. Buka **Puskesmas > Laporan** → tabel utama sekarang format matriks (kolom U1-U9).
+3. Scroll ke "IKM per Poli/Unit Layanan" → klik salah satu poli → pastikan tabel matriksnya
+   cuma menghitung data dari poli itu saja, angkanya beda dari tabel "Seluruh Layanan".
+4. Export PDF → pastikan tabel matriks + breakdown per poli ikut muncul di file PDF-nya.
+5. Ulangi langkah yang sama dari sisi **SKM Dinkes Sendiri** (bukan panel pengawasan) —
+   harusnya berperilaku identik karena pakai controller & view yang sama persis.
+
+## Fitur salin tabel (siap tempel ke Word)
+
+Setiap tabel laporan sekarang punya tombol **"Salin Tabel"** yang menyalin tabel ke clipboard
+dalam format HTML (bukan cuma teks polos) — begitu di-paste ke Microsoft Word, tabelnya tetap
+jadi tabel beneran dengan kolom & baris yang rapi, bukan teks berantakan dipisah tab.
+
+### Cara kerjanya
+
+Pakai [Clipboard API](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write) bawaan
+browser modern (`navigator.clipboard.write` dengan `ClipboardItem`) — nulis dua format sekaligus
+ke clipboard: `text/html` (dibaca Word untuk bikin tabel asli) dan `text/plain` (fallback kalau
+di-paste ke tempat yang cuma terima teks, misal Notepad). Kalau browser tidak mendukung Clipboard
+API (browser lama), otomatis jatuh ke cara manual: blok teks tabel + `document.execCommand('copy')`.
+
+### File baru/berubah
+
+- `resources/views/partials/skrip-salin-tabel.blade.php` — fungsi JS `salinTabelKeClipboard()`,
+  di-include sekali di `layouts/dinkes.blade.php` dan `layouts/puskesmas.blade.php`
+- `partials/matriks-skm.blade.php` — tabel dikasih `id` unik + tombol Salin Tabel
+- `puskesmas/laporan/index.blade.php` — id unik untuk tabel utama & tiap tabel poli di accordion
+- `dinkes/laporan/detail.blade.php`, `dinkes/laporan/index.blade.php` — tombol Salin Tabel
+  ditambahkan ke tabel yang sudah ada (belum ikut upgrade ke format matriks, tapi fitur salin-nya
+  tetap jalan di tabel format lama ini)
+
+### Cara pasang
+
+Tidak ada migration baru. Copy semua file di atas (2 layout + 1 partial baru + 3 view laporan).
+
+### Cara tes
+
+1. Buka laporan mana saja (Puskesmas/RSU, SKM Dinkes sendiri, atau rekap gabungan dinkes),
+   klik tombol **Salin Tabel** — tombolnya harus berubah sebentar jadi "Tersalin!" sebagai tanda berhasil.
+2. Buka Microsoft Word, tempel (Ctrl+V) — pastikan yang muncul benar-benar tabel dengan
+   garis kolom/baris, bukan teks dipisah tab atau spasi.
+3. Coba juga di browser berbeda (Chrome, Edge, Firefox) untuk pastikan konsisten.

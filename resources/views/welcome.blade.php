@@ -202,8 +202,7 @@
 
         <div class="hero-illustration">
             <!-- Ilustrasi orisinal bergaya flat illustration (mirip storyset), tema survei/checklist -->
-            <!-- <svg viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustrasi orang mengisi survei kepuasan"> -->
-                <img src="{{ asset('images/Forms.gif') }}" alt="Ilustrasi survei kepuasan">
+            <svg viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustrasi orang mengisi survei kepuasan">
                 <circle cx="270" cy="240" r="210" fill="#EDE9FE"/>
                 <circle cx="120" cy="90" r="34" fill="#F7F5FF"/>
                 <circle cx="460" cy="360" r="46" fill="#F7F5FF"/>

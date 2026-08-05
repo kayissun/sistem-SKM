@@ -25,7 +25,14 @@
         <a href="{{ route('dinkes.laporan.detail.export-excel', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-outline-success btn-sm">Export Excel</a>
     </div>
 
-    <table class="table table-bordered bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Rincian per Unsur</h5>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="salinTabelKeClipboard('tabel-per-unsur', this)">
+            Salin Tabel
+        </button>
+    </div>
+
+    <table id="tabel-per-unsur" class="table table-bordered bg-white">
         <thead>
             <tr>
                 <th>Kode</th>
