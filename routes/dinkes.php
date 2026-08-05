@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Dinkes\AktivitasController;
 use App\Http\Controllers\Dinkes\DashboardController;
+use App\Http\Controllers\Dinkes\KlasterController;
 use App\Http\Controllers\Dinkes\LaporanController;
 use App\Http\Controllers\Dinkes\PeriodeSurveiController;
 use App\Http\Controllers\Dinkes\PuskesmasController;
@@ -43,4 +44,6 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/laporan/{puskesma}', [LaporanController::class, 'detail'])->name('laporan.detail');
 
         Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
+
+        Route::get('/klaster', [KlasterController::class, 'index'])->name('klaster.index');
     });

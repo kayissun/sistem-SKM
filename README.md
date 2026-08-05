@@ -783,3 +783,68 @@ Tidak ada migration baru. Copy semua file di atas (2 layout + 1 partial baru + 3
 2. Buka Microsoft Word, tempel (Ctrl+V) — pastikan yang muncul benar-benar tabel dengan
    garis kolom/baris, bukan teks dipisah tab atau spasi.
 3. Coba juga di browser berbeda (Chrome, Edge, Firefox) untuk pastikan konsisten.
+
+## Klaster performa unit (K-Means, khusus dinkes)
+
+Fitur baru: dinkes bisa lihat 29 unit (puskesmas/RSU) dikelompokkan otomatis berdasarkan
+**kemiripan pola nilai 9 unsur pelayanan** — bukan cuma diurutkan dari 1 angka nilai SKM.
+Dua unit bisa punya nilai akhir yang mirip tapi pola kekuatan/kelemahannya beda total;
+clustering ini yang mengungkap pola itu.
+
+### Package yang wajib di-install dulu
+
+```bash
+composer require php-ai/php-ml
+```
+
+Murni PHP, tidak butuh setup Python atau environment terpisah.
+
+### Cara kerja (ringkas)
+
+- Tiap unit direpresentasikan sebagai vektor 9 angka (nilai interval konversi tiap unsur,
+  skala 0-100) untuk periode yang dipilih.
+- Unit yang datanya belum layak (belum ada responden, atau ada unsur wajib yang belum
+  dipetakan ke pertanyaan) **dikecualikan** dari perhitungan, ditampilkan terpisah di bawah.
+- Algoritma **K-Means** (dari `php-ai/php-ml`) membagi unit jadi 4 kelompok berdasarkan
+  jarak Euclidean antar vektor — unit dengan pola nilai yang mirip akan masuk kelompok yang sama.
+- Sengaja **tidak distandardisasi (z-score)** dulu sebelum clustering, karena ke-9 fitur
+  memang sudah sepadan (sama-sama skala 0-100), beda dengan dataset yang unitnya campur-campur.
+- Tiap kelompok diberi label deskriptif berdasarkan peringkat rata-rata nilai SKM-nya:
+  "Performa Terbaik", "Performa Baik", "Performa Menengah", "Perlu Perhatian Khusus".
+- **Centroid** (rata-rata profil 9 unsur) tiap kelompok divisualisasikan sebagai grafik radar,
+  supaya kelihatan "bentuk" khas tiap kelompok — misal kelompok tertentu ternyata kompak lemah
+  di unsur biaya/tarif tapi kuat di unsur lain.
+
+### File baru
+
+- `app/Services/ClusteringService.php` — logika K-Means + pelabelan kelompok
+- `app/Http/Controllers/Dinkes/KlasterController.php`
+- `resources/views/dinkes/klaster/index.blade.php`
+- `resources/views/partials/radar-unsur.blade.php` — grafik radar (SVG murni, tanpa library JS)
+- Route baru: `dinkes.klaster.index`, menu "Klaster Performa" di navbar dinkes
+
+### Cara pasang
+
+1. Jalankan composer di atas.
+2. Copy semua file ke lokasi yang sama.
+3. Tidak ada migration/seeder baru.
+
+### Cara tes
+
+1. Login dinkes → menu **Klaster Performa**.
+2. Kalau baru ada 1-2 puskesmas dengan data (dari seeder), K otomatis diturunkan (nggak
+   dipaksa 4 kelompok kalau unitnya kurang dari itu) — jadi buat tes yang lebih realistis,
+   sebaiknya ada beberapa puskesmas dengan data survei yang bervariasi dulu.
+3. Perhatikan tabel & radar chart tiap kelompok — pastikan unit dengan nilai SKM mirip
+   tapi pola unsur beda bisa masuk kelompok berbeda (ini yang membuktikan clustering-nya
+   benar-benar mempertimbangkan pola, bukan cuma rata-rata).
+4. Coba juga skenario ada unit yang belum punya responden atau ada unsur belum terpetakan —
+   pastikan muncul di bagian "Tidak ikut dikelompokkan" dengan alasan yang jelas.
+
+### Catatan
+
+- K=4 saat ini di-hardcode di `KlasterController` (variabel `$jumlahKlaster`). Kalau nanti mau
+  dibuat bisa diganti-ganti dari UI, tinggal ubah jadi input dari `$request`.
+- Ini murni bantu eksplorasi/analitik, bukan pengganti kategori A/B/C/D resmi Permenpan —
+  interpretasinya tetap perlu penilaian manusia (dinkes), terutama untuk unit yang datanya
+  masih tipis (responden sedikit).

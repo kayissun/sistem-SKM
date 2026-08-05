@@ -20,6 +20,7 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('dinkes.unsur-pelayanan.index') }}">Unsur Pelayanan</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('dinkes.periode-survei.index') }}">Periode Survei</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('dinkes.laporan.index') }}">Laporan</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('dinkes.klaster.index') }}">Klaster Performa</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('dinkes.aktivitas.index') }}">Log Aktivitas</a></li>
                 <li class="nav-item">
                     <a class="nav-link bg-primary bg-opacity-25 rounded" href="{{ route('puskesmas.dashboard') }}">
