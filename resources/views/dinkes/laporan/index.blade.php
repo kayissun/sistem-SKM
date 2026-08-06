@@ -33,32 +33,63 @@
             </button>
         </div>
 
-        <table id="tabel-rekap-gabungan" class="table table-bordered bg-white">
-            <thead>
-                <tr>
-                    <th>Unit</th>
-                    <th>Jumlah responden</th>
-                    <th>Nilai akhir SKM</th>
-                    <th>Mutu</th>
-                    <th style="width:120px">Detail</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($rekap as $baris)
+        <div style="overflow-x: auto;">
+            <table id="tabel-rekap-gabungan" class="table table-bordered bg-white" style="min-width: 1200px;">
+                <thead>
                     <tr>
-                        <td>{{ $baris['puskesmas'] }}</td>
-                        <td>{{ $baris['jumlah_responden'] }}</td>
-                        <td>{{ $baris['nilai_akhir_skm'] }}</td>
-                        <td>{{ $baris['mutu_akhir'] }}</td>
-                        <td>
-                            <a href="{{ route('dinkes.laporan.detail', ['puskesma' => $baris['puskesmas_id'], 'periode_survei_id' => $periode->id]) }}"
-                               class="btn btn-sm btn-outline-primary">Lihat</a>
-                        </td>
+                        <th class="text-center" style="width: 40px;">NO</th>
+                        <th>OPD/Unit Pelayanan Publik</th>
+                        <th class="text-center">Periode Pelaksanaan</th>
+                        <th colspan="9" class="text-center">Nilai Per Unsur</th>
+                        <th class="text-center">IKM</th>
+                        <th class="text-center">Kategori</th>
+                        <th class="text-center">Jumlah Responden</th>
+                        <th class="text-center">Metode SKM</th>
+                        <th class="text-center">Unsur Prioritas Perbaikan</th>
+                        <th class="text-center">Rencana Tindak Lanjut</th>
+                        <th class="text-center" style="width: 80px;">Detail</th>
                     </tr>
-                @empty
-                    <tr><td colspan="5" class="text-center text-muted">Belum ada unit aktif</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                    <tr>
+                        <th colspan="3"></th>
+                        <th class="text-center" style="width: 60px;">U1</th>
+                        <th class="text-center" style="width: 60px;">U2</th>
+                        <th class="text-center" style="width: 60px;">U3</th>
+                        <th class="text-center" style="width: 60px;">U4</th>
+                        <th class="text-center" style="width: 60px;">U5</th>
+                        <th class="text-center" style="width: 60px;">U6</th>
+                        <th class="text-center" style="width: 60px;">U7</th>
+                        <th class="text-center" style="width: 60px;">U8</th>
+                        <th class="text-center" style="width: 60px;">U9</th>
+                        <th colspan="7"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($rekap as $index => $baris)
+                        <tr>
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td>{{ $baris['puskesmas'] }}</td>
+                            <td class="text-center">{{ $periode->nama }}</td>
+                            @foreach (['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8', 'U9'] as $unsur)
+                                <td class="text-center">
+                                    {{ isset($baris['per_unsur'][$unsur]) ? number_format($baris['per_unsur'][$unsur]['nrr_skala_100'], 2, ',', '.') : '-' }}
+                                </td>
+                            @endforeach
+                            <td class="text-center">{{ $baris['nilai_akhir_skm'] }}</td>
+                            <td class="text-center">{{ $baris['mutu_akhir'] }}</td>
+                            <td class="text-center">{{ $baris['jumlah_responden'] }}</td>
+                            <td class="text-center">SKM Online</td>
+                            <td class="text-center">-</td>
+                            <td class="text-center">-</td>
+                            <td class="text-center">
+                                <a href="{{ route('dinkes.laporan.detail', ['puskesma' => $baris['puskesmas_id'], 'periode_survei_id' => $periode->id]) }}"
+                                   class="btn btn-sm btn-outline-primary">Lihat</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="22" class="text-center text-muted">Belum ada unit aktif</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     @endif
 @endsection
