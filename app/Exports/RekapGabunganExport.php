@@ -11,8 +11,14 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize
 {
+    private int $nomorBaris = 0;
+
+    /**
+     * @param  array<string>  $kodeUnsur  contoh: ['U1', 'U2', ..., 'U9']
+     */
     public function __construct(
         private readonly Collection $rekap,
+        private readonly array $kodeUnsur,
         private readonly string $namaPeriode,
     ) {}
 
@@ -23,17 +29,34 @@ class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, 
 
     public function headings(): array
     {
-        return ['Unit', 'Jumlah Responden', 'Nilai Akhir SKM', 'Mutu'];
+        return array_merge(
+            ['No', 'OPD/Unit Pelayanan Publik', 'Periode Pelaksanaan'],
+            $this->kodeUnsur,
+            ['IKM', 'Kategori', 'Jumlah Responden', 'Metode SKM', 'Unsur Prioritas Perbaikan', 'Rencana Tindak Lanjut']
+        );
     }
 
     public function map($baris): array
     {
-        return [
-            $baris['puskesmas'],
-            $baris['jumlah_responden'],
-            $baris['nilai_akhir_skm'],
-            $baris['mutu_akhir'],
-        ];
+        $this->nomorBaris++;
+
+        $nilaiPerUnsur = array_map(
+            fn ($kode) => $baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0,
+            $this->kodeUnsur
+        );
+
+        return array_merge(
+            [$this->nomorBaris, $baris['puskesmas'], $this->namaPeriode],
+            $nilaiPerUnsur,
+            [
+                $baris['nilai_akhir_skm'],
+                $baris['mutu_akhir'],
+                $baris['jumlah_responden'],
+                'SKM Online',
+                '-',
+                '-',
+            ]
+        );
     }
 
     public function title(): string

@@ -160,7 +160,6 @@ class SkmCalculatorService
                 return [
                     'puskesmas_id' => $puskesmas->id,
                     'puskesmas' => $puskesmas->nama,
-                    'periode_survei_id' => $periode->id,
                     'jumlah_responden' => $hasil['jumlah_responden'],
                     'per_unsur' => $hasil['per_unsur'],
                     'nilai_akhir_skm' => $hasil['nilai_akhir_skm'],

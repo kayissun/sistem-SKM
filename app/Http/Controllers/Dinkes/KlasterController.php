@@ -18,9 +18,7 @@ class KlasterController extends Controller
 
         $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
 
-        $jumlahKlaster = $request->integer('jumlah_klaster', 4);
-        $jumlahKlaster = max(2, min(4, $jumlahKlaster)); // batasi 2-4
-
+        $jumlahKlaster = 4;
         $hasil = $periode
             ? $service->klasterPuskesmas($periode, $jumlahKlaster)
             : ['kelompok' => collect(), 'dikecualikan' => collect(), 'kodeUnsur' => []];
@@ -28,7 +26,6 @@ class KlasterController extends Controller
         return view('dinkes.klaster.index', [
             'periode' => $periode,
             'daftarPeriode' => $daftarPeriode,
-            'jumlahKlaster' => $jumlahKlaster,
             'kelompok' => $hasil['kelompok'],
             'dikecualikan' => $hasil['dikecualikan'],
             'kodeUnsur' => $hasil['kodeUnsur'],

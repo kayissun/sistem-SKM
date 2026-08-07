@@ -29,7 +29,9 @@ class LaporanController extends Controller
 
         abort_if(! $periode, 404, 'Periode survei tidak ditemukan.');
 
-        $pdf = Pdf::loadView('exports.rekap-gabungan-pdf', compact('rekap', 'periode'));
+        $kodeUnsur = $rekap->isNotEmpty() ? array_keys($rekap->first()['per_unsur']) : [];
+
+        $pdf = Pdf::loadView('exports.rekap-gabungan-pdf', compact('rekap', 'periode', 'kodeUnsur'));
 
         return $pdf->download("rekap-skm-{$periode->id}.pdf");
     }
@@ -40,8 +42,10 @@ class LaporanController extends Controller
 
         abort_if(! $periode, 404, 'Periode survei tidak ditemukan.');
 
+        $kodeUnsur = $rekap->isNotEmpty() ? array_keys($rekap->first()['per_unsur']) : [];
+
         return Excel::download(
-            new RekapGabunganExport($rekap, $periode->nama),
+            new RekapGabunganExport($rekap, $kodeUnsur, $periode->nama),
             "rekap-skm-{$periode->id}.xlsx"
         );
     }
@@ -50,10 +54,13 @@ class LaporanController extends Controller
     {
         [$periode, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
 
+        $hasilPerPoli = $service->hitungPerUnitLayanan($puskesma, $periode);
+
         return view('dinkes.laporan.detail', [
             'puskesmas' => $puskesma,
             'periode' => $periode,
             'hasil' => $hasil,
+            'hasilPerPoli' => $hasilPerPoli,
         ]);
     }
 
@@ -61,10 +68,13 @@ class LaporanController extends Controller
     {
         [$periode, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
 
+        $hasilPerPoli = $service->hitungPerUnitLayanan($puskesma, $periode);
+
         $pdf = Pdf::loadView('exports.laporan-pdf', [
             'puskesmas' => $puskesma,
             'periode' => $periode,
             'hasil' => $hasil,
+            'hasilPerPoli' => $hasilPerPoli,
         ]);
 
         return $pdf->download("skm-{$puskesma->slug}-{$periode->id}.pdf");

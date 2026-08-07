@@ -25,39 +25,45 @@
         <a href="{{ route('dinkes.laporan.detail.export-excel', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-outline-success btn-sm">Export Excel</a>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">Rincian per Unsur</h5>
-        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="salinTabelKeClipboard('tabel-per-unsur', this)">
-            Salin Tabel
-        </button>
+    <div class="card d-inline-block mb-3">
+        <div class="card-body">
+            <div class="text-muted small">Nilai akhir SKM (seluruh layanan)</div>
+            <div class="fs-3 fw-bold">{{ $hasil['nilai_akhir_skm'] }}</div>
+            <div>{{ $hasil['mutu_akhir'] }}</div>
+        </div>
     </div>
 
-    <table id="tabel-per-unsur" class="table table-bordered bg-white">
-        <thead>
-            <tr>
-                <th>Kode</th>
-                <th>Unsur pelayanan</th>
-                <th>Total nilai</th>
-                <th>NRR</th>
-                <th>NRR skala 100</th>
-                <th>Kategori</th>
-                <th>NRR tertimbang</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($hasil['per_unsur'] as $kode => $u)
-                <tr>
-                    <td>{{ $kode }}</td>
-                    <td>{{ $u['pertanyaan'] }}</td>
-                    <td>{{ $u['total_nilai'] }}</td>
-                    <td>{{ $u['nrr'] }}</td>
-                    <td>{{ $u['nrr_skala_100'] }}</td>
-                    <td>{{ $u['kategori'] }}</td>
-                    <td>{{ $u['nrr_tertimbang'] }}</td>
-                </tr>
+    <h5 class="mb-2">Indeks Kepuasan Masyarakat — Seluruh Layanan</h5>
+    @include('partials.matriks-skm', ['hasil' => $hasil, 'judul' => $puskesmas->nama, 'id' => 'tabel-seluruh-layanan'])
+
+    <h5 class="mb-2">IKM per Poli / Unit Layanan</h5>
+    @if ($hasilPerPoli->isEmpty())
+        <p class="text-muted small mb-4">Unit ini belum punya poli/unit layanan terdaftar.</p>
+    @else
+        <div class="accordion mb-4" id="accordionPoliDinkes">
+            @foreach ($hasilPerPoli as $i => $poli)
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#poliDinkes{{ $i }}">
+                            {{ $poli['unit_layanan_nama'] }}
+                            <span class="text-muted ms-2 small">
+                                &middot; {{ $poli['jumlah_responden'] }} responden
+                                @if ($poli['jumlah_responden'] > 0)
+                                    &middot; IKM {{ $poli['nilai_akhir_skm'] }} ({{ $poli['mutu_akhir'] }})
+                                @endif
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="poliDinkes{{ $i }}" class="accordion-collapse collapse" data-bs-parent="#accordionPoliDinkes">
+                        <div class="accordion-body">
+                            @include('partials.matriks-skm', ['hasil' => $poli, 'judul' => $poli['unit_layanan_nama'], 'id' => 'tabel-poli-dinkes-' . $i])
+                        </div>
+                    </div>
+                </div>
             @endforeach
-        </tbody>
-    </table>
+        </div>
+    @endif
 
     @if (!empty($hasil['pertanyaan_tambahan']))
         <h5 class="mt-4">Pertanyaan Tambahan (di luar nilai SKM resmi)</h5>
@@ -89,12 +95,4 @@
             </tbody>
         </table>
     @endif
-
-    <div class="card d-inline-block">
-        <div class="card-body">
-            <div class="text-muted small">Nilai akhir SKM</div>
-            <div class="fs-3 fw-bold">{{ $hasil['nilai_akhir_skm'] }}</div>
-            <div>{{ $hasil['mutu_akhir'] }}</div>
-        </div>
-    </div>
 @endsection

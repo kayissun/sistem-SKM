@@ -848,3 +848,77 @@ Murni PHP, tidak butuh setup Python atau environment terpisah.
 - Ini murni bantu eksplorasi/analitik, bukan pengganti kategori A/B/C/D resmi Permenpan —
   interpretasinya tetap perlu penilaian manusia (dinkes), terutama untuk unit yang datanya
   masih tipis (responden sedikit).
+
+## Export Excel rekap gabungan sekarang 2 sheet (Ringkasan + Matriks per Unsur)
+
+Sebelumnya export Excel rekap gabungan dinkes cuma 1 sheet ringkas (Unit, Jumlah Responden,
+Nilai Akhir SKM, Mutu). Sekarang jadi **2 sheet dalam 1 file**:
+
+1. **"Ringkasan"** — format lama, dipertahankan apa adanya.
+2. **"Matriks per Unsur"** — baru, kolom U1-U9 (nilai interval konversi tiap unsur) untuk
+   semua unit sekaligus, persis seperti tabel matriks yang sudah ada di halaman web & PDF-nya.
+
+### File baru/berubah
+
+- `app/Exports/Sheets/RekapRingkasSheet.php` — sheet "Ringkasan" (dipecah dari `RekapGabunganExport` lama)
+- `app/Exports/Sheets/RekapMatriksSheet.php` — sheet "Matriks per Unsur" (baru)
+- `app/Exports/RekapGabunganExport.php` — sekarang cuma "pembungkus" yang gabungin 2 sheet
+  di atas lewat `WithMultipleSheets` (fitur bawaan `maatwebsite/excel` untuk file Excel multi-tab)
+- `app/Http/Controllers/Dinkes/LaporanController.php` — `exportExcelGabungan()` sekarang
+  hitung `$kodeUnsur` dulu (sama seperti yang dipakai `exportPdfGabungan()`) dan kirim ke export class
+
+### Cara pasang
+
+Tidak ada migration baru, tidak perlu composer install tambahan (masih pakai `maatwebsite/excel`
+yang sudah terpasang). Copy semua file di atas.
+
+### Cara tes
+
+1. Buka **Dinkes > Laporan** → klik **Export Excel**.
+2. Buka file `.xlsx`-nya, pastikan ada 2 tab di bagian bawah: "Ringkasan" dan "Matriks per Unsur".
+3. Cek tab "Matriks per Unsur" — pastikan kolomnya U1 sampai U9, satu baris per unit, angkanya
+   sama persis dengan yang tampil di tabel matriks web/PDF.
+
+## Update: format tabel laporan rekap gabungan disamakan (web, PDF, Excel)
+
+Tabel di halaman **Dinkes > Laporan** dirombak jadi satu tabel konsolidasi format resmi
+(sesuai referensi yang dikirim), gantiin 2 tabel terpisah yang sebelumnya ada. Kolomnya:
+
+```
+No | OPD/Unit Pelayanan Publik | Periode Pelaksanaan | Nilai Per Unsur (U1-U9) |
+IKM | Kategori | Jumlah Responden | Metode SKM | Unsur Prioritas Perbaikan |
+Rencana Tindak Lanjut | (Detail — cuma di web)
+```
+
+**PDF dan Excel sekarang formatnya sama persis**, minus kolom "Detail" (link tombol,
+nggak relevan buat dokumen cetak/spreadsheet).
+
+### Field baru yang masih placeholder
+
+- **Metode SKM** — di-hardcode "SKM Online" (karena seluruh sistem ini memang berbasis
+  survei online, bukan kertas).
+- **Unsur Prioritas Perbaikan** & **Rencana Tindak Lanjut** — masih placeholder `-`,
+  belum ada field di database untuk ini. Kalau nanti mau diisi manual oleh dinkes per
+  unit per periode (bukan cuma tampilan statis), kasih tahu — bisa ditambah tabel/kolom baru
+  supaya bisa diedit langsung dari UI.
+
+### File yang berubah
+
+- `resources/views/dinkes/laporan/index.blade.php` — 1 tabel konsolidasi (gantiin 2 tabel lama)
+- `resources/views/exports/rekap-gabungan-pdf.blade.php` — struktur kolom disamakan
+- `app/Exports/RekapGabunganExport.php` — balik jadi 1 sheet (bukan multi-sheet lagi),
+  kolom disamakan dengan web & PDF. File `app/Exports/Sheets/*` yang sempat dibuat sebelumnya
+  **dihapus**, sudah tidak relevan.
+- `app/Http/Controllers/Dinkes/LaporanController.php` — `exportExcelGabungan()` disesuaikan
+  dengan constructor `RekapGabunganExport` yang baru
+
+### Cara pasang
+
+Tidak ada migration baru. Copy semua file di atas — **hapus** juga folder
+`app/Exports/Sheets/` kalau masih ada dari update sebelumnya (sudah tidak dipakai).
+
+### Cara tes
+
+1. Buka **Dinkes > Laporan** — pastikan sekarang cuma ada 1 tabel besar dengan semua kolom itu.
+2. Export PDF & Excel — bandingkan strukturnya dengan tabel web, harus sama persis
+   (kecuali kolom Detail yang memang cuma ada di web).
