@@ -22,7 +22,67 @@ class LaporanController extends Controller
 
         $hasilPerPoli = ($puskesmas && $periode) ? $service->hitungPerUnitLayanan($puskesmas, $periode) : collect();
 
-        return view('puskesmas.laporan.index', compact('puskesmas', 'daftarPeriode', 'periode', 'hasil', 'hasilPerPoli'));
+        $kodeUnsur = [];
+        $daftarResponden = collect();
+        $respondenRows = collect();
+
+        if ($puskesmas && $periode) {
+            $kodeUnsur = \App\Models\UnsurPelayanan::aktif()->pluck('kode')->all();
+
+            $daftarResponden = \App\Models\SurveiJawabanDetail::query()
+                ->whereHas('surveiJawaban', function ($q) use ($puskesmas, $periode) {
+                    $q->where('puskesmas_id', $puskesmas->id)->where('periode_survei_id', $periode->id);
+                })
+                ->with('surveiJawaban.detail.pertanyaanSurvei.unsurPelayanan')
+                ->get()
+                ->groupBy('survei_jawaban_id')
+                ->map(fn($details) => $details->first()->surveiJawaban)
+                ->values();
+
+            // simple paginate
+            $perPage = 100;
+            $currentPage = max(1, (int) ($request->query('page', 1)));
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $daftarResponden->forPage($currentPage, $perPage),
+                $daftarResponden->count(),
+                $perPage,
+                $currentPage,
+                ['path' => url()->current(), 'query' => $request->query()]
+            );
+
+            foreach ($paginated as $i => $jawaban) {
+                $row = ['no' => ($i + 1) + (($currentPage - 1) * $perPage)];
+                // Demographic / respondent fields
+                $row['unit'] = $jawaban->unitLayanan ? $jawaban->unitLayanan->unit_layanan_nama ?? $jawaban->unitLayanan->nama ?? '-' : '-';
+                $row['usia_rentang'] = $jawaban->usia_rentang;
+                $row['jenis_kelamin'] = $jawaban->jenis_kelamin;
+                $row['pendidikan'] = $jawaban->pendidikan;
+                $row['pekerjaan'] = $jawaban->pekerjaan;
+
+                $total = 0;
+                foreach ($kodeUnsur as $kode) {
+                    $values = $jawaban->detail->filter(function ($d) use ($kode) {
+                        return $d->pertanyaanSurvei && $d->pertanyaanSurvei->unsurPelayanan && $d->pertanyaanSurvei->unsurPelayanan->kode === $kode;
+                    })->pluck('nilai')->filter()->all();
+
+                    if (count($values) > 0) {
+                        $avg = (int) round(array_sum($values) / count($values));
+                        $row[$kode] = $avg;
+                        $total += $avg;
+                    } else {
+                        $row[$kode] = null;
+                    }
+                }
+                $row['total'] = $total;
+                $row['nama'] = $jawaban->nama;
+                $respondenRows->push($row);
+            }
+
+            $daftarResponden = $paginated;
+        }
+
+        return view('puskesmas.laporan.index', compact('puskesmas', 'daftarPeriode', 'periode', 'hasil', 'hasilPerPoli'))
+            ->with([ 'kodeUnsur' => $kodeUnsur, 'daftarResponden' => $daftarResponden, 'respondenRows' => $respondenRows ]);
     }
 
     public function exportPdf(Request $request, SkmCalculatorService $service)

@@ -8,6 +8,18 @@
     <h3 class="mb-1">{{ $puskesmas->nama }}</h3>
     <p class="text-muted">Periode: {{ $periode->nama }} &middot; Responden: {{ $hasil['jumlah_responden'] }}</p>
 
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="laporan-tab" data-bs-toggle="tab" data-bs-target="#tab-laporan" type="button" role="tab">Laporan</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="responden-tab" data-bs-toggle="tab" data-bs-target="#tab-responden" type="button" role="tab">Data Responden</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane active" id="tab-laporan" role="tabpanel">
+
     @if (!empty($hasil['unsur_belum_terpetakan']))
         <div class="alert alert-warning">
             <strong>Perhatian:</strong> unit ini belum punya pertanyaan aktif untuk unsur berikut,
@@ -19,6 +31,17 @@
             </ul>
         </div>
     @endif
+
+        </div>
+
+        <div class="tab-pane" id="tab-responden" role="tabpanel">
+            @include('partials.data-responden', [
+                'kodeUnsur' => $kodeUnsur ?? [],
+                'daftarResponden' => $daftarResponden ?? collect(),
+                'respondenRows' => $respondenRows ?? collect(),
+            ])
+        </div>
+    </div>
 
     <div class="mb-3">
         <a href="{{ route('dinkes.laporan.detail.export-pdf', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-outline-danger btn-sm">Export PDF</a>

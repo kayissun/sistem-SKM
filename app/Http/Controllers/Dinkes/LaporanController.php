@@ -59,11 +59,68 @@ class LaporanController extends Controller
 
         $hasilPerPoli = $service->hitungPerUnitLayanan($puskesma, $periode);
 
+        // Ambil daftar responden untuk tab "Data Responden"
+        $daftarResponden = SurveiJawabanDetail::query()
+            ->whereHas('surveiJawaban', function ($q) use ($puskesma, $periode) {
+                $q->where('puskesmas_id', $puskesma->id)->where('periode_survei_id', $periode->id);
+            })
+            ->with('surveiJawaban.detail.pertanyaanSurvei.unsurPelayanan')
+            ->get()
+            ->groupBy('survei_jawaban_id')
+            ->map(function ($details, $surveiJawabanId) {
+                return $details->first()->surveiJawaban;
+            })->values();
+
+        // Paginate manually (simple, client-side pagination not required for now)
+        $perPage = 100;
+        $currentPage = max(1, (int) ($request->query('page', 1)));
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $daftarResponden->forPage($currentPage, $perPage),
+            $daftarResponden->count(),
+            $perPage,
+            $currentPage,
+            ['path' => url()->current(), 'query' => $request->query()]
+        );
+
+        $kodeUnsur = \App\Models\UnsurPelayanan::aktif()->pluck('kode')->all();
+
+        $respondenRows = collect();
+        foreach ($paginated as $i => $jawaban) {
+            $row = ['no' => ($i + 1) + (($currentPage - 1) * $perPage)];
+            // Demographic / respondent fields
+            $row['unit'] = $jawaban->unitLayanan ? $jawaban->unitLayanan->unit_layanan_nama ?? $jawaban->unitLayanan->nama ?? '-' : '-';
+            $row['usia_rentang'] = $jawaban->usia_rentang;
+            $row['jenis_kelamin'] = $jawaban->jenis_kelamin;
+            $row['pendidikan'] = $jawaban->pendidikan;
+            $row['pekerjaan'] = $jawaban->pekerjaan;
+
+            $total = 0;
+            foreach ($kodeUnsur as $kode) {
+                $values = $jawaban->detail->filter(function ($d) use ($kode) {
+                    return $d->pertanyaanSurvei && $d->pertanyaanSurvei->unsurPelayanan && $d->pertanyaanSurvei->unsurPelayanan->kode === $kode;
+                })->pluck('nilai')->filter()->all();
+
+                if (count($values) > 0) {
+                    $avg = (int) round(array_sum($values) / count($values));
+                    $row[$kode] = $avg;
+                    $total += $avg;
+                } else {
+                    $row[$kode] = null;
+                }
+            }
+            $row['total'] = $total;
+            $row['nama'] = $jawaban->nama;
+            $respondenRows->push($row);
+        }
+
         return view('dinkes.laporan.detail', [
             'puskesmas' => $puskesma,
             'periode' => $periode,
             'hasil' => $hasil,
             'hasilPerPoli' => $hasilPerPoli,
+            'kodeUnsur' => $kodeUnsur,
+            'daftarResponden' => $paginated,
+            'respondenRows' => $respondenRows,
         ]);
     }
 
