@@ -3,7 +3,7 @@
 @section('title', 'Laporan Rekap')
 
 @section('content')
-    <h3 class="mb-3">Laporan Rekap Semua Unit</h3>
+    <h3 class="mb-3">Laporan Rekap - Dinas Kesehatan Daerah Purworejo</h3>
 
     <form method="GET" class="row g-2 mb-3" style="max-width:400px">
         <div class="col-8">
@@ -62,7 +62,10 @@
                         <tr>
                             <td>{{ $i + 1 }}</td>
                             <td class="text-start">{{ $baris['puskesmas'] }}</td>
-                            <td>{{ $periode->nama }}</td>
+                            <td>
+                                {{ $periode->nama }} 
+                                ({{ $periode->tanggal_mulai->translatedFormat('F') }} - {{ $periode->tanggal_selesai->translatedFormat('F Y') }})
+                            </td>
                             @foreach ($kodeUnsur as $kode)
                                 <td>{{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}</td>
                             @endforeach

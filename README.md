@@ -922,3 +922,34 @@ Tidak ada migration baru. Copy semua file di atas — **hapus** juga folder
 1. Buka **Dinkes > Laporan** — pastikan sekarang cuma ada 1 tabel besar dengan semua kolom itu.
 2. Export PDF & Excel — bandingkan strukturnya dengan tabel web, harus sama persis
    (kecuali kolom Detail yang memang cuma ada di web).
+
+## Perbaikan bug: Export Excel detail per-unit sekarang ikut per poli (tab terpisah)
+
+**Bug yang diperbaiki:** `Puskesmas\LaporanController::exportExcel()` masih manggil
+`LaporanUnsurExport` pakai signature lama (kirim string judul), padahal class-nya sudah
+diupgrade jadi multi-sheet (terima `$hasilPerPoli`). Akibatnya Excel yang di-export cuma
+berisi data "Seluruh Layanan", breakdown per poli sama sekali tidak ikut ke-export —
+padahal versi dinkes (`Dinkes\LaporanController::exportExcelDetail`) sudah benar dari awal.
+
+**Sekarang keduanya konsisten**, tiap poli/unit layanan jadi **tab/sheet Excel terpisah**:
+
+- Sheet 1: "Seluruh Layanan"
+- Sheet 2, 3, dst: satu sheet per poli (nama tab = nama poli, otomatis dipotong 31 karakter
+  dan karakter terlarang `\ / ? * [ ]` diganti `-`, sesuai batasan Excel)
+- Poli yang belum ada respondennya sama sekali dilewati (tidak bikin sheet kosong)
+
+### File yang berubah
+
+- `app/Http/Controllers/Puskesmas/LaporanController.php` — `exportExcel()` sekarang hitung
+  `$hasilPerPoli` dulu dan kirim ke `LaporanUnsurExport` (bukan string judul lagi)
+
+### Cara pasang
+
+Tidak ada migration baru. Cukup timpa file di atas.
+
+### Cara tes
+
+1. Buka **Puskesmas > Laporan** → Export Excel → pastikan ada beberapa tab di bawah
+   (Seluruh Layanan + 1 tab per poli yang sudah ada datanya).
+2. Ulangi dari sisi **Dinkes > Laporan > (pilih unit) > Lihat > Export Excel** — pastikan
+   perilakunya sama.

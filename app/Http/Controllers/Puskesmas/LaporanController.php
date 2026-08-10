@@ -40,12 +40,14 @@ class LaporanController extends Controller
 
     public function exportExcel(Request $request, SkmCalculatorService $service)
     {
-        [$puskesmas, , , $hasil] = $this->ambilData($request, $service);
+        [$puskesmas, $periode, , $hasil] = $this->ambilData($request, $service);
 
         abort_if(! $hasil, 404, 'Periode survei tidak ditemukan.');
 
+        $hasilPerPoli = $service->hitungPerUnitLayanan($puskesmas, $periode);
+
         return Excel::download(
-            new LaporanUnsurExport($hasil, 'SKM ' . $puskesmas->nama),
+            new LaporanUnsurExport($hasil, $hasilPerPoli),
             "skm-{$puskesmas->slug}.xlsx"
         );
     }

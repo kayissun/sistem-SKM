@@ -2,50 +2,38 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use App\Exports\Sheets\LaporanUnsurSheet;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class LaporanUnsurExport implements FromArray, WithHeadings, WithTitle, ShouldAutoSize
+class LaporanUnsurExport implements WithMultipleSheets
 {
+    /**
+     * @param  array  $hasilUtama  hasil SkmCalculatorService::hitung() untuk seluruh layanan unit
+     * @param  Collection  $hasilPerPoli  hasil SkmCalculatorService::hitungPerUnitLayanan() — tiap
+     *                                     elemen jadi 1 sheet/tab terpisah
+     */
     public function __construct(
-        private readonly array $hasil,
-        private readonly string $judulSheet,
+        private readonly array $hasilUtama,
+        private readonly Collection $hasilPerPoli = new Collection,
     ) {}
 
-    public function array(): array
+    public function sheets(): array
     {
-        $rows = [];
+        $sheets = [
+            new LaporanUnsurSheet($this->hasilUtama, 'Seluruh Layanan'),
+        ];
 
-        foreach ($this->hasil['per_unsur'] as $kode => $unsur) {
-            $rows[] = [
-                $kode,
-                $unsur['pertanyaan'],
-                $unsur['total_nilai'],
-                $unsur['nrr'],
-                $unsur['nrr_skala_100'],
-                $unsur['kategori'],
-                $unsur['nrr_tertimbang'],
-            ];
+        foreach ($this->hasilPerPoli as $poli) {
+            // lewati poli yang belum ada respondennya sama sekali, biar file tidak penuh
+            // sheet kosong untuk poli yang memang belum dipakai
+            if ($poli['jumlah_responden'] === 0) {
+                continue;
+            }
+
+            $sheets[] = new LaporanUnsurSheet($poli, $poli['unit_layanan_nama']);
         }
 
-        $rows[] = ['', '', '', '', '', '', ''];
-        $rows[] = ['', 'Jumlah responden', $this->hasil['jumlah_responden'], '', '', '', ''];
-        $rows[] = ['', 'Nilai akhir SKM', $this->hasil['nilai_akhir_skm'], '', '', '', ''];
-        $rows[] = ['', 'Mutu akhir', $this->hasil['mutu_akhir'], '', '', '', ''];
-
-        return $rows;
-    }
-
-    public function headings(): array
-    {
-        return ['Kode', 'Unsur Pelayanan', 'Total Nilai', 'NRR', 'NRR Skala 100', 'Kategori', 'NRR Tertimbang'];
-    }
-
-    public function title(): string
-    {
-        // nama sheet Excel dibatasi 31 karakter
-        return substr($this->judulSheet, 0, 31);
+        return $sheets;
     }
 }

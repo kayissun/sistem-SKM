@@ -44,8 +44,11 @@ class LaporanController extends Controller
 
         $kodeUnsur = $rekap->isNotEmpty() ? array_keys($rekap->first()['per_unsur']) : [];
 
+        // Format nama periode beserta rentang bulannya
+        $namaPeriodeLengkap = $periode->nama . ' (' . $periode->tanggal_mulai->translatedFormat('F') . ' - ' . $periode->tanggal_selesai->translatedFormat('F Y') . ')';
+
         return Excel::download(
-            new RekapGabunganExport($rekap, $kodeUnsur, $periode->nama),
+            new RekapGabunganExport($rekap, $kodeUnsur, $namaPeriodeLengkap),
             "rekap-skm-{$periode->id}.xlsx"
         );
     }
@@ -82,10 +85,12 @@ class LaporanController extends Controller
 
     public function exportExcelDetail(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
     {
-        [, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
+        [$periode, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $hasilPerPoli = $service->hitungPerUnitLayanan($puskesma, $periode);
 
         return Excel::download(
-            new LaporanUnsurExport($hasil, 'SKM ' . $puskesma->nama),
+            new LaporanUnsurExport($hasil, $hasilPerPoli),
             "skm-{$puskesma->slug}.xlsx"
         );
     }
