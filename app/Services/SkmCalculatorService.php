@@ -167,7 +167,10 @@ class SkmCalculatorService
 
         $query = $puskesmas->surveiJawaban()
             ->where('periode_survei_id', $periode->id)
-            ->with(['detail' => fn ($q) => $q->whereIn('pertanyaan_survei_id', $petaPertanyaan->keys())])
+            ->with([
+                'detail' => fn ($q) => $q->whereIn('pertanyaan_survei_id', $petaPertanyaan->keys()),
+                'unitLayanan:id,nama',
+            ])
             ->orderBy('created_at');
 
         if ($unitLayanan) {
@@ -197,6 +200,11 @@ class SkmCalculatorService
 
             return [
                 'no' => $nomorAwal + $i + 1,
+                'unit_dinilai' => $jawaban->unitLayanan->nama ?? '-',
+                'no_hp' => $jawaban->no_hp,
+                'pekerjaan' => $jawaban->pekerjaan,
+                'pendidikan' => $jawaban->pendidikan,
+                'usia' => $jawaban->usia_rentang,
                 'nama' => $jawaban->nama,
                 'tanggal' => $jawaban->created_at,
                 'nilai' => $nilai,

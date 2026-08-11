@@ -1045,3 +1045,40 @@ kolom lain, kasih tau supaya saya sesuaikan.
 ### Cara pasang
 
 Tidak ada migration baru. Copy 2 file di atas.
+
+## Update Data Responden: hapus kolom Data Kosong, tambah kolom data diri
+
+Sesuai masukan terbaru, kolom "Data Kosong" dihapus. Sebagai gantinya, ditambahkan
+kolom-kolom data diri responden setelah kolom Nama (semua sudah ada di database,
+tinggal ditampilkan — tidak ada perubahan skema):
+
+```
+No. Res | Nama | Unit yang Dinilai | No. HP/WA | Usia | Pendidikan | Pekerjaan | U1...U9
+```
+
+### Soal kolom "Umur"
+
+Sistem saat ini cuma mengumpulkan **rentang usia** (dropdown 8 kategori Kemenkes), belum
+ada field angka umur pasti. Kolom "Usia" di tabel ini masih menampilkan rentang tsb.
+
+Kalau butuh angka umur eksak, itu perlu perubahan lebih dalam: tambah kolom baru di
+`survei_jawaban` (migration), tambah field input angka di form survei publik
+(`survei/form.blade.php`), plus validasi di `StoreSurveiJawabanRequest`. Belum saya
+kerjakan sekarang karena disebut "nanti" — bilang kalau mau langsung dikerjakan.
+
+### File yang berubah
+
+- `app/Services/SkmCalculatorService.php` — `dataPerResponden()` sekarang eager-load
+  `unitLayanan` dan menyertakan `no_hp`, `pekerjaan`, `pendidikan`, `usia` per baris
+- `resources/views/partials/data-responden.blade.php` — kolom baru, colspan footer disesuaikan (7, bukan 2)
+- `app/Exports/DataRespondenExport.php` — kolom yang sama di Excel
+
+### Cara pasang
+
+Tidak ada migration baru. Copy 3 file di atas, lalu `php artisan view:clear` untuk jaga-jaga.
+
+### Cara tes
+
+Buka **Puskesmas > Laporan > Data Responden** (atau versi dinkes) — pastikan kolom baru
+muncul dan datanya sesuai (unit yang dipilih responden pas isi survei, no HP, dst),
+dan kolom Data Kosong sudah tidak ada lagi.

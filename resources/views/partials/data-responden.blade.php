@@ -41,8 +41,12 @@
             <tr>
                 <th rowspan="2" class="align-middle">No. Res</th>
                 <th rowspan="2" class="align-middle text-start">Nama</th>
+                <th rowspan="2" class="align-middle text-start">Unit yang Dinilai</th>
+                <th rowspan="2" class="align-middle">No. HP/WA</th>
+                <th rowspan="2" class="align-middle">Usia</th>
+                <th rowspan="2" class="align-middle">Pendidikan</th>
+                <th rowspan="2" class="align-middle">Pekerjaan</th>
                 <th colspan="{{ $jumlahUnsur }}" class="table-warning">Nilai Unsur Pelayanan</th>
-                <th rowspan="2" class="align-middle">Data<br>Kosong</th>
             </tr>
             <tr>
                 @foreach ($kodeUnsur as $kode)
@@ -52,48 +56,47 @@
         </thead>
         <tbody>
             @forelse ($baris as $b)
-                @php $jumlahKosong = collect($b['nilai'])->filter(fn ($v) => is_null($v))->count(); @endphp
                 <tr>
                     <td>{{ $b['no'] }}</td>
                     <td class="text-start">{{ $b['nama'] }}</td>
+                    <td class="text-start">{{ $b['unit_dinilai'] }}</td>
+                    <td>{{ $b['no_hp'] }}</td>
+                    <td>{{ $b['usia'] ?? '-' }}</td>
+                    <td>{{ $b['pendidikan'] ?? '-' }}</td>
+                    <td>{{ $b['pekerjaan'] ?? '-' }}</td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ $b['nilai'][$kode] ?? '-' }}</td>
                     @endforeach
-                    <td>{{ $jumlahKosong }}</td>
                 </tr>
             @empty
-                <tr><td colspan="{{ 3 + $jumlahUnsur }}" class="text-muted">Belum ada responden pada periode ini</td></tr>
+                <tr><td colspan="{{ 7 + $jumlahUnsur }}" class="text-muted">Belum ada responden pada periode ini</td></tr>
             @endforelse
         </tbody>
         @if ($baris->isNotEmpty())
             <tfoot>
                 <tr class="table-light">
-                    <td colspan="2" class="text-start fw-semibold">&Sigma; Nilai / Unsur</td>
+                    <td colspan="7" class="text-start fw-semibold">&Sigma; Nilai / Unsur</td>
                     @foreach ($kodeUnsur as $kode)
                         <td class="fw-semibold">{{ $hasil['per_unsur'][$kode]['total_nilai'] ?? 0 }}</td>
                     @endforeach
-                    <td></td>
                 </tr>
                 <tr class="table-light">
-                    <td colspan="2" class="text-start fw-semibold">NRR / Unsur</td>
+                    <td colspan="7" class="text-start fw-semibold">NRR / Unsur</td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ number_format($hasil['per_unsur'][$kode]['nrr'] ?? 0, 3) }}</td>
                     @endforeach
-                    <td></td>
                 </tr>
                 <tr class="table-light">
-                    <td colspan="2" class="text-start fw-semibold">NRR Tertimbang / Unsur</td>
+                    <td colspan="7" class="text-start fw-semibold">NRR Tertimbang / Unsur</td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ number_format($hasil['per_unsur'][$kode]['nrr_tertimbang'] ?? 0, 3) }}</td>
                     @endforeach
-                    <td></td>
                 </tr>
                 <tr class="table-light">
-                    <td colspan="2" class="text-start fw-semibold">Kategori per Unsur</td>
+                    <td colspan="7" class="text-start fw-semibold">Kategori per Unsur</td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ explode(' ', $hasil['per_unsur'][$kode]['kategori'] ?? '-')[0] }}</td>
                     @endforeach
-                    <td></td>
                 </tr>
             </tfoot>
         @endif
@@ -101,7 +104,8 @@
 </div>
 
 <p class="text-muted small">
-    Kolom "Data Kosong" = jumlah unsur yang belum ada nilainya untuk responden tsb (0 = jawaban lengkap semua 9 unsur).
+    Kolom "Usia" masih menampilkan rentang usia (dropdown saat ini), belum berupa angka umur pasti.
+    Kalau perlu angka umur yang eksak, form survei publik perlu ditambah field input umur — tinggal minta kalau mau saya kerjakan.
 </p>
 
 @if ($halamanData)
