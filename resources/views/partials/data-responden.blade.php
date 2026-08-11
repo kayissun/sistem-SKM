@@ -42,6 +42,7 @@
                 <th rowspan="2" class="align-middle">No. Res</th>
                 <th rowspan="2" class="align-middle text-start">Nama</th>
                 <th colspan="{{ $jumlahUnsur }}" class="table-warning">Nilai Unsur Pelayanan</th>
+                <th rowspan="2" class="align-middle">Data<br>Kosong</th>
             </tr>
             <tr>
                 @foreach ($kodeUnsur as $kode)
@@ -58,6 +59,7 @@
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ $b['nilai'][$kode] ?? '-' }}</td>
                     @endforeach
+                    <td>{{ $jumlahKosong }}</td>
                 </tr>
             @empty
                 <tr><td colspan="{{ 3 + $jumlahUnsur }}" class="text-muted">Belum ada responden pada periode ini</td></tr>
@@ -97,6 +99,10 @@
         @endif
     </table>
 </div>
+
+<p class="text-muted small">
+    Kolom "Data Kosong" = jumlah unsur yang belum ada nilainya untuk responden tsb (0 = jawaban lengkap semua 9 unsur).
+</p>
 
 @if ($halamanData)
     <div class="mb-4">{{ $halamanData->links() }}</div>
