@@ -53,7 +53,7 @@ class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, 
                 $baris['mutu_akhir'],
                 $baris['jumlah_responden'],
                 'SKM Online',
-                '-',
+                $baris['unsur_prioritas'],
                 '-',
             ]
         );

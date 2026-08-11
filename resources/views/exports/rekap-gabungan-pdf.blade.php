@@ -14,7 +14,7 @@
     </style>
 </head>
 <body>
-    <h2>Rekap Survei Kepuasan Masyarakat - Dinas Kesehatan Daerah Purworejo</h2>
+    <h2>Rekap Survei Kepuasan Masyarakat - Semua Unit</h2>
     <p class="sub">Periode: {{ $periode->nama }} &middot; Dicetak: {{ now()->format('d M Y H:i') }}</p>
 
     <table>
@@ -42,10 +42,7 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td class="label">{{ $baris['puskesmas'] }}</td>
-                    <td>
-                        {{ $periode->nama }}
-                        ({{ $periode->tanggal_mulai->translatedFormat('F') }} - {{ $periode->tanggal_selesai->translatedFormat('F Y') }})
-                    </td>
+                    <td>{{ $periode->nama }}</td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}</td>
                     @endforeach
@@ -53,7 +50,7 @@
                     <td>{{ $baris['mutu_akhir'] }}</td>
                     <td>{{ $baris['jumlah_responden'] }}</td>
                     <td>SKM Online</td>
-                    <td>-</td>
+                    <td class="label">{{ $baris['unsur_prioritas'] }}</td>
                     <td>-</td>
                 </tr>
             @empty

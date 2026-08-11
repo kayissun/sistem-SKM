@@ -21,6 +21,7 @@
         <div class="mb-3">
             <a href="{{ route('puskesmas.laporan.export-pdf', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-danger btn-sm">Export PDF</a>
             <a href="{{ route('puskesmas.laporan.export-excel', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-success btn-sm">Export Excel</a>
+            <a href="{{ route('puskesmas.laporan.data-responden', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-primary btn-sm">Data Responden</a>
         </div>
     @endif
 

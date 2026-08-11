@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Puskesmas;
 
+use App\Exports\DataRespondenExport;
 use App\Exports\LaporanUnsurExport;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
@@ -49,6 +50,43 @@ class LaporanController extends Controller
         return Excel::download(
             new LaporanUnsurExport($hasil, $hasilPerPoli),
             "skm-{$puskesmas->slug}.xlsx"
+        );
+    }
+
+    public function dataResponden(Request $request, SkmCalculatorService $service)
+    {
+        [$puskesmas, $periode, $daftarPeriode, $hasil] = $this->ambilData($request, $service);
+
+        $kodeUnsur = [];
+        $baris = collect();
+        $halamanData = null;
+        $peringkat = collect();
+
+        if ($puskesmas && $periode && $hasil) {
+            $data = $service->dataPerResponden($puskesmas, $periode);
+            $kodeUnsur = $data['kodeUnsur'];
+            $baris = $data['baris'];
+            $halamanData = $data['halaman'];
+            $peringkat = $service->peringkatPrioritas($hasil);
+        }
+
+        return view('puskesmas.laporan.data-responden', compact(
+            'puskesmas', 'periode', 'daftarPeriode', 'hasil', 'kodeUnsur', 'baris', 'halamanData', 'peringkat'
+        ));
+    }
+
+    public function exportExcelResponden(Request $request, SkmCalculatorService $service)
+    {
+        [$puskesmas, $periode, , $hasil] = $this->ambilData($request, $service);
+
+        abort_if(! $periode || ! $hasil, 404, 'Periode survei tidak ditemukan.');
+
+        // ambil SEMUA baris (tanpa paginasi) khusus buat export
+        $data = $service->dataPerResponden($puskesmas, $periode, perHalaman: null);
+
+        return Excel::download(
+            new DataRespondenExport($data['kodeUnsur'], $data['baris'], $hasil),
+            "data-responden-{$puskesmas->slug}-{$periode->id}.xlsx"
         );
     }
 

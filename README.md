@@ -953,3 +953,95 @@ Tidak ada migration baru. Cukup timpa file di atas.
    (Seluruh Layanan + 1 tab per poli yang sudah ada datanya).
 2. Ulangi dari sisi **Dinkes > Laporan > (pilih unit) > Lihat > Export Excel** — pastikan
    perilakunya sama.
+
+## Fitur baru: Data Responden (breakdown per-responden, bukan cuma agregat)
+
+Halaman baru yang menampilkan **nilai mentah tiap responden per unsur** (bukan cuma
+rata-rata/total), lengkap rekap di bawahnya — mirip format "Pengolahan Data Hasil Survey
+per Responden dan per Unsur Pelayanan" yang biasa dipakai laporan resmi. Tersedia untuk:
+
+- **Puskesmas/RSU** (dan otomatis SKM Dinkes sendiri, karena reuse route yang sama)
+- **Dinkes** — versi drill-down per unit dari panel pengawasan
+
+### Isi halamannya
+
+1. **Tabel per responden**: No, Nama, nilai U1-U9 (dipaginasi 50 baris/halaman di web).
+2. **Rekap di bagian bawah tabel**: &Sigma; Nilai/Unsur, NRR/Unsur, NRR Tertimbang/Unsur,
+   Kategori per Unsur — dihitung dari SELURUH data periode itu (bukan cuma yang tampil
+   di halaman saat ini).
+3. **Kotak Keterangan**: penjelasan singkat U1-U9, NRR, IKM, dan rumus-rumusnya.
+4. **Peringkat Prioritas Perbaikan**: 9 unsur diurutkan dari nilai paling rendah — peringkat 1
+   = paling butuh diperbaiki duluan. Ini murni dihitung otomatis dari data, transparan urutannya.
+5. **IKM Unit Pelayanan** + **Mutu Pelayanan** + tabel legenda kategori A/B/C/D (nilai ambang
+   batasnya tetap sesuai Permenpan RB 14/2017, di-hardcode karena memang baku/tidak berubah).
+6. **Export Excel** — beda dari tampilan web, file Excel berisi **SEMUA** responden (tidak
+   dipaginasi), plus rekap yang sama di baris-baris bawahnya.
+
+### Bonus: kolom "Unsur Prioritas Perbaikan" di rekap gabungan sekarang terisi otomatis
+
+Sebelumnya kolom ini di halaman **Dinkes > Laporan** (rekap gabungan semua unit) cuma
+placeholder `-`. Sekarang otomatis diisi dengan unsur bernilai paling rendah untuk unit
+tsb, dihitung pakai logika peringkat yang sama — jadi dinkes langsung tahu tiap unit
+perlu fokus perbaikan di unsur mana tanpa buka detail satu-satu. Berlaku di tampilan web,
+PDF, dan Excel-nya sekaligus.
+
+### File baru
+
+- `app/Exports/DataRespondenExport.php`
+- `resources/views/partials/data-responden.blade.php` — dipakai bersama puskesmas & dinkes
+- `resources/views/puskesmas/laporan/data-responden.blade.php`
+- `resources/views/dinkes/laporan/data-responden.blade.php`
+
+### File yang berubah
+
+- `app/Services/SkmCalculatorService.php` — tambah `dataPerResponden()`, `peringkatPrioritas()`,
+  dan `hitungGabungan()` sekarang mengisi `unsur_prioritas` otomatis
+- `app/Http/Controllers/Puskesmas/LaporanController.php` — tambah `dataResponden()`,
+  `exportExcelResponden()`
+- `app/Http/Controllers/Dinkes/LaporanController.php` — tambah method yang sama untuk drill-down per unit
+- `resources/views/puskesmas/laporan/index.blade.php`, `dinkes/laporan/detail.blade.php` —
+  tombol "Data Responden" baru
+- `resources/views/dinkes/laporan/index.blade.php`, `exports/rekap-gabungan-pdf.blade.php`,
+  `app/Exports/RekapGabunganExport.php` — kolom Unsur Prioritas Perbaikan terisi otomatis
+- Route baru: `puskesmas.laporan.data-responden` (+ export-excel), `dinkes.laporan.data-responden` (+ export-excel)
+
+### Cara pasang
+
+Tidak ada migration baru. Copy semua file di atas.
+
+### Cara tes
+
+1. **Puskesmas > Laporan** → tombol **Data Responden** → pastikan muncul tabel per-responden,
+   nama & nilai per unsurnya masuk akal (cocok sama jawaban yang pernah kamu submit lewat form survei).
+2. Cek rekap di bawah tabel (&Sigma; Nilai, NRR, dst) — bandingkan dengan tabel matriks di
+   halaman Laporan biasa, harus sama persis.
+3. Cek **Peringkat Prioritas Perbaikan** — pastikan unsur dengan NRR paling rendah ada di peringkat 1.
+4. **Export Excel** — pastikan SEMUA responden ikut (bukan cuma 50 yang tampil di halaman pertama).
+5. Ulangi dari **Dinkes > Laporan > (pilih unit) > Lihat > Data Responden** — perilakunya harus sama.
+6. Cek **Dinkes > Laporan** (rekap gabungan) — kolom "Unsur Prioritas Perbaikan" sekarang harus
+   terisi nama unsur, bukan `-` lagi (untuk unit yang sudah ada respondennya).
+
+## Penyesuaian Data Responden: kolom "Data Kosong" + header format resmi
+
+Setelah dibandingkan lagi dengan referensi, ada 2 penyesuaian di halaman Data Responden:
+
+1. **Header format resmi** — judul "PENGOLAHAN DATA HASIL SURVEY KEPUASAN MASYARAKAT PER
+   RESPONDEN DAN PER UNSUR PELAYANAN", diikuti info "Unit Pelayanan", "Periode Survei",
+   dan "Jumlah Responden" dalam format label-titik-dua seperti referensi.
+2. **Kolom "Data Kosong"** — ditambahkan di ujung kanan tabel (setelah U9), menghitung
+   berapa unsur yang belum ada nilainya untuk responden tsb (0 = lengkap semua 9 unsur
+   terisi). Ada juga di export Excel-nya.
+
+**Catatan jujur:** referensi gambar yang kamu kirim itu kolom terakhirnya nggak ada label
+teks (terpotong di gambar), saya tebak dari polanya (selalu 0, di paling kanan setelah
+semua unsur) kemungkinan itu kolom validasi kelengkapan data. Kalau ternyata maksudnya
+kolom lain, kasih tau supaya saya sesuaikan.
+
+### File yang berubah
+
+- `resources/views/partials/data-responden.blade.php` — header + kolom Data Kosong
+- `app/Exports/DataRespondenExport.php` — kolom Data Kosong ikut di Excel
+
+### Cara pasang
+
+Tidak ada migration baru. Copy 2 file di atas.

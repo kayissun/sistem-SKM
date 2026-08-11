@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dinkes;
 
+use App\Exports\DataRespondenExport;
 use App\Exports\LaporanUnsurExport;
 use App\Exports\RekapGabunganExport;
 use App\Http\Controllers\Controller;
@@ -44,11 +45,8 @@ class LaporanController extends Controller
 
         $kodeUnsur = $rekap->isNotEmpty() ? array_keys($rekap->first()['per_unsur']) : [];
 
-        // Format nama periode beserta rentang bulannya
-        $namaPeriodeLengkap = $periode->nama . ' (' . $periode->tanggal_mulai->translatedFormat('F') . ' - ' . $periode->tanggal_selesai->translatedFormat('F Y') . ')';
-
         return Excel::download(
-            new RekapGabunganExport($rekap, $kodeUnsur, $namaPeriodeLengkap),
+            new RekapGabunganExport($rekap, $kodeUnsur, $periode->nama),
             "rekap-skm-{$periode->id}.xlsx"
         );
     }
@@ -92,6 +90,36 @@ class LaporanController extends Controller
         return Excel::download(
             new LaporanUnsurExport($hasil, $hasilPerPoli),
             "skm-{$puskesma->slug}.xlsx"
+        );
+    }
+
+    public function dataResponden(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
+    {
+        [$periode, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $data = $service->dataPerResponden($puskesma, $periode);
+        $peringkat = $service->peringkatPrioritas($hasil);
+
+        return view('dinkes.laporan.data-responden', [
+            'puskesmas' => $puskesma,
+            'periode' => $periode,
+            'hasil' => $hasil,
+            'kodeUnsur' => $data['kodeUnsur'],
+            'baris' => $data['baris'],
+            'halamanData' => $data['halaman'],
+            'peringkat' => $peringkat,
+        ]);
+    }
+
+    public function exportExcelResponden(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
+    {
+        [$periode, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $data = $service->dataPerResponden($puskesma, $periode, perHalaman: null);
+
+        return Excel::download(
+            new DataRespondenExport($data['kodeUnsur'], $data['baris'], $hasil),
+            "data-responden-{$puskesma->slug}-{$periode->id}.xlsx"
         );
     }
 

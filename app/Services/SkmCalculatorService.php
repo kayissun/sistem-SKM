@@ -147,6 +147,80 @@ class SkmCalculatorService
     }
 
     /**
+     * Data mentah per responden (belum diagregasi) — nilai tiap responden per unsur,
+     * dipaginasi untuk tampilan web. Kalau ada pertanyaan yang mewakili unsur sama lebih
+     * dari 1, nilainya dirata-rata per responden untuk unsur tsb.
+     */
+    public function dataPerResponden(
+        Puskesmas $puskesmas,
+        PeriodeSurvei $periode,
+        ?UnitLayanan $unitLayanan = null,
+        ?int $perHalaman = 50
+    ): array {
+        $kodeUnsur = UnsurPelayanan::aktif()->pluck('kode')->all();
+
+        $petaPertanyaan = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)
+            ->whereNotNull('unsur_pelayanan_id')
+            ->with('unsurPelayanan:id,kode')
+            ->get()
+            ->mapWithKeys(fn (PertanyaanSurvei $p) => [$p->id => $p->unsurPelayanan->kode]);
+
+        $query = $puskesmas->surveiJawaban()
+            ->where('periode_survei_id', $periode->id)
+            ->with(['detail' => fn ($q) => $q->whereIn('pertanyaan_survei_id', $petaPertanyaan->keys())])
+            ->orderBy('created_at');
+
+        if ($unitLayanan) {
+            $query->where('unit_layanan_id', $unitLayanan->id);
+        }
+
+        $halaman = $perHalaman ? $query->paginate($perHalaman)->withQueryString() : null;
+        $koleksiJawaban = $halaman ? collect($halaman->items()) : $query->get();
+        $nomorAwal = $halaman ? ($halaman->currentPage() - 1) * $halaman->perPage() : 0;
+
+        $baris = $koleksiJawaban->values()->map(function ($jawaban, $i) use ($petaPertanyaan, $kodeUnsur, $nomorAwal) {
+            $penampung = array_fill_keys($kodeUnsur, []);
+
+            foreach ($jawaban->detail as $detail) {
+                $kode = $petaPertanyaan[$detail->pertanyaan_survei_id] ?? null;
+                if ($kode && $detail->nilai !== null) {
+                    $penampung[$kode][] = $detail->nilai;
+                }
+            }
+
+            $nilai = [];
+            foreach ($kodeUnsur as $kode) {
+                $nilai[$kode] = empty($penampung[$kode])
+                    ? null
+                    : round(array_sum($penampung[$kode]) / count($penampung[$kode]), 2);
+            }
+
+            return [
+                'no' => $nomorAwal + $i + 1,
+                'nama' => $jawaban->nama,
+                'tanggal' => $jawaban->created_at,
+                'nilai' => $nilai,
+            ];
+        });
+
+        return ['kodeUnsur' => $kodeUnsur, 'baris' => $baris, 'halaman' => $halaman];
+    }
+
+    /**
+     * Urutkan 9 unsur dari yang paling rendah nilainya (peringkat 1 = paling perlu
+     * diperbaiki duluan) berdasarkan hasil hitung() yang sudah ada.
+     */
+    public function peringkatPrioritas(array $hasil): Collection
+    {
+        return collect($hasil['per_unsur'])
+            ->map(fn ($u, $kode) => ['kode' => $kode, 'pertanyaan' => $u['pertanyaan'], 'nrr' => $u['nrr']])
+            ->values()
+            ->sortBy('nrr')
+            ->values()
+            ->map(fn ($item, $i) => $item + ['peringkat' => $i + 1]);
+    }
+
+    /**
      * Rekap gabungan seluruh puskesmas untuk satu periode (khusus dinkes).
      */
     public function hitungGabungan(PeriodeSurvei $periode): Collection
@@ -157,6 +231,10 @@ class SkmCalculatorService
             ->map(function (Puskesmas $puskesmas) use ($periode) {
                 $hasil = $this->hitung($puskesmas, $periode);
 
+                $unsurTerlemah = $hasil['jumlah_responden'] > 0
+                    ? $this->peringkatPrioritas($hasil)->first()
+                    : null;
+
                 return [
                     'puskesmas_id' => $puskesmas->id,
                     'puskesmas' => $puskesmas->nama,
@@ -164,6 +242,7 @@ class SkmCalculatorService
                     'per_unsur' => $hasil['per_unsur'],
                     'nilai_akhir_skm' => $hasil['nilai_akhir_skm'],
                     'mutu_akhir' => $hasil['mutu_akhir'],
+                    'unsur_prioritas' => $unsurTerlemah ? "{$unsurTerlemah['kode']} - {$unsurTerlemah['pertanyaan']}" : '-',
                 ];
             });
     }
