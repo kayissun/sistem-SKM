@@ -5,20 +5,22 @@ namespace App\Support;
 class OpsiDataDiri
 {
     /**
-     * Kategori usia sesuai kategori Kementerian Kesehatan RI.
+     * Kategori usia sesuai kategori Kementerian Kesehatan RI, dihitung otomatis
+     * dari angka umur (bukan lagi dropdown yang dipilih manual oleh responden).
      */
-    public static function usia(): array
+    public static function kategoriUsia(?int $umur): string
     {
-        return [
-            'Balita (0-5 tahun)',
-            'Kanak-kanak (5-11 tahun)',
-            'Remaja Awal (12-16 tahun)',
-            'Remaja Akhir (17-25 tahun)',
-            'Dewasa Awal (26-35 tahun)',
-            'Dewasa Akhir (36-45 tahun)',
-            'Lansia Awal (46-55 tahun)',
-            'Lansia Akhir (56-65 tahun ke atas)',
-        ];
+        return match (true) {
+            $umur === null => '-',
+            $umur <= 5 => 'Balita (0-5 tahun)',
+            $umur <= 11 => 'Kanak-kanak (5-11 tahun)',
+            $umur <= 16 => 'Remaja Awal (12-16 tahun)',
+            $umur <= 25 => 'Remaja Akhir (17-25 tahun)',
+            $umur <= 35 => 'Dewasa Awal (26-35 tahun)',
+            $umur <= 45 => 'Dewasa Akhir (36-45 tahun)',
+            $umur <= 55 => 'Lansia Awal (46-55 tahun)',
+            default => 'Lansia Akhir (56 tahun ke atas)',
+        };
     }
 
     public static function pendidikan(): array

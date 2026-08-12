@@ -8,6 +8,7 @@ use App\Models\Puskesmas;
 use App\Models\SurveiJawabanDetail;
 use App\Models\UnitLayanan;
 use App\Models\UnsurPelayanan;
+use App\Support\OpsiDataDiri;
 use Illuminate\Support\Collection;
 
 class SkmCalculatorService
@@ -155,7 +156,7 @@ class SkmCalculatorService
         Puskesmas $puskesmas,
         PeriodeSurvei $periode,
         ?UnitLayanan $unitLayanan = null,
-        ?int $perHalaman = 50
+        ?int $perHalaman = 30
     ): array {
         $kodeUnsur = UnsurPelayanan::aktif()->pluck('kode')->all();
 
@@ -204,7 +205,8 @@ class SkmCalculatorService
                 'no_hp' => $jawaban->no_hp,
                 'pekerjaan' => $jawaban->pekerjaan,
                 'pendidikan' => $jawaban->pendidikan,
-                'usia' => $jawaban->usia_rentang,
+                'umur' => $jawaban->umur,
+                'usia_kategori' => OpsiDataDiri::kategoriUsia($jawaban->umur),
                 'nama' => $jawaban->nama,
                 'tanggal' => $jawaban->created_at,
                 'nilai' => $nilai,

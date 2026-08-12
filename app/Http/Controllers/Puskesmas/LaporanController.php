@@ -57,13 +57,17 @@ class LaporanController extends Controller
     {
         [$puskesmas, $periode, $daftarPeriode, $hasil] = $this->ambilData($request, $service);
 
+        $perHalaman = in_array($request->integer('per_halaman'), [10, 30, 50, 100], true)
+            ? $request->integer('per_halaman')
+            : 30;
+
         $kodeUnsur = [];
         $baris = collect();
         $halamanData = null;
         $peringkat = collect();
 
         if ($puskesmas && $periode && $hasil) {
-            $data = $service->dataPerResponden($puskesmas, $periode);
+            $data = $service->dataPerResponden($puskesmas, $periode, perHalaman: $perHalaman);
             $kodeUnsur = $data['kodeUnsur'];
             $baris = $data['baris'];
             $halamanData = $data['halaman'];
@@ -71,7 +75,7 @@ class LaporanController extends Controller
         }
 
         return view('puskesmas.laporan.data-responden', compact(
-            'puskesmas', 'periode', 'daftarPeriode', 'hasil', 'kodeUnsur', 'baris', 'halamanData', 'peringkat'
+            'puskesmas', 'periode', 'daftarPeriode', 'hasil', 'kodeUnsur', 'baris', 'halamanData', 'peringkat', 'perHalaman'
         ));
     }
 

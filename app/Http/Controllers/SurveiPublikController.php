@@ -23,13 +23,12 @@ class SurveiPublikController extends Controller
         $daftarPertanyaan = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)->aktif()->get();
         $daftarUnitLayanan = UnitLayanan::where('puskesmas_id', $puskesmas->id)->aktif()->get();
 
-        $opsiUsia = OpsiDataDiri::usia();
         $opsiPendidikan = OpsiDataDiri::pendidikan();
         $opsiPekerjaan = OpsiDataDiri::pekerjaan();
 
         return view('survei.form', compact(
             'puskesmas', 'periodeAktif', 'daftarPertanyaan', 'daftarUnitLayanan',
-            'opsiUsia', 'opsiPendidikan', 'opsiPekerjaan'
+            'opsiPendidikan', 'opsiPekerjaan'
         ));
     }
 
@@ -49,7 +48,7 @@ class SurveiPublikController extends Controller
                 'nama' => $data['nama'],
                 'no_hp' => $data['no_hp'],
                 'jenis_kelamin' => $data['jenis_kelamin'] ?? null,
-                'usia_rentang' => $data['usia_rentang'],
+                'umur' => $data['umur'],
                 'pendidikan' => $data['pendidikan'],
                 'pekerjaan' => $data['pekerjaan'],
             ]);

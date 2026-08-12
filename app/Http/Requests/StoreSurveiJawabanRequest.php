@@ -62,9 +62,9 @@ class StoreSurveiJawabanRequest extends FormRequest
                 Rule::exists('unit_layanan', 'id')->where('puskesmas_id', $puskesmas->id),
             ],
             'nama' => ['required', 'string', 'max:255'],
-            'no_hp' => ['required', 'string', 'max:25'],
+            'no_hp' => ['required', 'digits_between:9,15'],
             'jenis_kelamin' => ['nullable', 'in:L,P'],
-            'usia_rentang' => ['required', Rule::in(OpsiDataDiri::usia())],
+            'umur' => ['required', 'integer', 'min:0', 'max:120'],
             'pendidikan' => ['required', Rule::in(OpsiDataDiri::pendidikan())],
             'pekerjaan' => ['required', Rule::in(OpsiDataDiri::pekerjaan())],
         ];
@@ -82,6 +82,9 @@ class StoreSurveiJawabanRequest extends FormRequest
     {
         return [
             'jawaban.*.required' => 'Semua pertanyaan skala wajib dinilai.',
+            'no_hp.digits_between' => 'No. HP/WA harus berupa angka saja, 9-15 digit (tanpa spasi, tanda +, atau tanda baca lain).',
+            'umur.integer' => 'Umur harus berupa angka.',
+            'umur.max' => 'Umur maksimal 120 tahun.',
         ];
     }
 

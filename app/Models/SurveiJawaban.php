@@ -15,7 +15,7 @@ class SurveiJawaban extends Model
 
     protected $fillable = [
         'puskesmas_id', 'periode_survei_id', 'unit_layanan_id', 'nama', 'no_hp',
-        'jenis_kelamin', 'usia_rentang', 'pendidikan', 'pekerjaan',
+        'jenis_kelamin', 'umur', 'pendidikan', 'pekerjaan',
     ];
 
     public function puskesmas(): BelongsTo

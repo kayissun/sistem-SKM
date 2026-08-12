@@ -33,7 +33,8 @@
                         <div class="col-md-6">
                             <label class="form-label">No. WA/HP <span class="text-danger">*</span></label>
                             <input type="tel" name="no_hp" class="form-control" value="{{ old('no_hp') }}" required
-                                   placeholder="contoh: 081234567890">
+                                   inputmode="numeric" pattern="[0-9]*" maxlength="15"
+                                   placeholder="contoh: 081234567890 (angka saja)">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Unit layanan yang dikunjungi <span class="text-danger">*</span></label>
@@ -59,13 +60,9 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Rentang usia <span class="text-danger">*</span></label>
-                            <select name="usia_rentang" class="form-select" required>
-                                <option value="">-- Pilih --</option>
-                                @foreach ($opsiUsia as $opsi)
-                                    <option value="{{ $opsi }}" @selected(old('usia_rentang') === $opsi)>{{ $opsi }}</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Umur <span class="text-danger">*</span></label>
+                            <input type="number" name="umur" class="form-control" value="{{ old('umur') }}" required
+                                   inputmode="numeric" min="0" max="120" placeholder="contoh: 28">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Pendidikan terakhir <span class="text-danger">*</span></label>

@@ -97,7 +97,11 @@ class LaporanController extends Controller
     {
         [$periode, $hasil] = $this->ambilHasilUnit($request, $puskesma, $service);
 
-        $data = $service->dataPerResponden($puskesma, $periode);
+        $perHalaman = in_array($request->integer('per_halaman'), [10, 30, 50, 100], true)
+            ? $request->integer('per_halaman')
+            : 30;
+
+        $data = $service->dataPerResponden($puskesma, $periode, perHalaman: $perHalaman);
         $peringkat = $service->peringkatPrioritas($hasil);
 
         return view('dinkes.laporan.data-responden', [
@@ -108,6 +112,7 @@ class LaporanController extends Controller
             'baris' => $data['baris'],
             'halamanData' => $data['halaman'],
             'peringkat' => $peringkat,
+            'perHalaman' => $perHalaman,
         ]);
     }
 

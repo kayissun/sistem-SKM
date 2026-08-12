@@ -1082,3 +1082,88 @@ Tidak ada migration baru. Copy 3 file di atas, lalu `php artisan view:clear` unt
 Buka **Puskesmas > Laporan > Data Responden** (atau versi dinkes) — pastikan kolom baru
 muncul dan datanya sesuai (unit yang dipilih responden pas isi survei, no HP, dst),
 dan kolom Data Kosong sudah tidak ada lagi.
+
+## Update: Umur jadi input angka (bukan dropdown rentang), validasi angka-saja
+
+Sesuai permintaan, field usia diganti total dari dropdown rentang jadi **input angka umur**
+langsung, dan ditambahkan validasi "angka saja" untuk No. HP/WA dan Umur.
+
+### Perubahan skema
+
+Migration baru: `replace_usia_rentang_with_umur` — kolom `usia_rentang` (string, dropdown)
+di tabel `survei_jawaban` diganti jadi `umur` (angka, 0-120).
+
+**Kategori usia Kemenkes tidak hilang** — sekarang dihitung otomatis dari angka umur lewat
+`OpsiDataDiri::kategoriUsia()`, dipakai di halaman Data Responden (ditampilkan kecil di
+bawah angka umur) dan kolom terpisah di Excel. Jadi responden cukup ketik umur, sistem yang
+urus pengelompokannya — bukan lagi milih dari 8 pilihan dropdown.
+
+### Validasi angka-saja
+
+- **No. HP/WA**: `digits_between:9,15` — harus angka murni, 9-15 digit, tidak boleh ada
+  spasi/tanda `+`/tanda baca. Field di form juga dikasih `inputmode="numeric"` supaya HP
+  otomatis nongolin keyboard angka.
+- **Umur**: `integer`, antara 0-120. Field pakai `type="number"` + `inputmode="numeric"`.
+
+### File yang berubah
+
+- `database/migrations/2026_08_03_000001_replace_usia_rentang_with_umur.php` (baru)
+- `app/Models/SurveiJawaban.php` — fillable
+- `app/Support/OpsiDataDiri.php` — `usia()` diganti `kategoriUsia(?int $umur)`
+- `app/Http/Requests/StoreSurveiJawabanRequest.php` — validasi baru + pesan error
+- `app/Http/Controllers/SurveiPublikController.php` — kirim `umur`, bukan `usia_rentang`
+- `resources/views/survei/form.blade.php` — dropdown usia diganti input angka umur
+- `app/Services/SkmCalculatorService.php` — `dataPerResponden()` sertakan `umur` + `usia_kategori`
+- `resources/views/partials/data-responden.blade.php`, `app/Exports/DataRespondenExport.php` —
+  kolom Umur (+ kategori) menggantikan Usia
+
+### Cara pasang
+
+```bash
+php artisan migrate:fresh --seed
+```
+(perlu fresh migrate karena kolom `usia_rentang` dihapus & diganti tipe datanya — bukan
+sekadar alter yang aman dilakukan tanpa reset kalau sudah ada data lama yang tidak boleh hilang;
+kabari kalau sudah ada data survei sungguhan supaya saya buatkan migration yang lebih hati-hati.)
+
+### Cara tes
+
+1. Buka form survei publik — pastikan field "Umur" sekarang input angka (bukan dropdown),
+   dan No. HP/WA otomatis munculin keyboard angka di HP.
+2. Coba isi umur dengan huruf atau No. HP dengan karakter selain angka — harus ditolak validasi.
+3. Submit survei, cek **Laporan > Data Responden** — kolom Umur nampilin angka + kategori
+   Kemenkes kecil di bawahnya (otomatis, bukan dari pilihan responden).
+4. Export Excel — pastikan ada 2 kolom terpisah: "Umur" dan "Kategori Usia".
+
+## Update Data Responden: atur jumlah per halaman + info total
+
+Karena jumlah responden bisa sampai ribuan, halaman **Data Responden** sekarang:
+
+- Default tampil **30 baris per halaman** (sebelumnya 50, tanpa bisa diubah).
+- Ada dropdown **"Tampilkan [10/30/50/100] per halaman"** di atas tabel, auto-submit
+  begitu diganti.
+- Info **"Menampilkan 1-30 dari 1.245 responden"** di atas tombol paginasi, biar jelas
+  skalanya tanpa perlu hitung manual.
+- Pilihan jumlah per halaman ikut kebawa waktu pindah ke halaman berikutnya (page 2, 3, dst).
+
+**Export Excel tidak terpengaruh** — tetap selalu mengeluarkan SEMUA responden sekaligus
+(tidak dipaginasi), karena spreadsheet memang cocok untuk data banyak sekaligus.
+
+### File yang berubah
+
+- `app/Services/SkmCalculatorService.php` — default `perHalaman` jadi 30
+- `app/Http/Controllers/Puskesmas/LaporanController.php`,
+  `app/Http/Controllers/Dinkes/LaporanController.php` — baca `per_halaman` dari query string
+  (dibatasi ke pilihan 10/30/50/100 saja, supaya tidak bisa disalahgunakan minta 1 halaman
+  isi 999999 baris sekaligus lewat manipulasi URL)
+- `resources/views/partials/data-responden.blade.php` — dropdown pilihan + info "menampilkan X-Y dari Z"
+
+### Cara pasang
+
+Tidak ada migration baru. Copy semua file di atas.
+
+### Cara tes
+
+Buka halaman Data Responden yang punya cukup banyak data (atau tes dengan data dummy) →
+coba ganti dropdown jumlah per halaman → pastikan tabel & info "menampilkan..." ikut berubah,
+dan tombol halaman berikutnya tetap mempertahankan pilihan itu.

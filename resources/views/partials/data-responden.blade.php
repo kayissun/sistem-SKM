@@ -2,6 +2,7 @@
     $tableId = $id ?? 'tabel-responden-' . uniqid();
     $jumlahUnsur = count($kodeUnsur);
     $judul = $judul ?? ($puskesmas->nama ?? '-');
+    $perHalaman = $perHalaman ?? 30;
 @endphp
 
 <div class="text-center mb-3">
@@ -29,7 +30,18 @@
     </tbody>
 </table>
 
-<div class="d-flex justify-content-end mb-2">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <form method="GET" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="periode_survei_id" value="{{ $periode->id }}">
+        <label class="small text-muted mb-0">Tampilkan</label>
+        <select name="per_halaman" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+            @foreach ([10, 30, 50, 100] as $opsi)
+                <option value="{{ $opsi }}" @selected($perHalaman == $opsi)>{{ $opsi }}</option>
+            @endforeach
+        </select>
+        <span class="small text-muted">per halaman</span>
+    </form>
+
     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="salinTabelKeClipboard('{{ $tableId }}', this)">
         Salin Tabel
     </button>
@@ -43,7 +55,7 @@
                 <th rowspan="2" class="align-middle text-start">Nama</th>
                 <th rowspan="2" class="align-middle text-start">Unit yang Dinilai</th>
                 <th rowspan="2" class="align-middle">No. HP/WA</th>
-                <th rowspan="2" class="align-middle">Usia</th>
+                <th rowspan="2" class="align-middle">Umur</th>
                 <th rowspan="2" class="align-middle">Pendidikan</th>
                 <th rowspan="2" class="align-middle">Pekerjaan</th>
                 <th colspan="{{ $jumlahUnsur }}" class="table-warning">Nilai Unsur Pelayanan</th>
@@ -61,7 +73,12 @@
                     <td class="text-start">{{ $b['nama'] }}</td>
                     <td class="text-start">{{ $b['unit_dinilai'] }}</td>
                     <td>{{ $b['no_hp'] }}</td>
-                    <td>{{ $b['usia'] ?? '-' }}</td>
+                    <td>
+                        {{ $b['umur'] ?? '-' }}
+                        @if ($b['umur'] !== null)
+                            <div class="text-muted" style="font-size:0.7rem">{{ $b['usia_kategori'] }}</div>
+                        @endif
+                    </td>
                     <td>{{ $b['pendidikan'] ?? '-' }}</td>
                     <td>{{ $b['pekerjaan'] ?? '-' }}</td>
                     @foreach ($kodeUnsur as $kode)
@@ -104,12 +121,18 @@
 </div>
 
 <p class="text-muted small">
-    Kolom "Usia" masih menampilkan rentang usia (dropdown saat ini), belum berupa angka umur pasti.
-    Kalau perlu angka umur yang eksak, form survei publik perlu ditambah field input umur — tinggal minta kalau mau saya kerjakan.
+    Kolom "Umur" diisi angka pasti oleh responden saat mengisi survei, kategori Kemenkes
+    di bawahnya (Balita/Remaja/Dewasa/Lansia) dihitung otomatis dari angka tsb.
 </p>
 
 @if ($halamanData)
-    <div class="mb-4">{{ $halamanData->links() }}</div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <span class="text-muted small">
+            Menampilkan {{ $halamanData->firstItem() ?? 0 }}-{{ $halamanData->lastItem() ?? 0 }}
+            dari {{ $halamanData->total() }} responden
+        </span>
+        {{ $halamanData->links() }}
+    </div>
 @endif
 
 @if ($baris->isNotEmpty())

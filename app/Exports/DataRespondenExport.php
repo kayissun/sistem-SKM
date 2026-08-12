@@ -31,7 +31,8 @@ class DataRespondenExport implements FromArray, WithHeadings, WithTitle, ShouldA
                 $b['nama'],
                 $b['unit_dinilai'],
                 $b['no_hp'],
-                $b['usia'] ?? '',
+                $b['umur'] ?? '',
+                $b['usia_kategori'] ?? '',
                 $b['pendidikan'] ?? '',
                 $b['pekerjaan'] ?? '',
             ];
@@ -41,22 +42,22 @@ class DataRespondenExport implements FromArray, WithHeadings, WithTitle, ShouldA
             $rows[] = $baris;
         }
 
-        $kosong = array_fill(0, 7 + count($this->kodeUnsur), '');
+        $kosong = array_fill(0, 8 + count($this->kodeUnsur), '');
         $rows[] = $kosong;
 
-        $rows[] = array_merge(['', 'Σ Nilai / Unsur', '', '', '', '', ''], array_map(
+        $rows[] = array_merge(['', 'Σ Nilai / Unsur', '', '', '', '', '', ''], array_map(
             fn ($k) => $this->hasil['per_unsur'][$k]['total_nilai'] ?? 0,
             $this->kodeUnsur
         ));
-        $rows[] = array_merge(['', 'NRR / Unsur', '', '', '', '', ''], array_map(
+        $rows[] = array_merge(['', 'NRR / Unsur', '', '', '', '', '', ''], array_map(
             fn ($k) => $this->hasil['per_unsur'][$k]['nrr'] ?? 0,
             $this->kodeUnsur
         ));
-        $rows[] = array_merge(['', 'NRR Tertimbang / Unsur', '', '', '', '', ''], array_map(
+        $rows[] = array_merge(['', 'NRR Tertimbang / Unsur', '', '', '', '', '', ''], array_map(
             fn ($k) => $this->hasil['per_unsur'][$k]['nrr_tertimbang'] ?? 0,
             $this->kodeUnsur
         ));
-        $rows[] = array_merge(['', 'Kategori per Unsur', '', '', '', '', ''], array_map(
+        $rows[] = array_merge(['', 'Kategori per Unsur', '', '', '', '', '', ''], array_map(
             fn ($k) => explode(' ', $this->hasil['per_unsur'][$k]['kategori'] ?? '-')[0],
             $this->kodeUnsur
         ));
@@ -71,7 +72,7 @@ class DataRespondenExport implements FromArray, WithHeadings, WithTitle, ShouldA
     public function headings(): array
     {
         return array_merge(
-            ['No. Res', 'Nama', 'Unit yang Dinilai', 'No. HP/WA', 'Usia', 'Pendidikan', 'Pekerjaan'],
+            ['No. Res', 'Nama', 'Unit yang Dinilai', 'No. HP/WA', 'Umur', 'Kategori Usia', 'Pendidikan', 'Pekerjaan'],
             $this->kodeUnsur
         );
     }
