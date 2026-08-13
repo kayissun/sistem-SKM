@@ -8,58 +8,103 @@
         <a href="{{ route('dinkes.puskesmas.create') }}" class="btn btn-primary btn-sm">+ Tambah unit</a>
     </div>
 
-    <table class="table table-bordered bg-white align-middle">
-        <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Jenis</th>
-                <th>Kecamatan</th>
-                <th>Jumlah akun</th>
-                <th>Status</th>
-                <th style="width:70px">QR</th>
-                <th style="width:220px">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($daftarPuskesmas as $item)
-                <tr>
-                    <td>{{ $item->nama }}</td>
-                    <td>{{ strtoupper($item->jenis) }}</td>
-                    <td>{{ $item->kecamatan ?? '-' }}</td>
-                    <td>{{ $item->users_count }}</td>
-                    <td>
-                        @if ($item->is_active)
-                            <span class="badge bg-success">Aktif</span>
-                        @else
-                            <span class="badge bg-secondary">Nonaktif</span>
-                        @endif
-                    </td>
-                    <td>
-                        @if ($item->is_active)
-                            <img src="{{ route('qrcode.tampil', $item) }}" width="50" height="50" alt="QR {{ $item->nama }}">
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('dinkes.puskesmas.edit', $item) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <a href="{{ route('survei.create', $item) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Link</a>
-                        @if ($item->is_active)
-                            <a href="{{ route('qrcode.unduh', $item) }}" class="btn btn-sm btn-outline-secondary">Unduh QR</a>
-                        @endif
-                        <form action="{{ route('dinkes.puskesmas.destroy', $item) }}" method="POST" class="d-inline"
-                              onsubmit="return confirm('Nonaktifkan unit ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-sm btn-outline-danger">Nonaktifkan</button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="7" class="text-center text-muted">Belum ada data</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+    <form method="POST" action="{{ route('dinkes.puskesmas.aksi-massal') }}" id="form-aksi-massal">
+        @csrf
+
+        <div class="d-flex align-items-center gap-2 mb-2" id="bar-aksi-massal" style="display:none">
+            <span class="small text-muted"><strong id="jumlah-terpilih">0</strong> unit dipilih</span>
+            <button type="submit" name="aksi" value="nonaktifkan" class="btn btn-sm btn-outline-warning"
+                    onclick="return confirm('Nonaktifkan semua unit yang dipilih?')">
+                Nonaktifkan Terpilih
+            </button>
+            <button type="submit" name="aksi" value="hapus" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Hapus PERMANEN unit yang dipilih? Unit yang sudah punya data survei tidak akan ikut terhapus, cuma dinonaktifkan otomatis.')">
+                Hapus Terpilih
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered bg-white align-middle">
+                <thead>
+                    <tr>
+                        <th style="width:36px"><input type="checkbox" id="pilih-semua"></th>
+                        <th>Nama</th>
+                        <th>Jenis</th>
+                        <th>Alamat</th>
+                        <th>Kecamatan</th>
+                        <th>No. Telepon</th>
+                        <th>Email Admin</th>
+                        <th>Status</th>
+                        <th style="width:70px">QR</th>
+                        <th style="width:230px">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($daftarPuskesmas as $item)
+                        <tr>
+                            <td><input type="checkbox" name="dipilih[]" value="{{ $item->id }}" class="cek-item"></td>
+                            <td>{{ $item->nama }}</td>
+                            <td>{{ strtoupper($item->jenis) }}</td>
+                            <td>{{ $item->alamat ?? '-' }}</td>
+                            <td>{{ $item->kecamatan ?? '-' }}</td>
+                            <td>{{ $item->no_telepon ?? '-' }}</td>
+                            <td>{{ $item->admin?->email ?? '-' }}</td>
+                            <td>
+                                @if ($item->is_active)
+                                    <span class="badge bg-success">Aktif</span>
+                                @else
+                                    <span class="badge bg-secondary">Nonaktif</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($item->is_active)
+                                    <img src="{{ route('qrcode.tampil', $item) }}" width="50" height="50" alt="QR {{ $item->nama }}">
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>
+                                <a href="{{ route('dinkes.puskesmas.edit', $item) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a href="{{ route('survei.create', $item) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Link</a>
+                                @if ($item->is_active)
+                                    <a href="{{ route('qrcode.unduh', $item) }}" class="btn btn-sm btn-outline-secondary">QR</a>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="10" class="text-center text-muted">Belum ada data</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </form>
 
     {{ $daftarPuskesmas->links() }}
+
+    <script>
+        (function () {
+            const pilihSemua = document.getElementById('pilih-semua');
+            const bar = document.getElementById('bar-aksi-massal');
+            const jumlahEl = document.getElementById('jumlah-terpilih');
+
+            function daftarItem() {
+                return document.querySelectorAll('.cek-item');
+            }
+
+            function refresh() {
+                const dicek = document.querySelectorAll('.cek-item:checked').length;
+                jumlahEl.textContent = dicek;
+                bar.style.display = dicek > 0 ? 'flex' : 'none';
+            }
+
+            if (pilihSemua) {
+                pilihSemua.addEventListener('change', function () {
+                    daftarItem().forEach(cb => { cb.checked = pilihSemua.checked; });
+                    refresh();
+                });
+            }
+
+            daftarItem().forEach(cb => cb.addEventListener('change', refresh));
+        })();
+    </script>
 @endsection

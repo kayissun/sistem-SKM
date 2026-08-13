@@ -35,4 +35,13 @@ class OpsiDataDiri
             'SWASTA', 'PETANI', 'PELAJAR', 'LAINNYA',
         ];
     }
+
+    /**
+     * Label tampilan untuk kode pendidikan — beberapa format publikasi resmi
+     * pakai istilah "DIII" bukan "D3".
+     */
+    public static function labelPendidikan(string $kode): string
+    {
+        return $kode === 'D3' ? 'DIII' : $kode;
+    }
 }

@@ -38,4 +38,6 @@ Route::middleware(['auth', 'role:admin-puskesmas|petugas'])
         Route::get('/laporan/pertanyaan/{pertanyaan}/jawaban-teks', [LaporanController::class, 'jawabanTeks'])->name('laporan.jawaban-teks');
         Route::get('/laporan/data-responden', [LaporanController::class, 'dataResponden'])->name('laporan.data-responden');
         Route::get('/laporan/data-responden/export-excel', [LaporanController::class, 'exportExcelResponden'])->name('laporan.data-responden.export-excel');
+        Route::get('/laporan/publikasi', [LaporanController::class, 'publikasi'])->name('laporan.publikasi');
+        Route::get('/laporan/publikasi/export-pdf', [LaporanController::class, 'exportPdfPublikasi'])->name('laporan.publikasi.export-pdf');
     });

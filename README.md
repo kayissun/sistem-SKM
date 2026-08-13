@@ -1167,3 +1167,248 @@ Tidak ada migration baru. Copy semua file di atas.
 Buka halaman Data Responden yang punya cukup banyak data (atau tes dengan data dummy) →
 coba ganti dropdown jumlah per halaman → pastikan tabel & info "menampilkan..." ikut berubah,
 dan tombol halaman berikutnya tetap mempertahankan pilihan itu.
+
+# Panduan Tempel Manual — Fitur Format Publikasi IKM
+
+Container kerja saya sempat ke-reset, jadi saya nggak punya salinan file project kamu yang
+terbaru untuk ditimpa ulang secara utuh. 5 file baru (config/organisasi.php, partials, exports,
+2 view publikasi) sudah dikirim lengkap di paket ini — tinggal taruh di lokasi yang sama.
+
+6 file di bawah ini **BUKAN file baru** — kamu perlu menambahkan potongan kode berikut ke
+file yang SUDAH ADA di project kamu (jangan ditimpa seluruhnya, cukup tempel di posisi yang
+disebutkan).
+
+---
+
+## 1. app/Services/SkmCalculatorService.php
+
+**Cek dulu** apakah baris `use Illuminate\Support\Facades\DB;` sudah ada di bagian atas file
+(dekat `use` lainnya). Kalau belum ada, tambahkan.
+
+**Tempel method ini** tepat SEBELUM method `private function kategoriMutu(...)`:
+
+```php
+    /**
+     * Data untuk "Format Publikasi IKM" — poster ringkas berisi nilai IKM final +
+     * breakdown demografis responden (jenis kelamin & pendidikan), biasa ditempel
+     * di loket layanan. Kalau $unitLayanan diisi, datanya cuma dari poli itu saja.
+     */
+    public function publikasiIkm(Puskesmas $puskesmas, PeriodeSurvei $periode, ?UnitLayanan $unitLayanan = null): array
+    {
+        $hasil = $this->hitung($puskesmas, $periode, $unitLayanan);
+
+        $query = $puskesmas->surveiJawaban()->where('periode_survei_id', $periode->id);
+        if ($unitLayanan) {
+            $query->where('unit_layanan_id', $unitLayanan->id);
+        }
+
+        $jumlahLaki = (clone $query)->where('jenis_kelamin', 'L')->count();
+        $jumlahPerempuan = (clone $query)->where('jenis_kelamin', 'P')->count();
+
+        $jumlahPerPendidikan = (clone $query)
+            ->whereNotNull('pendidikan')
+            ->select('pendidikan', DB::raw('count(*) as jumlah'))
+            ->groupBy('pendidikan')
+            ->pluck('jumlah', 'pendidikan');
+
+        $pendidikan = [];
+        foreach (OpsiDataDiri::pendidikan() as $kode) {
+            $pendidikan[$kode] = $jumlahPerPendidikan[$kode] ?? 0;
+        }
+
+        return [
+            'nilai_akhir_skm' => $hasil['nilai_akhir_skm'],
+            'mutu_akhir' => $hasil['mutu_akhir'],
+            'jumlah_responden' => $hasil['jumlah_responden'],
+            'jumlah_laki' => $jumlahLaki,
+            'jumlah_perempuan' => $jumlahPerempuan,
+            'pendidikan' => $pendidikan,
+        ];
+    }
+
+```
+
+**Pastikan juga** `use App\Support\OpsiDataDiri;` sudah ada di bagian atas file (harusnya
+sudah ada dari fitur umur/pendidikan sebelumnya).
+
+---
+
+## 2. app/Support/OpsiDataDiri.php
+
+**Tempel method ini** tepat SETELAH method `public static function pendidikan(): array { ... }`:
+
+```php
+    /**
+     * Label tampilan untuk kode pendidikan — beberapa format publikasi resmi
+     * pakai istilah "DIII" bukan "D3".
+     */
+    public static function labelPendidikan(string $kode): string
+    {
+        return $kode === 'D3' ? 'DIII' : $kode;
+    }
+```
+
+---
+
+## 3. app/Http/Controllers/Puskesmas/LaporanController.php
+
+**Tambahkan import** ini di bagian atas file (dekat `use App\Models\PertanyaanSurvei;`):
+
+```php
+use App\Models\UnitLayanan;
+```
+
+**Tempel 2 method ini** tepat SEBELUM method `public function jawabanTeks(...)`:
+
+```php
+    public function publikasi(Request $request, SkmCalculatorService $service)
+    {
+        [$puskesmas, $periode, $daftarPeriode] = $this->ambilData($request, $service);
+
+        $daftarUnitLayanan = $puskesmas ? UnitLayanan::where('puskesmas_id', $puskesmas->id)->aktif()->get() : collect();
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? $daftarUnitLayanan->firstWhere('id', $unitLayananId) : null;
+
+        $publikasi = null;
+        if ($puskesmas && $periode) {
+            $publikasi = $service->publikasiIkm($puskesmas, $periode, $unitLayanan);
+        }
+
+        return view('puskesmas.laporan.publikasi', compact(
+            'puskesmas', 'periode', 'daftarPeriode', 'daftarUnitLayanan', 'unitLayanan', 'publikasi'
+        ));
+    }
+
+    public function exportPdfPublikasi(Request $request, SkmCalculatorService $service)
+    {
+        [$puskesmas, $periode] = $this->ambilData($request, $service);
+
+        abort_if(! $periode, 404, 'Periode survei tidak ditemukan.');
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? UnitLayanan::find($unitLayananId) : null;
+
+        $publikasi = $service->publikasiIkm($puskesmas, $periode, $unitLayanan);
+        $namaLayanan = $unitLayanan->nama ?? $puskesmas->nama;
+
+        $pdf = Pdf::loadView('exports.publikasi-ikm-pdf', compact('puskesmas', 'periode', 'publikasi', 'namaLayanan'));
+
+        return $pdf->download("publikasi-ikm-{$puskesmas->slug}-{$periode->id}.pdf");
+    }
+
+```
+
+*(Catatan: method ini pakai `$this->ambilData()` yang sudah ada di controller ini dari
+sebelumnya — kalau nama method privatnya beda, sesuaikan.)*
+
+---
+
+## 4. app/Http/Controllers/Dinkes/LaporanController.php
+
+**Tambahkan import** ini di bagian atas file:
+
+```php
+use App\Models\UnitLayanan;
+```
+
+**Tempel 2 method ini** tepat SEBELUM method `public function jawabanTeks(...)`:
+
+```php
+    public function publikasi(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
+    {
+        [$periode] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $daftarUnitLayanan = UnitLayanan::where('puskesmas_id', $puskesma->id)->aktif()->get();
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? $daftarUnitLayanan->firstWhere('id', $unitLayananId) : null;
+
+        $publikasi = $service->publikasiIkm($puskesma, $periode, $unitLayanan);
+
+        return view('dinkes.laporan.publikasi', [
+            'puskesmas' => $puskesma,
+            'periode' => $periode,
+            'daftarUnitLayanan' => $daftarUnitLayanan,
+            'unitLayanan' => $unitLayanan,
+            'publikasi' => $publikasi,
+        ]);
+    }
+
+    public function exportPdfPublikasi(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
+    {
+        [$periode] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? UnitLayanan::find($unitLayananId) : null;
+
+        $publikasi = $service->publikasiIkm($puskesma, $periode, $unitLayanan);
+        $namaLayanan = $unitLayanan->nama ?? $puskesma->nama;
+
+        $pdf = Pdf::loadView('exports.publikasi-ikm-pdf', [
+            'puskesmas' => $puskesma,
+            'periode' => $periode,
+            'publikasi' => $publikasi,
+            'namaLayanan' => $namaLayanan,
+        ]);
+
+        return $pdf->download("publikasi-ikm-{$puskesma->slug}-{$periode->id}.pdf");
+    }
+
+```
+
+---
+
+## 5. routes/puskesmas.php
+
+**Tempel 2 baris ini** di dalam group route puskesmas (dekat route `laporan.data-responden`):
+
+```php
+        Route::get('/laporan/publikasi', [LaporanController::class, 'publikasi'])->name('laporan.publikasi');
+        Route::get('/laporan/publikasi/export-pdf', [LaporanController::class, 'exportPdfPublikasi'])->name('laporan.publikasi.export-pdf');
+```
+
+---
+
+## 6. routes/dinkes.php
+
+**Tempel 2 baris ini**, SEBELUM baris `Route::get('/laporan/{puskesma}', ...)` (route wildcard
+harus tetap paling akhir supaya tidak menabrak route yang lebih spesifik):
+
+```php
+        Route::get('/laporan/{puskesma}/publikasi', [LaporanController::class, 'publikasi'])->name('laporan.publikasi');
+        Route::get('/laporan/{puskesma}/publikasi/export-pdf', [LaporanController::class, 'exportPdfPublikasi'])->name('laporan.publikasi.export-pdf');
+```
+
+---
+
+## 7. resources/views/puskesmas/laporan/index.blade.php
+
+**Tempel tombol ini**, tepat setelah tombol "Data Responden":
+
+```blade
+<a href="{{ route('puskesmas.laporan.publikasi', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-secondary btn-sm">Format Publikasi IKM</a>
+```
+
+---
+
+## 8. resources/views/dinkes/laporan/detail.blade.php
+
+**Tempel tombol ini**, tepat setelah tombol "Data Responden":
+
+```blade
+<a href="{{ route('dinkes.laporan.publikasi', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-outline-secondary btn-sm">Format Publikasi IKM</a>
+```
+
+---
+
+## Setelah semua ditempel
+
+```bash
+php artisan config:clear
+php artisan view:clear
+```
+
+Lalu tes seperti biasa: buka halaman Laporan (puskesmas atau dinkes), klik tombol
+"Format Publikasi IKM" yang baru muncul.
+

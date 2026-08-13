@@ -7,6 +7,7 @@ use App\Exports\LaporanUnsurExport;
 use App\Exports\RekapGabunganExport;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
+use App\Models\UnitLayanan;
 use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
 use App\Models\SurveiJawabanDetail;
@@ -154,6 +155,46 @@ class LaporanController extends Controller
             'periode' => $periode,
             'daftarJawaban' => $daftarJawaban,
         ]);
+    }
+
+    public function publikasi(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
+    {
+        [$periode] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $daftarUnitLayanan = UnitLayanan::where('puskesmas_id', $puskesma->id)->aktif()->get();
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? $daftarUnitLayanan->firstWhere('id', $unitLayananId) : null;
+
+        $publikasi = $service->publikasiIkm($puskesma, $periode, $unitLayanan);
+
+        return view('dinkes.laporan.publikasi', [
+            'puskesmas' => $puskesma,
+            'periode' => $periode,
+            'daftarUnitLayanan' => $daftarUnitLayanan,
+            'unitLayanan' => $unitLayanan,
+            'publikasi' => $publikasi,
+        ]);
+    }
+
+    public function exportPdfPublikasi(Request $request, Puskesmas $puskesma, SkmCalculatorService $service)
+    {
+        [$periode] = $this->ambilHasilUnit($request, $puskesma, $service);
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? UnitLayanan::find($unitLayananId) : null;
+
+        $publikasi = $service->publikasiIkm($puskesma, $periode, $unitLayanan);
+        $namaLayanan = $unitLayanan->nama ?? $puskesma->nama;
+
+        $pdf = Pdf::loadView('exports.publikasi-ikm-pdf', [
+            'puskesmas' => $puskesma,
+            'periode' => $periode,
+            'publikasi' => $publikasi,
+            'namaLayanan' => $namaLayanan,
+        ]);
+
+        return $pdf->download("publikasi-ikm-{$puskesma->slug}-{$periode->id}.pdf");
     }
 
     /**

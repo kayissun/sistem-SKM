@@ -43,9 +43,14 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/laporan/{puskesma}/pertanyaan/{pertanyaan}/jawaban-teks', [LaporanController::class, 'jawabanTeks'])->name('laporan.jawaban-teks');
         Route::get('/laporan/{puskesma}/data-responden', [LaporanController::class, 'dataResponden'])->name('laporan.data-responden');
         Route::get('/laporan/{puskesma}/data-responden/export-excel', [LaporanController::class, 'exportExcelResponden'])->name('laporan.data-responden.export-excel');
+        Route::get('/laporan/{puskesma}/publikasi', [LaporanController::class, 'publikasi'])->name('laporan.publikasi');
+        Route::get('/laporan/{puskesma}/publikasi/export-pdf', [LaporanController::class, 'exportPdfPublikasi'])->name('laporan.publikasi.export-pdf');
+
         Route::get('/laporan/{puskesma}', [LaporanController::class, 'detail'])->name('laporan.detail');
 
         Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
 
         Route::get('/klaster', [KlasterController::class, 'index'])->name('klaster.index');
+
+        Route::post('/puskesmas/aksi-massal', [PuskesmasController::class, 'aksiMassal'])->name('puskesmas.aksi-massal');
     });

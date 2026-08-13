@@ -9,6 +9,7 @@ use App\Models\SurveiJawabanDetail;
 use App\Models\UnitLayanan;
 use App\Models\UnsurPelayanan;
 use App\Support\OpsiDataDiri;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
 class SkmCalculatorService
@@ -255,6 +256,44 @@ class SkmCalculatorService
                     'unsur_prioritas' => $unsurTerlemah ? "{$unsurTerlemah['kode']} - {$unsurTerlemah['pertanyaan']}" : '-',
                 ];
             });
+    }
+
+    /**
+     * Data untuk "Format Publikasi IKM" — poster ringkas berisi nilai IKM final +
+     * breakdown demografis responden (jenis kelamin & pendidikan), biasa ditempel
+     * di loket layanan. Kalau $unitLayanan diisi, datanya cuma dari poli itu saja.
+     */
+    public function publikasiIkm(Puskesmas $puskesmas, PeriodeSurvei $periode, ?UnitLayanan $unitLayanan = null): array
+    {
+        $hasil = $this->hitung($puskesmas, $periode, $unitLayanan);
+
+        $query = $puskesmas->surveiJawaban()->where('periode_survei_id', $periode->id);
+        if ($unitLayanan) {
+            $query->where('unit_layanan_id', $unitLayanan->id);
+        }
+
+        $jumlahLaki = (clone $query)->where('jenis_kelamin', 'L')->count();
+        $jumlahPerempuan = (clone $query)->where('jenis_kelamin', 'P')->count();
+
+        $jumlahPerPendidikan = (clone $query)
+            ->whereNotNull('pendidikan')
+            ->select('pendidikan', DB::raw('count(*) as jumlah'))
+            ->groupBy('pendidikan')
+            ->pluck('jumlah', 'pendidikan');
+
+        $pendidikan = [];
+        foreach (OpsiDataDiri::pendidikan() as $kode) {
+            $pendidikan[$kode] = $jumlahPerPendidikan[$kode] ?? 0;
+        }
+
+        return [
+            'nilai_akhir_skm' => $hasil['nilai_akhir_skm'],
+            'mutu_akhir' => $hasil['mutu_akhir'],
+            'jumlah_responden' => $hasil['jumlah_responden'],
+            'jumlah_laki' => $jumlahLaki,
+            'jumlah_perempuan' => $jumlahPerempuan,
+            'pendidikan' => $pendidikan,
+        ];
     }
 
     private function kategoriMutu(float $nilaiSkala100): string

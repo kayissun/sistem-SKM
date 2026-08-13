@@ -6,6 +6,7 @@ use App\Exports\DataRespondenExport;
 use App\Exports\LaporanUnsurExport;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
+use App\Models\UnitLayanan;
 use App\Models\PertanyaanSurvei;
 use App\Models\SurveiJawabanDetail;
 use App\Services\SkmCalculatorService;
@@ -92,6 +93,42 @@ class LaporanController extends Controller
             new DataRespondenExport($data['kodeUnsur'], $data['baris'], $hasil),
             "data-responden-{$puskesmas->slug}-{$periode->id}.xlsx"
         );
+    }
+
+    public function publikasi(Request $request, SkmCalculatorService $service)
+    {
+        [$puskesmas, $periode, $daftarPeriode] = $this->ambilData($request, $service);
+
+        $daftarUnitLayanan = $puskesmas ? UnitLayanan::where('puskesmas_id', $puskesmas->id)->aktif()->get() : collect();
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? $daftarUnitLayanan->firstWhere('id', $unitLayananId) : null;
+
+        $publikasi = null;
+        if ($puskesmas && $periode) {
+            $publikasi = $service->publikasiIkm($puskesmas, $periode, $unitLayanan);
+        }
+
+        return view('puskesmas.laporan.publikasi', compact(
+            'puskesmas', 'periode', 'daftarPeriode', 'daftarUnitLayanan', 'unitLayanan', 'publikasi'
+        ));
+    }
+
+    public function exportPdfPublikasi(Request $request, SkmCalculatorService $service)
+    {
+        [$puskesmas, $periode] = $this->ambilData($request, $service);
+
+        abort_if(! $periode, 404, 'Periode survei tidak ditemukan.');
+
+        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
+        $unitLayanan = $unitLayananId ? UnitLayanan::find($unitLayananId) : null;
+
+        $publikasi = $service->publikasiIkm($puskesmas, $periode, $unitLayanan);
+        $namaLayanan = $unitLayanan->nama ?? $puskesmas->nama;
+
+        $pdf = Pdf::loadView('exports.publikasi-ikm-pdf', compact('puskesmas', 'periode', 'publikasi', 'namaLayanan'));
+
+        return $pdf->download("publikasi-ikm-{$puskesmas->slug}-{$periode->id}.pdf");
     }
 
     public function jawabanTeks(Request $request, PertanyaanSurvei $pertanyaan)

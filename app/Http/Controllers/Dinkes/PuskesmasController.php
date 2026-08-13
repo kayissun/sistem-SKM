@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Http\Controllers\Dinkes;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dinkes\StorePuskesmasRequest;
 use App\Http\Requests\Dinkes\UpdatePuskesmasRequest;
@@ -15,7 +15,7 @@ class PuskesmasController extends Controller
 {
     public function index()
     {
-        $daftarPuskesmas = Puskesmas::withCount('users')
+        $daftarPuskesmas = Puskesmas::with(['admin' => fn($q) => $q->select('id', 'puskesmas_id', 'email')])
             ->whereIn('jenis', ['puskesmas', 'rsu']) // unit Dinas Kesehatan sendiri tidak muncul di sini
             ->orderBy('nama')
             ->paginate(10);
@@ -89,5 +89,48 @@ class PuskesmasController extends Controller
         return redirect()
             ->route('dinkes.puskesmas.index')
             ->with('success', 'Unit dinonaktifkan. Data histori survei tetap tersimpan.');
+    }
+
+    public function aksiMassal(Request $request)
+    {
+        $request->validate([
+            'dipilih' => ['required', 'array', 'min:1'],
+            'dipilih.*' => ['exists:puskesmas,id'],
+            'aksi' => ['required', 'in:nonaktifkan,hapus'],
+        ]);
+
+        $daftar = Puskesmas::whereIn('id', $request->input('dipilih'))->get();
+
+        if ($request->input('aksi') === 'nonaktifkan') {
+            Puskesmas::whereIn('id', $daftar->pluck('id'))->update(['is_active' => false]);
+
+            return redirect()
+                ->route('dinkes.puskesmas.index')
+                ->with('success', $daftar->count() . ' unit berhasil dinonaktifkan.');
+        }
+
+        $berhasilDihapus = 0;
+        $dilewati = [];
+
+        foreach ($daftar as $puskesmas) {
+            if ($puskesmas->surveiJawaban()->exists()) {
+                $dilewati[] = $puskesmas->nama;
+                $puskesmas->update(['is_active' => false]); // fallback aman: nonaktifkan aja
+                continue;
+            }
+
+            $puskesmas->delete();
+            $berhasilDihapus++;
+        }
+
+        $pesan = "{$berhasilDihapus} unit berhasil dihapus permanen.";
+        if (! empty($dilewati)) {
+            $pesan .= ' Unit berikut sudah punya data survei, jadi cuma dinonaktifkan (tidak dihapus): '
+                . implode(', ', $dilewati) . '.';
+        }
+
+        return redirect()
+            ->route('dinkes.puskesmas.index')
+            ->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
     }
 }
