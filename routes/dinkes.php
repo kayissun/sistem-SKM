@@ -53,4 +53,6 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/klaster', [KlasterController::class, 'index'])->name('klaster.index');
 
         Route::post('/puskesmas/aksi-massal', [PuskesmasController::class, 'aksiMassal'])->name('puskesmas.aksi-massal');
+        Route::post('/periode-survei/aksi-massal', [PeriodeSurveiController::class, 'aksiMassal'])->name('periode-survei.aksi-massal');
+        Route::post('/unsur-pelayanan/aksi-massal', [UnsurPelayananController::class, 'aksiMassal'])->name('unsur-pelayanan.aksi-massal');
     });

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dinkes\StoreUnsurPelayananRequest;
 use App\Http\Requests\Dinkes\UpdateUnsurPelayananRequest;
 use App\Models\UnsurPelayanan;
+use Illuminate\Http\Request;
 
 class UnsurPelayananController extends Controller
 {
@@ -67,5 +68,47 @@ class UnsurPelayananController extends Controller
         return redirect()
             ->route('dinkes.unsur-pelayanan.index')
             ->with('success', 'Unsur pelayanan berhasil dihapus.');
+    }
+
+    public function aksiMassal(Request $request)
+    {
+        $request->validate([
+            'dipilih' => ['required', 'array', 'min:1'],
+            'dipilih.*' => ['exists:unsur_pelayanan,id'],
+            'aksi' => ['required', 'in:nonaktifkan,hapus'],
+        ]);
+
+        $daftar = UnsurPelayanan::whereIn('id', $request->input('dipilih'))->get();
+
+        if ($request->input('aksi') === 'nonaktifkan') {
+            UnsurPelayanan::whereIn('id', $daftar->pluck('id'))->update(['is_active' => false]);
+
+            return redirect()
+                ->route('dinkes.unsur-pelayanan.index')
+                ->with('success', $daftar->count() . ' unsur berhasil dinonaktifkan.');
+        }
+
+        $berhasilDihapus = 0;
+        $dilewati = [];
+
+        foreach ($daftar as $unsur) {
+            if ($unsur->pertanyaanSurvei()->exists()) {
+                $dilewati[] = $unsur->kode;
+                $unsur->update(['is_active' => false]);
+                continue;
+            }
+
+            $unsur->delete();
+            $berhasilDihapus++;
+        }
+
+        $pesan = "{$berhasilDihapus} unsur berhasil dihapus permanen.";
+        if (! empty($dilewati)) {
+            $pesan .= ' Unsur berikut sudah dipakai di pertanyaan survei, jadi cuma dinonaktifkan (tidak dihapus): ' . implode(', ', $dilewati) . '.';
+        }
+
+        return redirect()
+            ->route('dinkes.unsur-pelayanan.index')
+            ->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
     }
 }

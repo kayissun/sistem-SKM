@@ -22,7 +22,9 @@ class LaporanController extends Controller
     {
         [$periode, $daftarPeriode, $rekap] = $this->ambilRekapGabungan($request, $service);
 
-        return view('dinkes.laporan.index', compact('rekap', 'periode', 'daftarPeriode'));
+        $pencarian = $request->input('cari');
+
+        return view('dinkes.laporan.index', compact('rekap', 'periode', 'daftarPeriode', 'pencarian'));
     }
 
     public function exportPdfGabungan(Request $request, SkmCalculatorService $service)
@@ -209,6 +211,14 @@ class LaporanController extends Controller
         $daftarPeriode = PeriodeSurvei::orderByDesc('tanggal_mulai')->get();
 
         $rekap = $periode ? $service->hitungGabungan($periode) : collect();
+
+        $pencarian = $request->input('cari');
+        if ($pencarian) {
+            $pencarianLower = mb_strtolower($pencarian);
+            $rekap = $rekap->filter(function ($baris) use ($pencarianLower) {
+                return mb_stripos(mb_strtolower($baris['puskesmas']), $pencarianLower) !== false;
+            })->values();
+        }
 
         return [$periode, $daftarPeriode, $rekap];
     }

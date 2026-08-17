@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dinkes;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dinkes\PeriodeSurveiRequest;
+use Illuminate\Http\Request;
 use App\Models\PeriodeSurvei;
 
 class PeriodeSurveiController extends Controller
@@ -73,5 +74,47 @@ class PeriodeSurveiController extends Controller
         return redirect()
             ->route('dinkes.periode-survei.index')
             ->with('success', 'Periode survei berhasil dihapus.');
+    }
+
+    public function aksiMassal(Request $request)
+    {
+        $request->validate([
+            'dipilih' => ['required', 'array', 'min:1'],
+            'dipilih.*' => ['exists:periode_survei,id'],
+            'aksi' => ['required', 'in:nonaktifkan,hapus'],
+        ]);
+
+        $daftar = PeriodeSurvei::whereIn('id', $request->input('dipilih'))->get();
+
+        if ($request->input('aksi') === 'nonaktifkan') {
+            PeriodeSurvei::whereIn('id', $daftar->pluck('id'))->update(['is_active' => false]);
+
+            return redirect()
+                ->route('dinkes.periode-survei.index')
+                ->with('success', $daftar->count() . ' periode berhasil dinonaktifkan.');
+        }
+
+        $berhasilDihapus = 0;
+        $dilewati = [];
+
+        foreach ($daftar as $periode) {
+            if ($periode->surveiJawaban()->exists()) {
+                $dilewati[] = $periode->nama;
+                $periode->update(['is_active' => false]);
+                continue;
+            }
+
+            $periode->delete();
+            $berhasilDihapus++;
+        }
+
+        $pesan = "{$berhasilDihapus} periode berhasil dihapus permanen.";
+        if (! empty($dilewati)) {
+            $pesan .= ' Periode berikut sudah punya data survei, jadi cuma dinonaktifkan (tidak dihapus): ' . implode(', ', $dilewati) . '.';
+        }
+
+        return redirect()
+            ->route('dinkes.periode-survei.index')
+            ->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
     }
 }
