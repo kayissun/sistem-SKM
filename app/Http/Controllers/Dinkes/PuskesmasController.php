@@ -13,14 +13,27 @@ use Illuminate\Support\Str;
 
 class PuskesmasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $daftarPuskesmas = Puskesmas::with(['admin' => fn($q) => $q->select('id', 'puskesmas_id', 'email')])
-            ->whereIn('jenis', ['puskesmas', 'rsu']) // unit Dinas Kesehatan sendiri tidak muncul di sini
-            ->orderBy('nama')
-            ->paginate(10);
+        $pencarian = $request->input('cari');
+        $urutan = $request->input('urutan', 'az');
+        $arahUrutan = $urutan === 'za' ? 'desc' : 'asc';
 
-        return view('dinkes.puskesmas.index', compact('daftarPuskesmas'));
+        $daftarPuskesmas = Puskesmas::withCount('users')
+            ->with(['users.roles'])
+            ->whereIn('jenis', ['puskesmas', 'rsu'])
+            ->when($pencarian, function ($query, $pencarian) {
+                $query->where(function ($q) use ($pencarian) {
+                    $q->where('nama', 'like', "%{$pencarian}%")
+                        ->orWhere('alamat', 'like', "%{$pencarian}%")
+                        ->orWhere('kecamatan', 'like', "%{$pencarian}%");
+                });
+            })
+            ->orderBy('nama', $arahUrutan)
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('dinkes.puskesmas.index', compact('daftarPuskesmas', 'pencarian', 'urutan'));
     }
 
     public function create()

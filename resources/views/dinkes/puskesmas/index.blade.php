@@ -8,6 +8,25 @@
         <a href="{{ route('dinkes.puskesmas.create') }}" class="btn btn-primary btn-sm">+ Tambah unit</a>
     </div>
 
+    <form method="GET" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small mb-1">Cari</label>
+            <input type="text" name="cari" value="{{ $pencarian }}" class="form-control form-control-sm"
+                   placeholder="Cari nama, alamat, atau kecamatan...">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small mb-1">Urutkan nama</label>
+            <select name="urutan" class="form-select form-select-sm">
+                <option value="az" @selected($urutan === 'az')>A - Z</option>
+                <option value="za" @selected($urutan === 'za')>Z - A</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-sm btn-primary">Terapkan</button>
+            <a href="{{ route('dinkes.puskesmas.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+
     <form method="POST" action="{{ route('dinkes.puskesmas.aksi-massal') }}" id="form-aksi-massal">
         @csrf
 
@@ -33,9 +52,9 @@
                         <th>Alamat</th>
                         <th>Kecamatan</th>
                         <th>No. Telepon</th>
+                        <th>Jumlah akun</th>
                         <th>Email Admin</th>
                         <th>Status</th>
-                        <th style="width:70px">QR</th>
                         <th style="width:230px">Aksi</th>
                     </tr>
                 </thead>
@@ -48,19 +67,16 @@
                             <td>{{ $item->alamat ?? '-' }}</td>
                             <td>{{ $item->kecamatan ?? '-' }}</td>
                             <td>{{ $item->no_telepon ?? '-' }}</td>
-                            <td>{{ $item->admin?->email ?? '-' }}</td>
+                            <td>{{ $item->users_count }}</td>
+                            <td>
+                                @php $admin = $item->users->first(fn ($u) => $u->hasRole('admin-puskesmas')); @endphp
+                                {{ $admin->email ?? '-' }}
+                            </td>
                             <td>
                                 @if ($item->is_active)
                                     <span class="badge bg-success">Aktif</span>
                                 @else
                                     <span class="badge bg-secondary">Nonaktif</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($item->is_active)
-                                    <img src="{{ route('qrcode.tampil', $item) }}" width="50" height="50" alt="QR {{ $item->nama }}">
-                                @else
-                                    -
                                 @endif
                             </td>
                             <td>
@@ -72,7 +88,15 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="10" class="text-center text-muted">Belum ada data</td></tr>
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                @if ($pencarian)
+                                    Tidak ada unit yang cocok dengan pencarian "{{ $pencarian }}".
+                                @else
+                                    Belum ada data
+                                @endif
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
