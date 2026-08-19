@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Puskesmas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Puskesmas\UnitLayananBulkActionRequest;
 use App\Http\Requests\Puskesmas\UnitLayananRequest;
 use App\Models\UnitLayanan;
 use Illuminate\Support\Facades\Auth;
@@ -74,6 +75,36 @@ class UnitLayananController extends Controller
         return redirect()
             ->route('puskesmas.unit-layanan.index')
             ->with('success', 'Unit layanan berhasil dihapus.');
+    }
+
+    public function aksiMassal(UnitLayananBulkActionRequest $request)
+    {
+        $daftar = UnitLayanan::where('puskesmas_id', Auth::user()->puskesmas_id)
+            ->whereIn('id', $request->validated('dipilih'))
+            ->get();
+
+        $berhasilDihapus = 0;
+        $dilewati = [];
+
+        foreach ($daftar as $unit) {
+            if ($unit->surveiJawaban()->exists()) {
+                $dilewati[] = $unit->nama;
+                $unit->update(['is_active' => false]);
+                continue;
+            }
+
+            $unit->delete();
+            $berhasilDihapus++;
+        }
+
+        $pesan = "{$berhasilDihapus} unit layanan berhasil dihapus permanen.";
+        if (! empty($dilewati)) {
+            $pesan .= ' Unit berikut sudah dipakai di data survei, jadi cuma dinonaktifkan (tidak dihapus): ' . implode(', ', $dilewati) . '.';
+        }
+
+        return redirect()
+            ->route('puskesmas.unit-layanan.index')
+            ->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
     }
 
     /**

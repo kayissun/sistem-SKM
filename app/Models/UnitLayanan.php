@@ -37,6 +37,11 @@ class UnitLayanan extends Model
         return $this->belongsTo(Puskesmas::class);
     }
 
+    public function instansi(): BelongsTo
+    {
+        return $this->belongsTo(Instansi::class, 'puskesmas_id');
+    }
+
     public function surveiJawaban(): HasMany
     {
         return $this->hasMany(SurveiJawaban::class);

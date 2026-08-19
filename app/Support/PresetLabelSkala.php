@@ -11,29 +11,45 @@ class PresetLabelSkala
     public static function daftar(): array
     {
         return [
-            'mutu' => [
-                'nama' => 'Mutu umum (Buruk - Sangat Baik)',
+            'u1' => [
+                'nama' => 'U1',
+                'label' => ['Tidak Sesuai', 'Kurang Sesuai', 'Sesuai', 'Sangat Sesuai'],
+            ],
+            'u2' => [
+                'nama' => 'U2',
+                'label' => ['Tidak Mudah', 'Kurang Mudah', 'Mudah', 'Sangat Mudah'],
+            ],
+            'u3' => [
+                'nama' => 'U3',
+                'label' => ['Tidak Cepat', 'Kurang Cepat', 'Cepat', 'Sangat Cepat'],
+            ],
+            'u4' => [
+                'nama' => 'U4',
+                'label' => ['Sangat Mahal', 'Cukup Mahal', 'Murah', 'Gratis'],
+            ],
+            'u5' => [
+                'nama' => 'U5',
+                'label' => ['Tidak Sesuai', 'Kurang Sesuai', 'Sesuai', 'Sangat Sesuai'],
+            ],
+            'u6' => [
+                'nama' => 'U6',
+                'label' => ['Tidak Kompeten', 'Kurang Kompeten', 'Kompeten', 'Sangat Kompeten'],
+            ],
+            'u7' => [
+                'nama' => 'U7',
+                'label' => ['Tidak Sopan dan Ramah', 'Kurang Sopan dan Ramah', 'Sopan dan Ramah', 'Sangat Sopan dan Ramah'],
+            ],
+            'u8' => [
+                'nama' => 'U8',
                 'label' => ['Buruk', 'Cukup', 'Baik', 'Sangat Baik'],
             ],
-            'frekuensi' => [
-                'nama' => 'Frekuensi (Tidak Pernah - Selalu)',
-                'label' => ['Tidak Pernah', 'Kadang-kadang', 'Sering', 'Selalu'],
+            'u9' => [
+                'nama' => 'U9',
+                'label' => ['Tidak Ada', 'Ada Tetapi Tidak Berfungsi', 'Berfungsi Kurang Maksimal', 'Dikelola Dengan Baik'],
             ],
-            'ketersediaan' => [
-                'nama' => 'Ketersediaan sarana',
-                'label' => ['Tidak Ada', 'Ada Tapi Tidak Berfungsi', 'Berfungsi Kurang Maksimal', 'Dikelola Dengan Baik'],
-            ],
-            'keramahan' => [
-                'nama' => 'Keramahan petugas',
-                'label' => ['Tidak Sopan/Tidak Ramah', 'Kurang Sopan/Kurang Ramah', 'Sopan/Ramah', 'Sangat Sopan/Sangat Ramah'],
-            ],
-            'kompetensi' => [
-                'nama' => 'Kompetensi petugas',
-                'label' => ['Tidak Kompeten/Tidak Mampu', 'Kurang Kompeten/Kurang Mampu', 'Kompeten/Mampu', 'Sangat Kompeten/Sangat Mampu'],
-            ],
-            'angka' => [
-                'nama' => 'Angka biasa (1-4)',
-                'label' => ['1', '2', '3', '4'],
+            'u10' => [
+                'nama' => 'U10',
+                'label' => ['Tidak Menjelaskan', 'Tidak Jelas', 'Jelas', 'Sangat Jelas'],
             ],
         ];
     }

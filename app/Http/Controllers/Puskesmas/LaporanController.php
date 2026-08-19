@@ -5,20 +5,20 @@ namespace App\Http\Controllers\Puskesmas;
 use App\Exports\DataRespondenExport;
 use App\Exports\LaporanUnsurExport;
 use App\Http\Controllers\Controller;
-use App\Models\PeriodeSurvei;
-use App\Models\UnitLayanan;
+use App\Http\Requests\Puskesmas\LaporanFilterRequest;
 use App\Models\PertanyaanSurvei;
-use App\Models\SurveiJawabanDetail;
+use App\Repositories\Puskesmas\PuskesmasLaporanRepository;
 use App\Services\SkmCalculatorService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class LaporanController extends Controller
 {
-    public function index(Request $request, SkmCalculatorService $service)
+    public function __construct(private readonly PuskesmasLaporanRepository $laporanRepository) {}
+
+    public function index(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode, $daftarPeriode, $hasil] = $this->ambilData($request, $service);
 
@@ -27,7 +27,7 @@ class LaporanController extends Controller
         return view('puskesmas.laporan.index', compact('puskesmas', 'daftarPeriode', 'periode', 'hasil', 'hasilPerPoli'));
     }
 
-    public function exportPdf(Request $request, SkmCalculatorService $service)
+    public function exportPdf(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode, , $hasil] = $this->ambilData($request, $service);
 
@@ -40,7 +40,7 @@ class LaporanController extends Controller
         return $pdf->download("skm-{$puskesmas->slug}-{$periode->id}.pdf");
     }
 
-    public function exportExcel(Request $request, SkmCalculatorService $service)
+    public function exportExcel(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode, , $hasil] = $this->ambilData($request, $service);
 
@@ -54,7 +54,7 @@ class LaporanController extends Controller
         );
     }
 
-    public function dataResponden(Request $request, SkmCalculatorService $service)
+    public function dataResponden(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode, $daftarPeriode, $hasil] = $this->ambilData($request, $service);
 
@@ -80,7 +80,7 @@ class LaporanController extends Controller
         ));
     }
 
-    public function exportExcelResponden(Request $request, SkmCalculatorService $service)
+    public function exportExcelResponden(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode, , $hasil] = $this->ambilData($request, $service);
 
@@ -95,14 +95,15 @@ class LaporanController extends Controller
         );
     }
 
-    public function publikasi(Request $request, SkmCalculatorService $service)
+    public function publikasi(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode, $daftarPeriode] = $this->ambilData($request, $service);
 
-        $daftarUnitLayanan = $puskesmas ? UnitLayanan::where('puskesmas_id', $puskesmas->id)->aktif()->get() : collect();
+        $daftarUnitLayanan = $puskesmas ? $this->laporanRepository->daftarUnitLayanan($puskesmas) : collect();
 
-        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
-        $unitLayanan = $unitLayananId ? $daftarUnitLayanan->firstWhere('id', $unitLayananId) : null;
+        $unitLayanan = $puskesmas
+            ? $this->laporanRepository->cariUnitLayanan($puskesmas, $request->integer('unit_layanan_id') ?: null)
+            : null;
 
         $publikasi = null;
         if ($puskesmas && $periode) {
@@ -114,14 +115,16 @@ class LaporanController extends Controller
         ));
     }
 
-    public function exportPdfPublikasi(Request $request, SkmCalculatorService $service)
+    public function exportPdfPublikasi(LaporanFilterRequest $request, SkmCalculatorService $service)
     {
         [$puskesmas, $periode] = $this->ambilData($request, $service);
 
         abort_if(! $periode, 404, 'Periode survei tidak ditemukan.');
 
-        $unitLayananId = $request->integer('unit_layanan_id') ?: null;
-        $unitLayanan = $unitLayananId ? UnitLayanan::find($unitLayananId) : null;
+        $unitLayanan = $this->laporanRepository->cariUnitLayanan(
+            $puskesmas,
+            $request->integer('unit_layanan_id') ?: null
+        );
 
         $publikasi = $service->publikasiIkm($puskesmas, $periode, $unitLayanan);
         $namaLayanan = $unitLayanan->nama ?? $puskesmas->nama;
@@ -131,7 +134,7 @@ class LaporanController extends Controller
         return $pdf->download("publikasi-ikm-{$puskesmas->slug}-{$periode->id}.pdf");
     }
 
-    public function jawabanTeks(Request $request, PertanyaanSurvei $pertanyaan)
+    public function jawabanTeks(LaporanFilterRequest $request, PertanyaanSurvei $pertanyaan)
     {
         if ($pertanyaan->puskesmas_id !== Auth::user()->puskesmas_id) {
             throw new AccessDeniedHttpException('Pertanyaan ini bukan milik unit Anda.');
@@ -141,34 +144,20 @@ class LaporanController extends Controller
 
         $puskesmas = Auth::user()->puskesmas;
 
-        $periodeId = $request->integer('periode_survei_id')
-            ?: PeriodeSurvei::where('is_active', true)->value('id');
+        $periode = $this->laporanRepository->cariPeriode($request->integer('periode_survei_id'));
+        abort_unless($periode, 404, 'Periode survei tidak ditemukan.');
 
-        $periode = PeriodeSurvei::findOrFail($periodeId);
-
-        $daftarJawaban = SurveiJawabanDetail::where('pertanyaan_survei_id', $pertanyaan->id)
-            ->whereNotNull('jawaban_teks')
-            ->whereHas('surveiJawaban', function ($q) use ($puskesmas, $periode) {
-                $q->where('puskesmas_id', $puskesmas->id)->where('periode_survei_id', $periode->id);
-            })
-            ->with('surveiJawaban')
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        $daftarJawaban = $this->laporanRepository->jawabanTeks($pertanyaan, $puskesmas, $periode);
 
         return view('puskesmas.laporan.jawaban-teks', compact('puskesmas', 'pertanyaan', 'periode', 'daftarJawaban'));
     }
 
-    private function ambilData(Request $request, SkmCalculatorService $service): array
+    private function ambilData(LaporanFilterRequest $request, SkmCalculatorService $service): array
     {
         $puskesmas = Auth::user()->puskesmas;
 
-        $daftarPeriode = PeriodeSurvei::orderByDesc('tanggal_mulai')->get();
-
-        $periodeId = $request->integer('periode_survei_id')
-            ?: PeriodeSurvei::where('is_active', true)->value('id');
-
-        $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
+        $daftarPeriode = $this->laporanRepository->daftarPeriode();
+        $periode = $this->laporanRepository->cariPeriode($request->integer('periode_survei_id'));
 
         $hasil = ($puskesmas && $periode) ? $service->hitung($puskesmas, $periode) : null;
 

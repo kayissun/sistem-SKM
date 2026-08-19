@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Puskesmas;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Puskesmas\StorePetugasRequest;
 use App\Http\Requests\Puskesmas\UpdatePetugasRequest;
-use App\Models\User;
+use App\Models\Petugas;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -16,7 +16,8 @@ class PetugasController extends Controller
 {
     public function index()
     {
-        $daftarPetugas = User::where('puskesmas_id', Auth::user()->puskesmas_id)
+        $daftarPetugas = Petugas::petugas()
+            ->where('puskesmas_id', Auth::user()->puskesmas_id)
             ->where('id', '!=', Auth::id()) // jangan tampilkan akun admin sendiri di daftar petugas
             ->orderBy('name')
             ->paginate(10);
@@ -33,7 +34,7 @@ class PetugasController extends Controller
     {
         $data = $request->validated();
 
-        $petugas = User::create([
+        $petugas = Petugas::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make(Str::random(32)),
@@ -48,14 +49,14 @@ class PetugasController extends Controller
             ->with('success', "Akun petugas berhasil dibuat. Link untuk membuat password sudah dikirim ke {$petugas->email}.");
     }
 
-    public function edit(User $petugas)
+    public function edit(Petugas $petugas)
     {
         $this->pastikanSatuUnit($petugas);
 
         return view('puskesmas.petugas.edit', compact('petugas'));
     }
 
-    public function update(UpdatePetugasRequest $request, User $petugas)
+    public function update(UpdatePetugasRequest $request, Petugas $petugas)
     {
         // kepemilikan unit sudah divalidasi di UpdatePetugasRequest::authorize()
         $data = $request->validated();
@@ -68,7 +69,7 @@ class PetugasController extends Controller
             ->with('success', 'Data petugas berhasil diperbarui.');
     }
 
-    public function destroy(User $petugas)
+    public function destroy(Petugas $petugas)
     {
         $this->pastikanSatuUnit($petugas);
 
@@ -84,7 +85,7 @@ class PetugasController extends Controller
      * lewat manipulasi URL (mis. /puskesmas/petugas/5/edit). Dipakai untuk edit() (tampilan
      * form) dan destroy() (tidak ada FormRequest karena tidak ada input body).
      */
-    private function pastikanSatuUnit(User $petugas): void
+    private function pastikanSatuUnit(Petugas $petugas): void
     {
         if ($petugas->puskesmas_id !== Auth::user()->puskesmas_id) {
             throw new AccessDeniedHttpException('Anda tidak punya akses ke akun ini.');

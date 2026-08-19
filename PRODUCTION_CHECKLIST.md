@@ -14,7 +14,23 @@ SESSION_SECURE_COOKIE=true   # cookie sesi cuma dikirim lewat HTTPS
 SESSION_ENCRYPT=true         # enkripsi isi cookie sesi
 
 MAIL_MAILER=smtp             # ganti dari 'log', pakai SMTP asli (lihat README bagian email)
+DEFAULT_INSTANSI_PASSWORD=ganti-password-sementara
 ```
+
+Seeder instansi membuat 27 puskesmas dan 2 RSU dari daftar resmi di
+`database/seeders/InstansiSeeder.php`. Setiap instansi mendapat akun admin aktif dengan pola:
+
+- Email: `admin@{slug}`
+- Password awal: nilai `DEFAULT_INSTANSI_PASSWORD`
+- Role: `admin-puskesmas`
+
+Jalankan seeder dengan:
+
+```bash
+php artisan db:seed --class=InstansiSeeder
+```
+
+Seeder bersifat idempotent dan tidak mereset data. Ganti password sementara setelah login pertama.
 
 **Cara cek cepat:** buka `/dinkes/dashboard` dari luar server pakai URL production. Kalau `APP_DEBUG`
 masih `true` dan sengaja bikin error (misal akses route yang salah), harusnya TIDAK nampilin detail

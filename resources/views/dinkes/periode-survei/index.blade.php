@@ -22,8 +22,9 @@
                 Hapus Terpilih
             </button>
         </div>
+    </form>
 
-        <div class="table-responsive">
+    <div class="table-responsive">
             <table class="table table-bordered bg-white">
                 <thead>
                     <tr>
@@ -64,8 +65,7 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </form>
+    </div>
 
     {{ $daftarPeriode->links() }}
 
@@ -93,6 +93,24 @@
             }
 
             daftarItem().forEach(cb => cb.addEventListener('change', refresh));
+
+            document.getElementById('form-aksi-massal').addEventListener('submit', function (event) {
+                const terpilih = document.querySelectorAll('.cek-item:checked');
+
+                if (terpilih.length === 0) {
+                    event.preventDefault();
+                    alert('Pilih minimal satu periode untuk diproses.');
+                    return;
+                }
+
+                terpilih.forEach(function (checkbox) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'dipilih[]';
+                    input.value = checkbox.value;
+                    this.appendChild(input);
+                }, this);
+            });
         })();
     </script>
 @endsection

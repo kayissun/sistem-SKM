@@ -25,7 +25,9 @@ Route::middleware(['auth', 'role:admin-puskesmas'])
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('petugas', PetugasController::class)->except(['show']);
         Route::resource('pertanyaan', PertanyaanSurveiController::class)->except(['show']);
+        Route::post('/pertanyaan/aksi-massal', [PertanyaanSurveiController::class, 'aksiMassal'])->name('pertanyaan.aksi-massal');
         Route::resource('unit-layanan', UnitLayananController::class)->except(['show']);
+        Route::post('/unit-layanan/aksi-massal', [UnitLayananController::class, 'aksiMassal'])->name('unit-layanan.aksi-massal');
     });
 
 Route::middleware(['auth', 'role:admin-puskesmas|petugas'])

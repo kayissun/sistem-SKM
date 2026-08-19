@@ -129,6 +129,13 @@
             }
 
             daftarItem().forEach(cb => cb.addEventListener('change', refresh));
+
+            document.getElementById('form-aksi-massal').addEventListener('submit', function (event) {
+                if (document.querySelectorAll('.cek-item:checked').length === 0) {
+                    event.preventDefault();
+                    alert('Pilih minimal satu unit untuk diproses.');
+                }
+            });
         })();
     </script>
 @endsection

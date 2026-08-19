@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('unsur_pelayanan', function (Blueprint $table) {
             $table->id();
             $table->string('kode', 10); // U1, U2, ... U9
-            $table->string('pertanyaan');
+            $table->string('nama_unsur');   // Contoh: Persyaratan Pelayanan
             $table->unsignedTinyInteger('urutan')->default(1);
             $table->boolean('is_active')->default(true); // dikelola dinkes secara global
             $table->timestamps();

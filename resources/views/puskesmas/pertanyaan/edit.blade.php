@@ -29,7 +29,7 @@
                 <option value="">Tidak ada — pertanyaan tambahan (di luar 9 unsur wajib)</option>
                 @foreach ($daftarUnsur as $unsur)
                     <option value="{{ $unsur->id }}" @selected(old('unsur_pelayanan_id', $pertanyaan->unsur_pelayanan_id) == $unsur->id)>
-                        {{ $unsur->kode }} - {{ $unsur->pertanyaan }}
+                        {{ $unsur->kode }} - {{ $unsur->nama_unsur }}
                     </option>
                 @endforeach
             </select>

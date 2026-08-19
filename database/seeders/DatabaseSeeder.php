@@ -10,8 +10,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolePermissionSeeder::class,
-            UnsurPelayananSeeder::class,
+            InstansiSeeder::class,
             DemoDataSeeder::class,
+            UnsurPelayananSeeder::class,
         ]);
     }
 }

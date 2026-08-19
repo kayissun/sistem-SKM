@@ -37,6 +37,11 @@ class Puskesmas extends Model
         return $this->hasMany(User::class);
     }
 
+    public function petugas(): HasMany
+    {
+        return $this->hasMany(Petugas::class)->petugas();
+    }
+
     public function admin(): HasOne
     {
         return $this->hasOne(User::class)->orderBy('id');
@@ -45,6 +50,11 @@ class Puskesmas extends Model
     public function surveiJawaban(): HasMany
     {
         return $this->hasMany(SurveiJawaban::class);
+    }
+
+    public function responden(): HasMany
+    {
+        return $this->hasMany(Responden::class);
     }
 
     public function pertanyaanSurvei(): HasMany

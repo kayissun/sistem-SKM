@@ -1,0 +1,29 @@
+Puskesmas Bener |   bener.example.com
+Puskesmas Cangkrep Purworejo    |   cangkrep-purworejo.example.com
+Puskesmas Bayan |   bayan.example.com
+Puskesmas Bragolan  |   bragolan.example.com
+Puskesmas Bruno |   bruno.example.com
+Puskesmas Butuh |   butuh.example.com
+Puskesmas Karanggetas Pituruh   |   karanggetas-pituruh.example.com
+Puskesmas Ngombol	|   ngombol.example.com
+Puskesmas Grabag	|   grabag.example.com
+Puskesmas Pituruh	|   pituruh.example.com
+Puskesmas Mranti	|   mranti.example.com
+Puskesmas Padirejo	|   padirejo.example.com
+Puskesmas Purworejo	|   purworejo.example.com
+Puskesmas Semawung Daleman Kutoarjo	|   semawung-daleman-kutoarjo.example.com
+Puskesmas Sruwohrejo Butuh	|   sruwohrejo-butuh.example.com
+Puskesmas Winong Kemiri	   |   winong-kemiri.example.com
+Puskesmas Banyuurip	|   banyuurip.example.com
+Puskesmas Kaligesing	|   kaligesing.example.com
+Puskesmas Loano	|   loano.example.com
+Puskesmas Sedorokrapyak	|   sedorokrapyak.example.com
+Puskesmas Kemiri	|   kemiri.example.com
+Puskesmas Gebang	|   gebang.example.com
+Puskesmas Bubutan	|   bubutan.example.com
+Puskesmas Wirun	    |   wirun.example.com
+Puskesmas Bagelen	|   bagelen.example.com
+Puskesmas Kutoarjo	|   kutoarjo.example.com
+Puskesmas Banyuasin Loano	|   banyuasin-loano.example.com
+RSUD Dr. Tjitrowardojo	|   tjitrowardojo.example.com
+RSUD R.A.A. Tjokronegoro	|   tjokronegoro.example.com

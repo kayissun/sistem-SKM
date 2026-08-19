@@ -22,12 +22,13 @@ class DemoDataSeeder extends Seeder
         'U1' => ['Tidak Sesuai', 'Kurang Sesuai', 'Sesuai', 'Sangat Sesuai'],
         'U2' => ['Tidak Mudah', 'Kurang Mudah', 'Mudah', 'Sangat Mudah'],
         'U3' => ['Tidak Cepat', 'Kurang Cepat', 'Cepat', 'Sangat Cepat'],
-        'U4' => ['Sangat Mahal', 'Cukup Mahal', 'Murah', 'Sangat Murah'],
-        'U5' => ['Buruk', 'Cukup', 'Baik', 'Sangat Baik'],
-        'U6' => ['Tidak Kompeten/Tidak Mampu', 'Kurang Kompeten/Kurang Mampu', 'Kompeten/Mampu', 'Sangat Kompeten/Sangat Mampu'],
-        'U7' => ['Tidak Sopan/Tidak Ramah', 'Kurang Sopan/Kurang Ramah', 'Sopan/Ramah', 'Sangat Sopan/Sangat Ramah'],
-        'U8' => ['Tidak Ada', 'Ada Tapi Tidak Berfungsi', 'Berfungsi Kurang Maksimal', 'Dikelola Dengan Baik'],
-        'U9' => ['Tidak Ada', 'Ada Tapi Tidak Berfungsi', 'Berfungsi Kurang Maksimal', 'Dikelola Dengan Baik'],
+        'U4' => ['Sangat Mahal', 'Cukup Mahal', 'Murah', 'Gratis'],
+        'U5' => ['Tidak Sesuai', 'Kurang Sesuai', 'Sesuai', 'Sangat Sesuai'],
+        'U6' => ['Tidak Kompeten', 'Kurang Kompeten', 'Kompeten', 'Sangat Kompeten'],
+        'U7' => ['Tidak Sopan dan Ramah', 'Kurang Sopan dan Ramah', 'Sopan dan Ramah', 'Sangat Sopan dan Ramah'],
+        'U8' => ['Buruk', 'Cukup', 'Baik', 'Sangat Baik'],
+        'U9' => ['Tidak Ada', 'Ada Tetapi Tidak Berfungsi', 'Berfungsi Kurang Maksimal', 'Dikelola Dengan Baik'],
+        'U10' => ['Tidak Menjelaskan', 'Tidak Jelas', 'Jelas', 'Sangat Jelas'],
     ];
 
     public function run(): void
@@ -56,7 +57,15 @@ class DemoDataSeeder extends Seeder
 
         $this->seedPertanyaanBaseline($dinasKesehatan);
 
-        foreach (['Loket Pengaduan', 'Layanan Perizinan Kesehatan', 'Layanan Administrasi Umum'] as $nama) {
+        foreach ([
+            'JAMKESDA',
+            'PERIJINAN FASKES',
+            'FASILITAS PIRT (penerbitan sertifikat penyuluhan keamanan pangan)',
+            'GUDANG FARMASI',
+            'LAYANAN PSC',
+            'KEGIATAN SOSIALISASI/RAPAT/PELATIHAN',
+            'PELAYANAN LAIN-LAIN',
+        ] as $nama) {
             UnitLayanan::firstOrCreate(
                 ['puskesmas_id' => $dinasKesehatan->id, 'nama' => $nama],
                 ['is_active' => true]
@@ -117,7 +126,7 @@ class DemoDataSeeder extends Seeder
             PertanyaanSurvei::firstOrCreate(
                 ['puskesmas_id' => $unit->id, 'unsur_pelayanan_id' => $unsur->id],
                 [
-                    'teks_pertanyaan' => $unsur->pertanyaan,
+                    'teks_pertanyaan' => $unsur->nama_unsur,
                     'tipe_input' => 'skala',
                     'gaya_tampilan' => 'radio',
                     'label_skala_1' => $label[0],

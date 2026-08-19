@@ -13,9 +13,10 @@ class UnsurPelayanan extends Model
     use HasFactory, LogsActivity;
 
     protected $table = 'unsur_pelayanan';
+    protected $guarded = ['id'];
 
     protected $fillable = [
-        'kode', 'pertanyaan', 'urutan', 'is_active',
+        'kode', 'nama_unsur', 'urutan', 'is_active',
     ];
 
     protected $casts = [
@@ -29,6 +30,12 @@ class UnsurPelayanan extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('unsur-pelayanan');
+    }
+
+    // Relasi: 1 Unsur Pelayanan Punya Banyak Pertanyaan
+    public function pertanyaan(): HasMany
+    {
+        return $this->hasMany(PertanyaanSurvei::class, 'unsur_pelayanan_id');
     }
 
     public function pertanyaanSurvei(): HasMany

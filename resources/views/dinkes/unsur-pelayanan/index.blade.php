@@ -22,15 +22,16 @@
                 Hapus Terpilih
             </button>
         </div>
+    </form>
 
-        <div class="table-responsive">
+    <div class="table-responsive">
             <table class="table table-bordered bg-white">
                 <thead>
                     <tr>
                         <th style="width:36px"><input type="checkbox" id="pilih-semua"></th>
                         <th style="width:60px">Urutan</th>
                         <th style="width:80px">Kode</th>
-                        <th>Pertanyaan</th>
+                        <th>Nama Unsur</th>
                         <th style="width:100px">Status</th>
                         <th style="width:160px">Aksi</th>
                     </tr>
@@ -41,7 +42,7 @@
                             <td><input type="checkbox" name="dipilih[]" value="{{ $unsur->id }}" class="cek-item"></td>
                             <td>{{ $unsur->urutan }}</td>
                             <td>{{ $unsur->kode }}</td>
-                            <td>{{ $unsur->pertanyaan }}</td>
+                            <td>{{ $unsur->nama_unsur }}</td>
                             <td>
                                 @if ($unsur->is_active)
                                     <span class="badge bg-success">Aktif</span>
@@ -64,8 +65,7 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </form>
+    </div>
 
     <script>
         (function () {
@@ -91,6 +91,24 @@
             }
 
             daftarItem().forEach(cb => cb.addEventListener('change', refresh));
+
+            document.getElementById('form-aksi-massal').addEventListener('submit', function (event) {
+                const terpilih = document.querySelectorAll('.cek-item:checked');
+
+                if (terpilih.length === 0) {
+                    event.preventDefault();
+                    alert('Pilih minimal satu unsur untuk diproses.');
+                    return;
+                }
+
+                terpilih.forEach(function (checkbox) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'dipilih[]';
+                    input.value = checkbox.value;
+                    this.appendChild(input);
+                }, this);
+            });
         })();
     </script>
 @endsection

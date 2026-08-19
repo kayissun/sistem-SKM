@@ -36,6 +36,12 @@ class StoreSurveiJawabanRequest extends FormRequest
         $this->periodeAktif = PeriodeSurvei::where('is_active', true)->first();
 
         if (! $this->periodeAktif) {
+            if ($this->expectsJson()) {
+                throw new HttpResponseException(response()->json([
+                    'message' => 'Survei sedang tidak dibuka untuk periode ini.',
+                ], 422));
+            }
+
             throw new HttpResponseException(
                 redirect()->back()->with('error', 'Survei sedang tidak dibuka untuk periode ini.')
             );
@@ -44,6 +50,12 @@ class StoreSurveiJawabanRequest extends FormRequest
         $this->daftarPertanyaan = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)->aktif()->get();
 
         if ($this->daftarPertanyaan->isEmpty()) {
+            if ($this->expectsJson()) {
+                throw new HttpResponseException(response()->json([
+                    'message' => 'Kuesioner belum tersedia untuk unit ini.',
+                ], 422));
+            }
+
             throw new HttpResponseException(
                 redirect()->back()->with('error', 'Kuesioner belum tersedia untuk unit ini.')
             );

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Puskesmas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Puskesmas\PertanyaanBulkActionRequest;
 use App\Http\Requests\Puskesmas\PertanyaanSurveiRequest;
 use App\Models\PertanyaanSurvei;
 use App\Models\UnsurPelayanan;
@@ -89,6 +90,36 @@ class PertanyaanSurveiController extends Controller
         return redirect()
             ->route('puskesmas.pertanyaan.index')
             ->with('success', 'Pertanyaan survei berhasil dihapus.');
+    }
+
+    public function aksiMassal(PertanyaanBulkActionRequest $request)
+    {
+        $daftar = PertanyaanSurvei::where('puskesmas_id', Auth::user()->puskesmas_id)
+            ->whereIn('id', $request->validated('dipilih'))
+            ->get();
+
+        $berhasilDihapus = 0;
+        $dilewati = [];
+
+        foreach ($daftar as $pertanyaan) {
+            if ($pertanyaan->surveiJawabanDetail()->exists()) {
+                $dilewati[] = $pertanyaan->teks_pertanyaan;
+                $pertanyaan->update(['is_active' => false]);
+                continue;
+            }
+
+            $pertanyaan->delete();
+            $berhasilDihapus++;
+        }
+
+        $pesan = "{$berhasilDihapus} pertanyaan berhasil dihapus permanen.";
+        if (! empty($dilewati)) {
+            $pesan .= ' Pertanyaan berikut sudah punya jawaban responden, jadi cuma dinonaktifkan (tidak dihapus): ' . implode(', ', array_slice($dilewati, 0, 3)) . '.';
+        }
+
+        return redirect()
+            ->route('puskesmas.pertanyaan.index')
+            ->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
     }
 
     /**

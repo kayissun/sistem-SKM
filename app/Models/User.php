@@ -52,4 +52,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Puskesmas::class);
     }
+
+    public function instansi(): BelongsTo
+    {
+        return $this->belongsTo(Instansi::class, 'puskesmas_id');
+    }
 }
