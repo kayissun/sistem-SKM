@@ -86,7 +86,9 @@
                                 <td><input type="checkbox" name="dipilih[]" value="{{ $baris['puskesmas_id'] }}" class="cek-item"></td>
                                 <td>{{ $i + 1 }}</td>
                                 <td class="text-start">{{ $baris['puskesmas'] }}</td>
-                                <td>{{ $periode->nama }}</td>
+                                <td>
+                                    {{ $namaPeriodeLengkap ?? $periode?->nama }}
+                                </td>
                                 @foreach ($kodeUnsur as $kode)
                                     <td>{{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}</td>
                                 @endforeach

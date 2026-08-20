@@ -45,6 +45,13 @@ class RolePermissionSeeder extends Seeder
             'view-laporan-sendiri',
         ]);
 
+        $dinkesSkm = Role::firstOrCreate(['name' => 'dinkes-skm']);
+        $dinkesSkm->syncPermissions([
+            'manage-unit-layanan',
+            'manage-petugas',
+            'view-laporan-sendiri',
+        ]);
+
         // role turunan, opsional: petugas hanya bisa lihat laporan, tidak kelola akun
         $petugas = Role::firstOrCreate(['name' => 'petugas']);
         $petugas->syncPermissions([

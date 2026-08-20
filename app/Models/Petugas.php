@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class Petugas extends User
 {
+    protected $table = 'users';
+
     public function scopePetugas(Builder $query): Builder
     {
         return $query->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'petugas'));

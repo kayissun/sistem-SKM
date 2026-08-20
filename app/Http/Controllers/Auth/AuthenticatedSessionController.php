@@ -40,6 +40,7 @@ class AuthenticatedSessionController extends Controller
 
         return match (true) {
             $user->hasRole('dinkes') => route('dinkes.dashboard', absolute: false),
+            $user->hasRole('dinkes-skm') => route('puskesmas.dashboard', absolute: false),
             $user->hasRole('admin-puskesmas') => route('puskesmas.dashboard', absolute: false),
             $user->hasRole('petugas') => route('puskesmas.laporan.index', absolute: false),
             default => route('dashboard', absolute: false),

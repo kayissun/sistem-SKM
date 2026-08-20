@@ -19,7 +19,7 @@ class PuskesmasLaporanRepository
 
     public function cariPeriode(?int $periodeId): ?PeriodeSurvei
     {
-        $periodeId ??= PeriodeSurvei::where('is_active', true)->value('id');
+        $periodeId = $periodeId ?: PeriodeSurvei::where('is_active', true)->value('id');
 
         return $periodeId ? PeriodeSurvei::find($periodeId) : null;
     }

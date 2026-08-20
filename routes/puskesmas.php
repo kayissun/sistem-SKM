@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 | - Laporan: admin-puskesmas & petugas boleh lihat
 */
 
-Route::middleware(['auth', 'role:admin-puskesmas'])
+Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
     ->prefix('puskesmas')
     ->name('puskesmas.')
     ->group(function () {

@@ -237,7 +237,7 @@ class SkmCalculatorService
     public function hitungGabungan(PeriodeSurvei $periode): Collection
     {
         return Puskesmas::where('is_active', true)
-            ->whereIn('jenis', ['puskesmas', 'rsu']) // SKM Dinas Kesehatan sendiri dilihat terpisah, tidak dicampur di rekap ini
+            ->whereIn('jenis', ['dinkes', 'puskesmas', 'rsu'])
             ->get()
             ->map(function (Puskesmas $puskesmas) use ($periode) {
                 $hasil = $this->hitung($puskesmas, $periode);

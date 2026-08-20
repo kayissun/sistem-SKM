@@ -11,6 +11,41 @@
         th { background: #f7f0da; }
         td.label { text-align: left; }
         th.label { text-align: left; }
+        /* Atur orientasi kertas ke Lanskap / Horizontal */
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        body { 
+            font-family: sans-serif; 
+            font-size: 9px; /* Ukuran font disesuaikan sedikit agar lebih rapi */
+            color: #222; 
+            margin: 0;
+        }
+        h2 { margin-bottom: 0; }
+        p.sub { color: #666; margin-top: 4px; }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 12px; 
+            page-break-inside: auto;
+        }
+        
+        tr { 
+            page-break-inside: avoid; 
+            page-break-after: auto; 
+        }
+
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 4px 5px; 
+            text-align: center; 
+        }
+        th { background: #f7f0da; }
+        td.label { text-align: left; }
+        th.label { text-align: left; }
     </style>
 </head>
 <body>
@@ -42,7 +77,9 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td class="label">{{ $baris['puskesmas'] }}</td>
-                    <td>{{ $periode->nama }}</td>
+                    <td>
+                        {{ $namaPeriodeLengkap ?? $periode?->nama }}
+                    </td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}</td>
                     @endforeach

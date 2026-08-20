@@ -23,8 +23,9 @@ class LaporanController extends Controller
         [$periode, $daftarPeriode, $rekap] = $this->ambilRekapGabungan($request, $service);
 
         $pencarian = $request->input('cari');
+        $namaPeriodeLengkap = $periode ? $this->formatNamaPeriode($periode) : null;
 
-        return view('dinkes.laporan.index', compact('rekap', 'periode', 'daftarPeriode', 'pencarian'));
+        return view('dinkes.laporan.index', compact('rekap', 'periode', 'daftarPeriode', 'pencarian', 'namaPeriodeLengkap'));
     }
 
     public function exportPdfGabungan(Request $request, SkmCalculatorService $service)
@@ -34,8 +35,9 @@ class LaporanController extends Controller
         abort_if(! $periode, 404, 'Periode survei tidak ditemukan.');
 
         $kodeUnsur = $rekap->isNotEmpty() ? array_keys($rekap->first()['per_unsur']) : [];
+        $namaPeriodeLengkap = $this->formatNamaPeriode($periode);
 
-        $pdf = Pdf::loadView('exports.rekap-gabungan-pdf', compact('rekap', 'periode', 'kodeUnsur'));
+        $pdf = Pdf::loadView('exports.rekap-gabungan-pdf', compact('rekap', 'periode', 'kodeUnsur', 'namaPeriodeLengkap'));
 
         return $pdf->download("rekap-skm-{$periode->id}.pdf");
     }
@@ -232,5 +234,14 @@ class LaporanController extends Controller
         $hasil = $service->hitung($puskesmas, $periode);
 
         return [$periode, $hasil];
+    }
+
+    private function formatNamaPeriode(PeriodeSurvei $periode): string
+    {
+        if (! $periode->tanggal_mulai || ! $periode->tanggal_selesai) {
+            return $periode->nama;
+        }
+
+        return $periode->nama . ' (' . $periode->tanggal_mulai->translatedFormat('F') . ' - ' . $periode->tanggal_selesai->translatedFormat('F Y') . ')';
     }
 }

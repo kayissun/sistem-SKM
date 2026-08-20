@@ -11,12 +11,22 @@ class DashboardController extends Controller
 {
     public function index(SkmCalculatorService $service)
     {
-        $puskesmas = Auth::user()->puskesmas;
+        $user = Auth::user();
+        $puskesmas = $user->puskesmas;
         $periodeAktif = PeriodeSurvei::where('is_active', true)->first();
-        $jumlahPetugas = $puskesmas->users()->count();
 
+        if ($user->hasRole('dinkes-skm')) {
+            $jumlahPetugas = $puskesmas ? $puskesmas->users()->count() : 0;
+            $hasilPeriodeAktif = $puskesmas && $periodeAktif ? $service->hitung($puskesmas, $periodeAktif) : null;
+
+            return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'jumlahPetugas', 'hasilPeriodeAktif'))
+                ->with('roleLabel', 'Dinkes SKM');
+        }
+
+        $jumlahPetugas = $puskesmas->users()->count();
         $hasilPeriodeAktif = $periodeAktif ? $service->hitung($puskesmas, $periodeAktif) : null;
 
-        return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'jumlahPetugas', 'hasilPeriodeAktif'));
+        return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'jumlahPetugas', 'hasilPeriodeAktif'))
+            ->with('roleLabel', 'Admin Puskesmas');
     }
 }
