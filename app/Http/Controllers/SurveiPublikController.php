@@ -7,6 +7,7 @@ use App\Models\PeriodeSurvei;
 use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
 use App\Models\UnitLayanan;
+use App\Services\KalkulatorIkmService; // <--- 1. IMPORT SERVICE DI SINI
 use App\Services\SurveiSubmissionService;
 use App\Support\OpsiDataDiri;
 
@@ -39,7 +40,12 @@ class SurveiPublikController extends Controller
         $periodeAktif = $request->periodeAktif();
         $daftarPertanyaan = $request->daftarPertanyaanAktif();
 
+        // 1. Simpan jawaban survei responden
         $submission->simpan($puskesmas, $data, $periodeAktif, $daftarPertanyaan);
+
+        // 2. TRIGGER REKAP AUTOMATIS DI SINI 🚀
+        // Langsung perbarui tabel rekap_ikm untuk puskesmas & periode aktif ini
+        KalkulatorIkmService::perbaruiRekap($puskesmas->id, $periodeAktif->id);
 
         return redirect()->route('survei.selesai', $puskesmas);
     }

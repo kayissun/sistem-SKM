@@ -212,6 +212,7 @@ class LaporanController extends Controller
         $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
         $daftarPeriode = PeriodeSurvei::orderByDesc('tanggal_mulai')->get();
 
+        // Membaca dari tabel rekap_ikm via Service
         $rekap = $periode ? $service->hitungGabungan($periode) : collect();
 
         $pencarian = $request->input('cari');

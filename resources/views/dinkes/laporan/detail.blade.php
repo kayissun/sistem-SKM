@@ -77,7 +77,9 @@
             <div class="sp-skm-card">
                 <div class="small text-white-50 text-uppercase fw-semibold mb-1">Nilai Akhir SKM (Seluruh Layanan)</div>
                 <div class="display-5 fw-bold mb-1">{{ $hasil['nilai_akhir_skm'] }}</div>
-                <div class="badge bg-white text-purple font-semibold fs-6 px-3 py-1 rounded-pill mb-2">{{ $hasil['mutu_akhir'] }}</div>
+                <div class="badge bg-white font-semibold fs-6 px-3 py-1 rounded-pill mb-2" style="color: #180733;">
+                    {{ $hasil['mutu_akhir'] }}
+                </div>
                 <div class="small text-white-50"><i class="fa-solid fa-users me-1"></i> {{ number_format($hasil['jumlah_responden']) }} Responden Terdata</div>
             </div>
         </div>

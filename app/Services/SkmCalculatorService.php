@@ -5,27 +5,73 @@ namespace App\Services;
 use App\Models\PeriodeSurvei;
 use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
+use App\Models\RekapIkm;
 use App\Models\SurveiJawabanDetail;
 use App\Models\UnitLayanan;
 use App\Models\UnsurPelayanan;
 use App\Support\OpsiDataDiri;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class SkmCalculatorService
 {
     /**
      * Hitung rekap SKM untuk satu puskesmas pada satu periode.
-     *
-     * Setiap puskesmas boleh punya pertanyaan sendiri (teks berbeda-beda, bahkan jumlahnya
-     * lebih dari 9), tapi nilai SKM resmi tetap dihitung berdasarkan 9 unsur wajib
-     * (Permenpan RB 14/2017). Pertanyaan yang tidak dikaitkan ke unsur mana pun
-     * ("pertanyaan tambahan") ditampilkan terpisah, tidak masuk ke rumus SKM.
-     *
-     * Kalau $unitLayanan diisi, perhitungan cuma mencakup jawaban dari poli/layanan itu saja
-     * (dipakai untuk laporan IKM per poli, lihat hitungPerUnitLayanan()).
+     * Cek tabel `rekap_ikm` terlebih dahulu untuk pembacaan instan.
      */
     public function hitung(Puskesmas $puskesmas, PeriodeSurvei $periode, ?UnitLayanan $unitLayanan = null): array
+    {
+        // 1. Cek apakah data rekap sudah ada di tabel rekap_ikm
+        $rekap = RekapIkm::where('puskesmas_id', $puskesmas->id)
+            ->where('periode_survei_id', $periode->id)
+            ->where('unit_layanan_id', $unitLayanan?->id)
+            ->first();
+
+        // 2. Jika sudah ada di tabel rekap, kembalikan hasil secara instan
+        if ($rekap) {
+            return [
+                'puskesmas' => $puskesmas->nama,
+                'unit_layanan_id' => $unitLayanan?->id,
+                'unit_layanan_nama' => $unitLayanan?->nama,
+                'jumlah_responden' => $rekap->jumlah_responden,
+                'per_unsur' => $rekap->per_unsur['per_unsur'] ?? [],
+                'pertanyaan_tambahan' => $unitLayanan ? [] : ($rekap->per_unsur['pertanyaan_tambahan'] ?? []),
+                'unsur_belum_terpetakan' => $rekap->per_unsur['unsur_belum_terpetakan'] ?? [],
+                'total_indeks_skm' => $rekap->per_unsur['total_indeks_skm'] ?? 0,
+                'nilai_akhir_skm' => (float) $rekap->nilai_akhir_skm,
+                'mutu_akhir' => $rekap->mutu_akhir,
+            ];
+        }
+
+        // 3. Jika belum ada di rekap, lakukan kalkulasi dari data mentah & simpan otomatis ke rekap_ikm
+        $hasil = $this->kalkulasiMentah($puskesmas, $periode, $unitLayanan);
+
+        RekapIkm::updateOrCreate(
+            [
+                'puskesmas_id' => $puskesmas->id,
+                'periode_survei_id' => $periode->id,
+                'unit_layanan_id' => $unitLayanan?->id,
+            ],
+            [
+                'jumlah_responden' => $hasil['jumlah_responden'],
+                'nilai_akhir_skm' => $hasil['nilai_akhir_skm'],
+                'mutu_akhir' => $hasil['mutu_akhir'],
+                'per_unsur' => [
+                    'per_unsur' => $hasil['per_unsur'],
+                    'pertanyaan_tambahan' => $hasil['pertanyaan_tambahan'],
+                    'unsur_belum_terpetakan' => $hasil['unsur_belum_terpetakan'],
+                    'total_indeks_skm' => $hasil['total_indeks_skm'],
+                ],
+            ]
+        );
+
+        return $hasil;
+    }
+
+    /**
+     * Kalkulasi fisik dari data mentah (dipanggil jika rekap_ikm belum terbentuk)
+     */
+    private function kalkulasiMentah(Puskesmas $puskesmas, PeriodeSurvei $periode, ?UnitLayanan $unitLayanan = null): array
     {
         $unsurAktif = UnsurPelayanan::aktif()->get();
 
@@ -40,8 +86,6 @@ class SkmCalculatorService
         $unsurBelumTerpetakan = [];
 
         foreach ($unsurAktif as $unsur) {
-            // semua pertanyaan aktif milik puskesmas ini yang dikaitkan ke unsur ini
-            // (biasanya 1, tapi puskesmas boleh pecah jadi lebih dari 1 pertanyaan per unsur)
             $pertanyaanUnsurIni = PertanyaanSurvei::where('puskesmas_id', $puskesmas->id)
                 ->where('unsur_pelayanan_id', $unsur->id)
                 ->where('is_active', true)
@@ -50,7 +94,6 @@ class SkmCalculatorService
             $jumlahPertanyaan = $pertanyaanUnsurIni->count();
 
             if ($jumlahPertanyaan === 0) {
-                // puskesmas belum/tidak punya pertanyaan aktif untuk unsur wajib ini
                 $unsurBelumTerpetakan[] = $unsur->kode . ' - ' . $unsur->pertanyaan;
             }
 
@@ -65,9 +108,6 @@ class SkmCalculatorService
                 })
                 ->sum('nilai');
 
-            // penyebut = jumlah responden x jumlah pertanyaan yang mewakili unsur ini,
-            // supaya NRR tetap merepresentasikan "rata-rata nilai per unsur", walau
-            // unsur tsb diwakili lebih dari 1 pertanyaan
             $penyebut = $jumlahResponden * max($jumlahPertanyaan, 1);
             $nrr = $penyebut > 0 ? $totalNilai / $penyebut : 0;
             $nrrSkala100 = $nrr * 25;
@@ -103,9 +143,7 @@ class SkmCalculatorService
     }
 
     /**
-     * Rekap IKM per poli/unit layanan (mis. "Poli Umum", "UGD"), masing-masing dihitung
-     * terpisah dengan rumus yang sama persis seperti hitung(), cuma jawabannya difilter
-     * berdasarkan unit_layanan_id yang dipilih responden saat mengisi survei.
+     * Rekap IKM per poli/unit layanan.
      */
     public function hitungPerUnitLayanan(Puskesmas $puskesmas, PeriodeSurvei $periode): Collection
     {
@@ -116,8 +154,7 @@ class SkmCalculatorService
     }
 
     /**
-     * Rata-rata nilai untuk pertanyaan tambahan (di luar 9 unsur wajib), sekadar informasi
-     * tambahan bagi puskesmas — tidak memengaruhi nilai akhir SKM resmi.
+     * Pertanyaan Tambahan.
      */
     private function hitungPertanyaanTambahan(Puskesmas $puskesmas, PeriodeSurvei $periode): array
     {
@@ -149,9 +186,7 @@ class SkmCalculatorService
     }
 
     /**
-     * Data mentah per responden (belum diagregasi) — nilai tiap responden per unsur,
-     * dipaginasi untuk tampilan web. Kalau ada pertanyaan yang mewakili unsur sama lebih
-     * dari 1, nilainya dirata-rata per responden untuk unsur tsb.
+     * Data per Responden.
      */
     public function dataPerResponden(
         Puskesmas $puskesmas,
@@ -217,14 +252,21 @@ class SkmCalculatorService
         return ['kodeUnsur' => $kodeUnsur, 'baris' => $baris, 'halaman' => $halaman];
     }
 
-    /**
-     * Urutkan 9 unsur dari yang paling rendah nilainya (peringkat 1 = paling perlu
-     * diperbaiki duluan) berdasarkan hasil hitung() yang sudah ada.
-     */
     public function peringkatPrioritas(array $hasil): Collection
     {
-        return collect($hasil['per_unsur'])
-            ->map(fn ($u, $kode) => ['kode' => $kode, 'pertanyaan' => $u['pertanyaan'], 'nrr' => $u['nrr']])
+        return collect($hasil['per_unsur'] ?? [])
+            ->map(function ($u, $kode) {
+                // Pastikan pertanyaan diambil sebagai String meskipun berbentuk Array/Collection
+                $pertanyaanTeks = is_array($u['pertanyaan'] ?? null)
+                    ? ($u['pertanyaan'][0]['teks_pertanyaan'] ?? $u['pertanyaan'][0]['pertanyaan'] ?? '-')
+                    : ($u['pertanyaan'] ?? '-');
+
+                return [
+                    'kode' => $kode,
+                    'pertanyaan' => $pertanyaanTeks,
+                    'nrr' => $u['nrr'] ?? 0,
+                ];
+            })
             ->values()
             ->sortBy('nrr')
             ->values()
@@ -232,7 +274,7 @@ class SkmCalculatorService
     }
 
     /**
-     * Rekap gabungan seluruh puskesmas untuk satu periode (khusus dinkes).
+     * Rekap gabungan seluruh puskesmas (khusus dinkes).
      */
     public function hitungGabungan(PeriodeSurvei $periode): Collection
     {
@@ -242,26 +284,33 @@ class SkmCalculatorService
             ->map(function (Puskesmas $puskesmas) use ($periode) {
                 $hasil = $this->hitung($puskesmas, $periode);
 
-                $unsurTerlemah = $hasil['jumlah_responden'] > 0
+                $unsurTerlemah = ($hasil['jumlah_responden'] ?? 0) > 0
                     ? $this->peringkatPrioritas($hasil)->first()
                     : null;
+
+                $prioritasTeks = '-';
+                if ($unsurTerlemah) {
+                    $teksPertanyaan = is_array($unsurTerlemah['pertanyaan'])
+                        ? ($unsurTerlemah['pertanyaan'][0]['teks_pertanyaan'] ?? $unsurTerlemah['pertanyaan'][0]['pertanyaan'] ?? '-')
+                        : $unsurTerlemah['pertanyaan'];
+
+                    $prioritasTeks = "{$unsurTerlemah['kode']} - {$teksPertanyaan}";
+                }
 
                 return [
                     'puskesmas_id' => $puskesmas->id,
                     'puskesmas' => $puskesmas->nama,
-                    'jumlah_responden' => $hasil['jumlah_responden'],
-                    'per_unsur' => $hasil['per_unsur'],
-                    'nilai_akhir_skm' => $hasil['nilai_akhir_skm'],
-                    'mutu_akhir' => $hasil['mutu_akhir'],
-                    'unsur_prioritas' => $unsurTerlemah ? "{$unsurTerlemah['kode']} - {$unsurTerlemah['pertanyaan']}" : '-',
+                    'jumlah_responden' => $hasil['jumlah_responden'] ?? 0,
+                    'per_unsur' => $hasil['per_unsur'] ?? [],
+                    'nilai_akhir_skm' => $hasil['nilai_akhir_skm'] ?? 0,
+                    'mutu_akhir' => $hasil['mutu_akhir'] ?? '-',
+                    'unsur_prioritas' => $prioritasTeks,
                 ];
             });
     }
 
     /**
-     * Data untuk "Format Publikasi IKM" — poster ringkas berisi nilai IKM final +
-     * breakdown demografis responden (jenis kelamin & pendidikan), biasa ditempel
-     * di loket layanan. Kalau $unitLayanan diisi, datanya cuma dari poli itu saja.
+     * Format Publikasi IKM.
      */
     public function publikasiIkm(Puskesmas $puskesmas, PeriodeSurvei $periode, ?UnitLayanan $unitLayanan = null): array
     {
@@ -291,7 +340,7 @@ class SkmCalculatorService
             'mutu_akhir' => $hasil['mutu_akhir'],
             'jumlah_responden' => $hasil['jumlah_responden'],
             'jumlah_laki' => $jumlahLaki,
-            'jumlah_perempuan' => $jumlahPerempuan,
+            'jumlah_perempuan' => $jumlahPerPerempuan ?? $jumlahPerempuan,
             'pendidikan' => $pendidikan,
         ];
     }
