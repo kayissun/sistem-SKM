@@ -3,33 +3,53 @@
 @section('title', 'Jawaban Teks')
 
 @section('content')
-    <a href="{{ route('dinkes.laporan.detail', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Kembali ke Laporan</a>
+    <style>
+        .sp-table-card { border-radius: 14px; overflow: hidden; }
+        .sp-table-card .table { margin-bottom: 0; font-size: .82rem; }
+        .sp-table-card tbody tr:hover { background: #FAF8FF; }
+    </style>
 
-    <h3 class="mb-1">{{ $pertanyaan->teks_pertanyaan }}</h3>
-    <p class="text-muted">{{ $puskesmas->nama }} &middot; Periode: {{ $periode->nama }} &middot; {{ $daftarJawaban->total() }} masukan</p>
+    <div class="mb-3">
+        <a href="{{ route('dinkes.laporan.detail', ['puskesma' => $puskesmas, 'periode_survei_id' => $periode->id]) }}" class="btn btn-sm btn-light border text-secondary rounded-3">
+            <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Detail Laporan
+        </a>
+    </div>
 
-    <table class="table table-bordered bg-white">
-        <thead>
-            <tr>
-                <th style="width:150px">Tanggal</th>
-                <th style="width:200px">Nama</th>
-                <th style="width:150px">No. HP</th>
-                <th>Isi Masukan</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($daftarJawaban as $jawaban)
-                <tr>
-                    <td>{{ $jawaban->created_at->format('d M Y H:i') }}</td>
-                    <td>{{ $jawaban->surveiJawaban->nama }}</td>
-                    <td>{{ $jawaban->surveiJawaban->no_hp }}</td>
-                    <td>{{ $jawaban->jawaban_teks }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="4" class="text-center text-muted">Belum ada masukan pada periode ini</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="mb-4">
+        <h3 class="fw-bold mb-1" style="color:#180733">{{ $pertanyaan->teks_pertanyaan }}</h3>
+        <p class="text-muted small mb-0">{{ $puskesmas->nama }} &middot; Periode: {{ $periode->nama }} &middot; Total <strong>{{ $daftarJawaban->total() }}</strong> masukan</p>
+    </div>
 
-    {{ $daftarJawaban->links() }}
+    <div class="card sp-table-card border-0 shadow-sm mb-3">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th style="width:160px">Tanggal</th>
+                        <th style="width:200px">Nama Responden</th>
+                        <th style="width:140px">No. HP</th>
+                        <th>Isi Masukan / Saran</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($daftarJawaban as $jawaban)
+                        <tr>
+                            <td class="text-secondary small">{{ $jawaban->created_at->format('d M Y H:i') }}</td>
+                            <td class="fw-semibold" style="color:#180733">{{ $jawaban->surveiJawaban->nama }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ $jawaban->surveiJawaban->no_hp }}</span></td>
+                            <td class="text-dark">{{ $jawaban->jawaban_teks }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">Belum ada masukan teks pada periode ini.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        {{ $daftarJawaban->links('pagination::bootstrap-5') }}
+    </div>
 @endsection
