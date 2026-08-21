@@ -51,6 +51,10 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
 
         Route::get('/klaster', [KlasterController::class, 'index'])->name('klaster.index');
+        Route::get('/klaster/export/pdf', [KlasterController::class, 'exportPdf'])->name('klaster.export-pdf');
+        Route::get('/klaster/export/excel', [KlasterController::class, 'exportExcel'])->name('klaster.export-excel');
+        Route::get('/cluster/generate', [DashboardController::class, 'generateCluster'])
+            ->name('cluster.generate');
 
         Route::post('/puskesmas/aksi-massal', [PuskesmasController::class, 'aksiMassal'])->name('puskesmas.aksi-massal');
         Route::post('/periode-survei/aksi-massal', [PeriodeSurveiController::class, 'aksiMassal'])->name('periode-survei.aksi-massal');

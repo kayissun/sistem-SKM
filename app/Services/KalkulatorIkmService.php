@@ -1,78 +1,63 @@
+<?php
+
 namespace App\Services;
 
 use App\Models\Puskesmas;
+use App\Models\PeriodeSurvei;
 use App\Models\RekapIkm;
-use App\Models\SurveiJawaban; // Sesuaikan dengan nama model jawaban survei Anda
+use App\Models\SurveiJawaban;
+use App\Models\UnitLayanan;
+use Illuminate\Support\Facades\Log;
 
 class KalkulatorIkmService
 {
     /**
-     * Hitung ulang dan simpan rekap IKM untuk Puskesmas & Periode tertentu
+     * Hitung ulang dan simpan rekap IKM untuk Puskesmas & Periode tertentu.
+     * Delegasi kalkulasi nyata ke SkmCalculatorService::hitung().
+     *
+     * Karena hitung() punya cache (kalau rekap_ikm sudah ada, langsung return),
+     * kita hapus rekap lama dulu supaya hitung() selalu kalkulasi ulang dari
+     * jawaban terbaru.
      */
-    public static function perbaruiRekap($puskesmasId, $periodeSurveiId)
+    public static function perbaruiRekap($puskesmasId, $periodeSurveiId): void
     {
-        // 1. Hitung Rekap Seluruh Layanan (unit_layanan_id = null)
-        self::prosesKalkulasiData($puskesmasId, $periodeSurveiId, null);
+        try {
+            $puskesmas = Puskesmas::find($puskesmasId);
+            $periode = PeriodeSurvei::find($periodeSurveiId);
 
-        // 2. Hitung Rekap per Poli / Unit Layanan
-        // Ambil daftar unit layanan yang ada di puskesmas ini
-        $unitLayananIds = SurveiJawaban::where('puskesmas_id', $puskesmasId)
-            ->where('periode_survei_id', $periodeSurveiId)
-            ->whereNotNull('unit_layanan_id')
-            ->pluck('unit_layanan_id')
-            ->unique();
+            if (! $puskesmas || ! $periode) {
+                return;
+            }
 
-        foreach ($unitLayananIds as $unitId) {
-            self::prosesKalkulasiData($puskesmasId, $periodeSurveiId, $unitId);
-        }
-    }
+            // Hapus rekap lama supaya hitung() selalu kalkulasi dari awal
+            RekapIkm::where('puskesmas_id', $puskesmasId)
+                ->where('periode_survei_id', $periodeSurveiId)
+                ->delete();
 
-    private static function prosesKalkulasiData($puskesmasId, $periodeSurveiId, $unitLayananId = null)
-    {
-        // GANTI LOGIK KALKULASI DI BAWAH SESUAI DENGAN RUMUS SKM/IKM LAMA ANDA
-        
-        $query = SurveiJawaban::where('puskesmas_id', $puskesmasId)
-            ->where('periode_survei_id', $periodeSurveiId);
+            $service = app(SkmCalculatorService::class);
 
-        if ($unitLayananId) {
-            $query->where('unit_layanan_id', $unitLayananId);
-        }
+            // 1. Hitung rekap seluruh layanan (unit_layanan_id = null)
+            $service->hitung($puskesmas, $periode);
 
-        $jumlahResponden = $query->count();
+            // 2. Hitung rekap per poli / unit layanan
+            $unitIds = SurveiJawaban::where('puskesmas_id', $puskesmasId)
+                ->where('periode_survei_id', $periodeSurveiId)
+                ->whereNotNull('unit_layanan_id')
+                ->pluck('unit_layanan_id')
+                ->unique();
 
-        if ($jumlahResponden === 0) {
-            return;
-        }
-
-        // --- CONTOH PERHITUNGAN (PANGGIL/PASTE RUMUS IKM LAMA ANDA DI SINI) ---
-        // Contoh sederhana penampung unsur U1 - U9
-        $perUnsur = []; 
-        /* 
-           Jalankan rumus perhitungan NRR (Nilai Rata-Rata) per Unsur Anda di sini.
-           Contoh struktur array $perUnsur:
-           [
-              'U1' => ['nrr_skala_100' => 82.50],
-              'U2' => ['nrr_skala_100' => 88.00],
-              ...
-           ]
-        */
-
-        $nilaiAkhirSkm = 85.50; // Hasil rumus akhir SKM
-        $mutuAkhir = 'B';       // Kategori Mutu (Sangat Baik / Baik, dll)
-
-        // Simpan / Update ke tabel rekap_ikm (Upsert)
-        RekapIkm::updateOrCreate(
-            [
+            foreach ($unitIds as $unitId) {
+                $unitLayanan = UnitLayanan::find($unitId);
+                if ($unitLayanan) {
+                    $service->hitung($puskesmas, $periode, $unitLayanan);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Gagal menghitung rekap IKM', [
                 'puskesmas_id' => $puskesmasId,
-                'periode_survei_id' => $periodeSurveiId,
-                'unit_layanan_id' => $unitLayananId,
-            ],
-            [
-                'jumlah_responden' => $jumlahResponden,
-                'nilai_akhir_skm' => $nilaiAkhirSkm,
-                'mutu_akhir' => $mutuAkhir,
-                'per_unsur' => $perUnsur,
-            ]
-        );
+                'periode_id' => $periodeSurveiId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

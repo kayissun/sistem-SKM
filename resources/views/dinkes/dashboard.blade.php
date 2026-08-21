@@ -123,4 +123,26 @@
         </div>
     </div>
 
+    @if($clusters->count())
+    <table>
+        <tr>
+            <th>Unit</th>
+            <th>Nilai</th>
+            <th>Cluster</th>
+            <th>Rekomendasi</th>
+        </tr>
+
+        @foreach($clusters as $item)
+        <tr>
+            <td>{{ $item->puskesmas->nama ?? '-' }}</td>
+            <td>{{ $item->nilai_rata2 }}</td>
+            <td>{{ $item->cluster_nama ?: $item->cluster }}</td>
+            <td>{{ $item->rekomendasi }}</td>
+        </tr>
+        @endforeach
+    </table>
+    @else
+    <p>Belum ada data clustering</p>
+    @endif
+
 @endsection

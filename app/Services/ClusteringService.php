@@ -5,119 +5,207 @@ namespace App\Services;
 use App\Models\PeriodeSurvei;
 use App\Models\Puskesmas;
 use App\Models\UnsurPelayanan;
-use Illuminate\Support\Collection;
+use App\Models\ClusterResult;
 use Phpml\Clustering\KMeans;
 
 class ClusteringService
 {
-    public function __construct(private readonly SkmCalculatorService $skmService) {}
+    public function __construct(
+        private readonly SkmCalculatorService $skmService
+    ) {}
 
-    /**
-     * Kelompokkan unit (puskesmas/RSU) berdasarkan kemiripan profil nilai 9 unsur pelayanan
-     * (bukan cuma dari 1 angka rata-rata, tapi dari bentuk/pola ke-9 nilainya).
-     *
-     * Catatan desain: semua 9 fitur sudah sama-sama berskala 0-100 (nilai interval konversi),
-     * jadi sengaja tidak distandardisasi (z-score) dulu sebelum clustering — beda dengan
-     * dataset yang unitnya campur-campur (misal umur vs pendapatan), di sini semua fitur
-     * memang sepadan/comparable secara langsung.
-     *
-     * @return array{kelompok: Collection, dikecualikan: Collection, kodeUnsur: array<string>}
-     */
     public function klasterPuskesmas(PeriodeSurvei $periode, int $jumlahKlaster = 4): array
     {
-        $kodeUnsur = UnsurPelayanan::aktif()->pluck('kode')->all();
+        $unsurAktif = UnsurPelayanan::aktif()->get(['kode', 'nama_unsur']);
+        $kodeUnsur = $unsurAktif->pluck('kode')->all();
+        $namaUnsur = $unsurAktif->pluck('nama_unsur', 'kode')->all();
 
         $daftarUnit = Puskesmas::where('is_active', true)
             ->whereIn('jenis', ['puskesmas', 'rsu'])
             ->get();
 
-        $sampel = [];       // [puskesmas_id => [nilai_u1, nilai_u2, ...]]
-        $hasilPerUnit = []; // [puskesmas_id => hasil lengkap dari SkmCalculatorService]
+        $sampel = [];
+        $hasilPerUnit = [];
         $dikecualikan = collect();
 
-        foreach ($daftarUnit as $puskesmas) {
-            $hasil = $this->skmService->hitung($puskesmas, $periode);
+        /**
+         * STEP 1 - BUILD DATA VECTOR
+         */
+        foreach ($daftarUnit as $unit) {
+            $hasil = $this->skmService->hitung($unit, $periode);
 
-            if ($hasil['jumlah_responden'] === 0 || ! empty($hasil['unsur_belum_terpetakan'])) {
+            if ($hasil['jumlah_responden'] === 0 || !empty($hasil['unsur_belum_terpetakan'])) {
                 $dikecualikan->push([
-                    'nama' => $puskesmas->nama,
+                    'nama' => $unit->nama,
                     'alasan' => $hasil['jumlah_responden'] === 0
-                        ? 'Belum ada responden pada periode ini'
-                        : 'Ada unsur wajib yang belum dipetakan ke pertanyaan',
+                        ? 'Belum ada responden'
+                        : 'Unsur belum lengkap'
                 ]);
-
                 continue;
             }
 
-            $vektor = [];
+            $vector = [];
             foreach ($kodeUnsur as $kode) {
-                $vektor[] = $hasil['per_unsur'][$kode]['nrr_skala_100'] ?? 0;
+                $vector[] = $hasil['per_unsur'][$kode]['nrr_skala_100'] ?? 0;
             }
 
-            $sampel[$puskesmas->id] = $vektor;
-            $hasilPerUnit[$puskesmas->id] = $hasil;
+            $sampel[$unit->id] = $vector;
+            $hasilPerUnit[$unit->id] = $hasil;
         }
 
         if (empty($sampel)) {
-            return ['kelompok' => collect(), 'dikecualikan' => $dikecualikan, 'kodeUnsur' => $kodeUnsur];
+            return [
+                'kelompok' => collect(),
+                'insight' => [],
+                'prioritas' => collect(),
+                'dikecualikan' => $dikecualikan,
+                'kodeUnsur' => $kodeUnsur,
+                'namaUnsur' => $namaUnsur,
+                'jumlahKlaster' => 0,
+                'jumlahSampel' => 0,
+                'peringatanKualitas' => null,
+            ];
         }
 
-        // kalau unit yang layak di-cluster lebih sedikit dari K yang diminta, turunkan otomatis
+        /**
+         * STEP 2 - AUTO ADJUST K
+         */
         $jumlahKlaster = min($jumlahKlaster, count($sampel));
+        $peringatanKualitas = count($sampel) < 6
+            ? 'Hasil ini bersifat indikatif karena hanya ' . count($sampel) . ' unit yang memiliki data lengkap. Pertimbangkan validasi manual sebelum menetapkan kebijakan.'
+            : null;
 
         $kmeans = new KMeans($jumlahKlaster);
-        $klasterMentah = $kmeans->cluster($sampel);
+        $hasilCluster = $kmeans->cluster($sampel);
 
-        $kelompok = collect($klasterMentah)->map(function ($anggota) use ($hasilPerUnit, $kodeUnsur) {
-            $idAnggota = array_keys($anggota);
+        $kelompok = collect($hasilCluster)->map(function ($anggota) use ($hasilPerUnit, $kodeUnsur) {
 
-            // centroid = rata-rata nilai tiap unsur dari semua anggota klaster ini,
-            // dipakai untuk grafik radar supaya bisa lihat "bentuk" khas tiap kelompok
-            $centroid = array_fill_keys($kodeUnsur, 0.0);
-            foreach ($idAnggota as $id) {
+            $ids = array_keys($anggota);
+
+            /**
+             * CENTROID
+             */
+            $centroid = array_fill_keys($kodeUnsur, 0);
+
+            foreach ($ids as $id) {
                 foreach ($kodeUnsur as $kode) {
                     $centroid[$kode] += $hasilPerUnit[$id]['per_unsur'][$kode]['nrr_skala_100'];
                 }
             }
-            foreach ($centroid as $kode => $total) {
-                $centroid[$kode] = round($total / count($idAnggota), 2);
+
+            foreach ($centroid as $k => $v) {
+                $centroid[$k] = round($v / count($ids), 2);
             }
 
-            return [
-                'anggota' => collect($idAnggota)->map(fn ($id) => [
+            /**
+             * ANGOTA DETAIL
+             */
+            $anggotaDetail = collect($ids)->map(function ($id) use ($hasilPerUnit) {
+                return [
+                    'id' => $id,
                     'nama' => $hasilPerUnit[$id]['puskesmas'],
-                    'nilai_akhir_skm' => $hasilPerUnit[$id]['nilai_akhir_skm'],
-                    'mutu_akhir' => $hasilPerUnit[$id]['mutu_akhir'],
-                ])->sortByDesc('nilai_akhir_skm')->values(),
+                    'nilai_akhir' => $hasilPerUnit[$id]['nilai_akhir_skm'],
+                    'mutu' => $hasilPerUnit[$id]['mutu_akhir'],
+                ];
+            })->sortByDesc('nilai_akhir')->values();
+
+            return [
+                'anggota' => $anggotaDetail,
                 'centroid' => $centroid,
-                'rata_rata_skor' => round(collect($idAnggota)->avg(fn ($id) => $hasilPerUnit[$id]['nilai_akhir_skm']), 2),
+                'rata_rata_skor' => round($anggotaDetail->avg('nilai_akhir'), 2),
             ];
-        })
-            ->sortByDesc('rata_rata_skor')
-            ->values();
+        })->values();
 
-        $label = $this->labelKelompok($kelompok->count());
-        $kelompok = $kelompok->map(function ($k, $i) use ($label) {
-            $k['label'] = $label[$i] ?? ('Kelompok ' . ($i + 1));
+        /**
+         * STEP 3 - LABELING
+         */
+        $labels = $this->labelKelompok($kelompok->count());
 
+        $kelompok = $kelompok->map(function ($k, $i) use ($labels) {
+            $k['label'] = $labels[$i] ?? "Kelompok " . ($i + 1);
             return $k;
         });
 
-        return ['kelompok' => $kelompok, 'dikecualikan' => $dikecualikan, 'kodeUnsur' => $kodeUnsur];
+        /**
+         * STEP 4 - INSIGHT OTOMATIS
+         */
+        $insight = $kelompok->map(function ($k) use ($namaUnsur) {
+
+            $lemah = collect($k['centroid'])
+                ->sort()
+                ->keys()
+                ->first();
+            $namaLemah = $namaUnsur[$lemah] ?? $lemah;
+
+            return [
+                'cluster' => $k['label'],
+                'rata_rata' => $k['rata_rata_skor'],
+                'isu_utama' => $lemah,
+                'isu_utama_nama' => $namaLemah,
+                'kesimpulan' =>
+                    "Kelompok {$k['label']} rata-rata paling lemah di {$lemah} ({$namaLemah})."
+            ];
+        });
+
+        /**
+         * STEP 5 - PRIORITAS PERBAIKAN
+         */
+        $prioritas = $kelompok->sortBy('rata_rata_skor')->values();
+
+        /**
+         * OPTIONAL - SAVE TO DB (HOOK)
+         */
+        foreach ($kelompok as $k) {
+            foreach ($k['anggota'] as $unit) {
+                ClusterResult::updateOrCreate(
+                    [
+                        'puskesmas_id' => $unit['id'],
+                        'periode' => $periode->id,
+                    ],
+                    [
+                        'cluster' => $k['label'],
+                        'cluster_nama' => $k['label'],
+                        'nilai_rata2' => $unit['nilai_akhir'],
+                        'rekomendasi' => $this->generateRekomendasi($k),
+                    ]
+                );
+            }
+        }
+
+        /**
+         * FINAL RETURN
+         */
+        return [
+            'kelompok' => $kelompok,
+            'insight' => $insight,
+            'prioritas' => $prioritas,
+            'dikecualikan' => $dikecualikan,
+            'kodeUnsur' => $kodeUnsur,
+            'namaUnsur' => $namaUnsur,
+            'jumlahKlaster' => $jumlahKlaster,
+            'jumlahSampel' => count($sampel),
+            'peringatanKualitas' => $peringatanKualitas,
+        ];
     }
 
-    /**
-     * Label deskriptif berdasarkan peringkat rata-rata skor, dari yang tertinggi ke terendah.
-     * Kalau jumlah klaster di luar 2-4, jatuh ke label generik "Kelompok N".
-     */
     private function labelKelompok(int $jumlah): array
     {
         return match ($jumlah) {
             1 => ['Seluruh Unit'],
             2 => ['Performa Tinggi', 'Perlu Perhatian'],
-            3 => ['Performa Tinggi', 'Performa Menengah', 'Perlu Perhatian'],
-            4 => ['Performa Terbaik', 'Performa Baik', 'Performa Menengah', 'Perlu Perhatian Khusus'],
-            default => array_map(fn ($i) => 'Kelompok ' . ($i + 1), range(0, $jumlah - 1)),
+            3 => ['Baik', 'Sedang', 'Rendah'],
+            4 => ['Sangat Baik', 'Baik', 'Sedang', 'Buruk'],
+            default => array_map(fn ($i) => "Kelompok " . ($i + 1), range(0, $jumlah - 1)),
         };
+    }
+
+    private function generateRekomendasi($cluster): string
+    {
+        $lemah = collect($cluster['centroid'])
+            ->sort()
+            ->keys()
+            ->first();
+
+        return "Prioritaskan perbaikan pada unsur {$lemah} untuk meningkatkan kualitas layanan.";
     }
 }
