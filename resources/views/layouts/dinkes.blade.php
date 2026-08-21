@@ -280,6 +280,9 @@
         <a href="{{ route('dinkes.klaster.index') }}" class="{{ request()->routeIs('dinkes.klaster.*') ? 'active' : '' }}">
             <i class="fa-solid fa-layer-group"></i> Klaster Performa
         </a>
+        <a href="{{ route('dinkes.tindak-lanjut.index') }}" class="{{ request()->routeIs('dinkes.tindak-lanjut.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-clipboard-check"></i> Tindak Lanjut
+        </a>
         <a href="{{ route('dinkes.aktivitas.index') }}" class="{{ request()->routeIs('dinkes.aktivitas.*') ? 'active' : '' }}">
             <i class="fa-solid fa-clock-rotate-left"></i> Log Aktivitas
         </a>

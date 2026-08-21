@@ -4,6 +4,7 @@ use App\Http\Controllers\Puskesmas\DashboardController;
 use App\Http\Controllers\Puskesmas\LaporanController;
 use App\Http\Controllers\Puskesmas\PertanyaanSurveiController;
 use App\Http\Controllers\Puskesmas\PetugasController;
+use App\Http\Controllers\Puskesmas\TindakLanjutController;
 use App\Http\Controllers\Puskesmas\UnitLayananController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,18 @@ Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
         Route::post('/pertanyaan/aksi-massal', [PertanyaanSurveiController::class, 'aksiMassal'])->name('pertanyaan.aksi-massal');
         Route::resource('unit-layanan', UnitLayananController::class)->except(['show']);
         Route::post('/unit-layanan/aksi-massal', [UnitLayananController::class, 'aksiMassal'])->name('unit-layanan.aksi-massal');
+
+        // Tindak Lanjut
+        Route::get('/tindak-lanjut', [TindakLanjutController::class, 'index'])->name('tindak-lanjut.index');
+        Route::get('/tindak-lanjut/create', [TindakLanjutController::class, 'create'])->name('tindak-lanjut.create');
+        Route::post('/tindak-lanjut', [TindakLanjutController::class, 'store'])->name('tindak-lanjut.store');
+        Route::get('/tindak-lanjut/{tindakLanjut}', [TindakLanjutController::class, 'show'])->name('tindak-lanjut.show');
+        Route::get('/tindak-lanjut/{tindakLanjut}/edit', [TindakLanjutController::class, 'edit'])->name('tindak-lanjut.edit');
+        Route::put('/tindak-lanjut/{tindakLanjut}', [TindakLanjutController::class, 'update'])->name('tindak-lanjut.update');
+        Route::delete('/tindak-lanjut/{tindakLanjut}', [TindakLanjutController::class, 'destroy'])->name('tindak-lanjut.destroy');
+        Route::post('/tindak-lanjut/{tindakLanjut}/submit', [TindakLanjutController::class, 'submit'])->name('tindak-lanjut.submit');
+        Route::get('/tindak-lanjut/{tindakLanjut}/progress', [TindakLanjutController::class, 'addProgress'])->name('tindak-lanjut.progress.create');
+        Route::post('/tindak-lanjut/{tindakLanjut}/progress', [TindakLanjutController::class, 'storeProgress'])->name('tindak-lanjut.progress.store');
     });
 
 Route::middleware(['auth', 'role:admin-puskesmas|petugas'])

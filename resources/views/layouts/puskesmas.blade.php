@@ -25,6 +25,7 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.unit-layanan.index') }}">Unit Layanan</a></li>
                 @endrole
                 <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.laporan.index') }}">Laporan</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('puskesmas.tindak-lanjut.index') }}">Tindak Lanjut</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('survei.create', auth()->user()->puskesmas) }}" target="_blank">Link survei</a>
                 </li>

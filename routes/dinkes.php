@@ -6,6 +6,7 @@ use App\Http\Controllers\Dinkes\KlasterController;
 use App\Http\Controllers\Dinkes\LaporanController;
 use App\Http\Controllers\Dinkes\PeriodeSurveiController;
 use App\Http\Controllers\Dinkes\PuskesmasController;
+use App\Http\Controllers\Dinkes\TindakLanjutController;
 use App\Http\Controllers\Dinkes\UnsurPelayananController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,4 +60,11 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::post('/puskesmas/aksi-massal', [PuskesmasController::class, 'aksiMassal'])->name('puskesmas.aksi-massal');
         Route::post('/periode-survei/aksi-massal', [PeriodeSurveiController::class, 'aksiMassal'])->name('periode-survei.aksi-massal');
         Route::post('/unsur-pelayanan/aksi-massal', [UnsurPelayananController::class, 'aksiMassal'])->name('unsur-pelayanan.aksi-massal');
+
+        // Tindak Lanjut
+        Route::get('/tindak-lanjut', [TindakLanjutController::class, 'index'])->name('tindak-lanjut.index');
+        Route::get('/tindak-lanjut/{tindakLanjut}', [TindakLanjutController::class, 'show'])->name('tindak-lanjut.show');
+        Route::post('/tindak-lanjut/{tindakLanjut}/approve', [TindakLanjutController::class, 'approve'])->name('tindak-lanjut.approve');
+        Route::post('/tindak-lanjut/{tindakLanjut}/reject', [TindakLanjutController::class, 'reject'])->name('tindak-lanjut.reject');
+        Route::get('/tindak-lanjut/puskesmas/{puskesma}', [TindakLanjutController::class, 'rekapPuskesmas'])->name('tindak-lanjut.rekap-puskesmas');
     });

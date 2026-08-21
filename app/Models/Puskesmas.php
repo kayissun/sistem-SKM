@@ -66,4 +66,9 @@ class Puskesmas extends Model
     {
         return $this->hasMany(UnitLayanan::class);
     }
+
+    public function tindakLanjuts(): HasMany
+    {
+        return $this->hasMany(TindakLanjut::class);
+    }
 }
