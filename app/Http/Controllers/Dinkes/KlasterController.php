@@ -23,6 +23,9 @@ class KlasterController extends Controller
         $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
 
         $jumlahKlaster = max(2, min(6, $request->integer('jumlah_klaster') ?: 4));
+        // Membuka halaman hanya menghitung untuk tampilan — TIDAK menulis ke
+        // cluster_results. Penyimpanan riwayat hanya lewat tombol generate
+        // di dashboard (DashboardController@generateCluster).
         $hasil = $periode
             ? $service->klasterPuskesmas($periode, $jumlahKlaster)
             : [
@@ -54,14 +57,15 @@ class KlasterController extends Controller
             ->groupBy('puskesmas_id');
 
         $namaPeriode = $periodeTren->pluck('nama', 'id');
-        $kelompok = $hasil['kelompok']->map(function ($kelompok) use ($riwayat, $namaPeriode) {
-            $kelompok['anggota'] = $kelompok['anggota']->map(function ($anggota) use ($riwayat, $namaPeriode) {
+        $kelompok = $hasil['kelompok']->map(function ($kelompok) use ($riwayat, $namaPeriode, $periode) {
+            $kelompok['anggota'] = $kelompok['anggota']->map(function ($anggota) use ($riwayat, $namaPeriode, $periode) {
                 $anggota['tren'] = $riwayat->get($anggota['id'], collect())
                     ->sortBy('periode')
                     ->map(fn ($item) => [
                         'periode' => $namaPeriode[$item->periode] ?? $item->periode,
                         'cluster' => $item->cluster_nama ?: $item->cluster,
                         'nilai' => $item->nilai_rata2,
+                        'aktif' => (int) $item->periode === (int) $periode?->id,
                     ])->values();
 
                 return $anggota;
@@ -70,10 +74,21 @@ class KlasterController extends Controller
             return $kelompok;
         });
 
+        // Urut default: SKM tertinggi dulu, supaya badge peringkat langsung
+        // bermakna saat halaman dibuka (rank 1 = nilai tertinggi). Peringkat
+        // disimpan sebagai atribut agar tetap benar walau tabel di-sort ulang
+        // secara alfabetis dari sisi browser.
+        $semuaAnggota = $kelompok
+            ->flatMap(fn ($k) => $k['anggota'])
+            ->sortByDesc('nilai_akhir')
+            ->values()
+            ->map(fn ($anggota, $i) => $anggota + ['peringkat' => $i + 1]);
+
         return view('dinkes.klaster.index', [
             'periode' => $periode,
             'daftarPeriode' => $daftarPeriode,
             'kelompok' => $kelompok,
+            'semuaAnggota' => $semuaAnggota,
             'insight' => $hasil['insight'],
             'dikecualikan' => $hasil['dikecualikan'],
             'kodeUnsur' => $hasil['kodeUnsur'],

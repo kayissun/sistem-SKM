@@ -262,7 +262,7 @@
             <i class="fa-solid fa-home"></i> Dashboard
         </a>
 
-        <div class="sp-label">Data Layanan</div>
+        <div class="sp-label"> Layanan</div>
         <a href="{{ route('dinkes.puskesmas.index') }}" class="{{ request()->routeIs('dinkes.puskesmas.*') ? 'active' : '' }}">
             <i class="fa-solid fa-hospital"></i> Data Faskes
         </a>
@@ -275,10 +275,10 @@
 
         <div class="sp-label">Pemantauan</div>
         <a href="{{ route('dinkes.laporan.index') }}" class="{{ request()->routeIs('dinkes.laporan.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-chart-line"></i> Data Laporan
+            <i class="fa-solid fa-chart-line"></i> Laporan
         </a>
         <a href="{{ route('dinkes.klaster.index') }}" class="{{ request()->routeIs('dinkes.klaster.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-layer-group"></i> Data Klaster Performa
+            <i class="fa-solid fa-layer-group"></i> Klaster Performa
         </a>
         <a href="{{ route('dinkes.tindak-lanjut.index') }}" class="{{ request()->routeIs('dinkes.tindak-lanjut.*') ? 'active' : '' }}">
             <i class="fa-solid fa-clipboard-check"></i> Tindak Lanjut

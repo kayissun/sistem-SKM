@@ -100,57 +100,11 @@
                                 </td>
                             </tr>
                         @endif
-                        @if ($tindakLanjut->catatan_dinkes)
-                            <tr>
-                                <td class="text-muted fw-semibold">Catatan Dinkes</td>
-                                <td class="p-2 rounded" style="background:{{ $tindakLanjut->status === 'rejected' ? '#FEF2F2' : '#ECFDF5' }};">
-                                    {!! nl2br(e($tindakLanjut->catatan_dinkes)) !!}
-                                </td>
-                            </tr>
-                        @endif
-                        @if ($tindakLanjut->verified_by)
-                            <tr>
-                                <td class="text-muted fw-semibold">Diverifikasi</td>
-                                <td>{{ $tindakLanjut->verifiedBy?->name }} — {{ $tindakLanjut->verified_at?->translatedFormat('d M Y H:i') }}</td>
-                            </tr>
-                        @endif
                     </table>
                 </div>
             </div>
 
-            <!-- Review Actions -->
-            @if ($tindakLanjut->status === 'submitted')
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header" style="background:#ECFDF5;border-bottom:1px solid #A7F3D0;">
-                        <i class="fa-solid fa-gavel me-2 text-success"></i>Tinjau & Putuskan
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Catatan untuk Admin Puskesmas</label>
-                                <textarea id="catatan-dinkes" class="form-control" rows="3"
-                                          placeholder="Berikan catatan atau masukan (wajib jika menolak)..."></textarea>
-                            </div>
-                            <div class="col-12 d-flex gap-2">
-                                <form method="POST" action="{{ route('dinkes.tindak-lanjut.approve', $tindakLanjut) }}" class="d-inline flex-grow-1" id="form-approve">
-                                    @csrf
-                                    <input type="hidden" name="catatan_dinkes" id="catatan-approve">
-                                    <button type="submit" class="btn btn-success w-100" onclick="return confirm('Setujui tindak lanjut ini?')">
-                                        <i class="fa-solid fa-circle-check me-1"></i> Setujui
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('dinkes.tindak-lanjut.reject', $tindakLanjut) }}" class="d-inline flex-grow-1" id="form-reject">
-                                    @csrf
-                                    <input type="hidden" name="catatan_dinkes" id="catatan-reject">
-                                    <button type="submit" class="btn btn-danger w-100" onclick="return handleReject(event)">
-                                        <i class="fa-solid fa-circle-xmark me-1"></i> Tolak
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
+
         </div>
 
         <div class="col-lg-5">
@@ -220,22 +174,6 @@
         }
         function tutupFotoModal() {
             document.getElementById('fotoModal').classList.remove('active');
-        }
-
-        document.getElementById('form-approve')?.addEventListener('submit', function(e) {
-            document.getElementById('catatan-approve').value = document.getElementById('catatan-dinkes').value;
-        });
-
-        function handleReject(e) {
-            const catatan = document.getElementById('catatan-dinkes').value;
-            if (!catatan || catatan.trim().length < 5) {
-                e.preventDefault();
-                alert('Catatan wajib diisi minimal 5 karakter saat menolak.');
-                document.getElementById('catatan-dinkes').focus();
-                return false;
-            }
-            document.getElementById('catatan-reject').value = catatan;
-            return confirm('Tolak tindak lanjut ini?');
         }
     </script>
 @endsection

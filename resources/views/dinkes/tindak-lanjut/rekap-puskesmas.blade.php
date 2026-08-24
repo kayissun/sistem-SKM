@@ -9,9 +9,36 @@
         </a>
         <h3 class="mt-2" style="color:#180733;font-weight:800;">Rekap Tindak Lanjut</h3>
         <p class="text-muted mb-0" style="font-size:.88rem;">
-            <strong>{{ $puskesma->nama }}</strong> — Seluruh laporan tindak lanjut yang pernah diajukan.
+            <strong>{{ $puskesma->nama }}</strong> — Riwayat tindak lanjut dan progres capaiannya.
         </p>
     </div>
+
+    <!-- Filter -->
+    <form method="GET" class="card border-0 shadow-sm mb-4">
+        <div class="card-body row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-clock me-1"></i> Triwulan</label>
+                <select name="triwulan" class="form-select" onchange="this.form.submit()">
+                    <option value="">Semua</option>
+                    @for ($t = 1; $t <= 4; $t++)
+                        <option value="{{ $t }}" @selected($triwulan == $t)>TW-{{ $t }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-calendar me-1"></i> Tahun</label>
+                <select name="tahun" class="form-select" onchange="this.form.submit()">
+                    <option value="">Semua</option>
+                    @for ($y = date('Y'); $y >= date('Y') - 3; $y--)
+                        <option value="{{ $y }}" @selected($tahun == $y)>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ route('dinkes.tindak-lanjut.rekap-puskesmas', $puskesma) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </div>
+    </form>
 
     @if ($tindakLanjuts->isEmpty())
         <div class="alert alert-warning">
@@ -63,22 +90,12 @@
                                         <td><span class="badge {{ $tl->status_badge_class }}">{{ $tl->status_label }}</span></td>
                                         <td>
                                             @if ($totalProgress > 0)
-                                                <div class="d-flex align-items-center gap-2">
+                                                <div class="d-flex align-items-center gap-2 mb-1">
                                                     <div class="progress flex-grow-1" style="height:6px;">
                                                         <div class="progress-bar bg-success" style="width:{{ ($tercapaiCount / $totalProgress) * 100 }}%"></div>
                                                     </div>
                                                     <span class="small text-muted">{{ $tercapaiCount }}/{{ $totalProgress }} tercapai</span>
                                                 </div>
-                                                @foreach ($tl->progress->sortBy('triwulan_target') as $prog)
-                                                    <div class="small mt-1">
-                                                        <span class="badge {{ $prog->tercapai ? 'bg-success' : 'bg-warning text-dark' }} me-1" style="font-size:.65rem;">
-                                                            TW-{{ $prog->triwulan_target }} {{ $prog->tahun_target }}: {{ $prog->tercapai ? '✓' : '✗' }}
-                                                        </span>
-                                                        @if ($prog->nilai_akhir !== null)
-                                                            {{ number_format($prog->nilai_akhir, 1) }}
-                                                        @endif
-                                                    </div>
-                                                @endforeach
                                             @else
                                                 <span class="small text-muted">-</span>
                                             @endif

@@ -26,14 +26,10 @@ class TindakLanjutController extends Controller
             ?: PeriodeSurvei::where('is_active', true)->value('id');
         $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
 
-        // Analisis unsur lemah berdasarkan data survei
+        // Hitung SKM per unsur untuk periode ini
         $hasil = null;
-        $peringkatPrioritas = collect();
         if ($puskesmas && $periode) {
             $hasil = $service->hitung($puskesmas, $periode);
-            if ($hasil['jumlah_responden'] > 0) {
-                $peringkatPrioritas = $service->peringkatPrioritas($hasil);
-            }
         }
 
         // Data TL milik puskesmas ini
@@ -58,7 +54,7 @@ class TindakLanjutController extends Controller
 
         return view('puskesmas.tindak-lanjut.index', compact(
             'puskesmas', 'periode', 'daftarPeriode', 'hasil',
-            'peringkatPrioritas', 'tindakLanjuts', 'unsurAktif',
+            'tindakLanjuts', 'unsurAktif',
             'triwulan', 'tahun'
         ));
     }

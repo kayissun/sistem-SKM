@@ -40,51 +40,62 @@
     </div>
 
     @php
-        // Re-read old input for unsur selection
-        $oldUnsur = old('unsur_pelayanan_id');
         $selectedKode = request('unsur');
-        $selectedUnsurId = $oldUnsur ?: ($selectedKode ? $unsurAktif->firstWhere('kode', $selectedKode)?->id : null);
+        $selectedUnsur = $selectedKode ? $unsurAktif->firstWhere('kode', $selectedKode) : null;
+        $selectedUnsurId = old('unsur_pelayanan_id', $selectedUnsur?->id);
     @endphp
 
     <div class="row g-4">
-        {{-- Form --}}
         <div class="col-lg-8">
             <form method="POST" action="{{ route('puskesmas.tindak-lanjut.store') }}" enctype="multipart/form-data">
                 @csrf
+
+                {{-- Unsur Pelayanan (pre-fill dari index) --}}
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-header">
-                        <i class="fa-solid fa-clipboard-list me-2"></i>Data Tindak Lanjut
+                        <i class="fa-solid fa-clipboard-list me-2"></i>Form Rencana Tindak Lanjut
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            {{-- Pilih Unsur --}}
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label fw-semibold">
                                     <i class="fa-solid fa-layer-group me-1 text-primary"></i> Unsur Pelayanan <span class="text-danger">*</span>
                                 </label>
-                                <select name="unsur_pelayanan_id" id="select-unsur" class="form-select @error('unsur_pelayanan_id') is-invalid @enderror" required onchange="updateUnsurInfo()">
-                                    <option value="">— Pilih Unsur —</option>
-                                    @foreach ($unsurAktif as $unsur)
-                                        @php
-                                            $skor = $hasil['per_unsur'][$unsur->kode]['nrr_skala_100'] ?? null;
-                                            $sudahAda = $unsurSudahAda->contains($unsur->id);
-                                        @endphp
-                                        <option value="{{ $unsur->id }}"
-                                            data-kode="{{ $unsur->kode }}"
-                                            data-nama="{{ $unsur->nama_unsur }}"
-                                            data-skor="{{ $skor ?? '' }}"
-                                            @if($sudahAda) disabled @endif
-                                            @selected($selectedUnsurId == $unsur->id)>
-                                            {{ $unsur->kode }} — {{ $unsur->nama_unsur }}
-                                            @if($skor !== null) (Skor: {{ number_format($skor, 1) }}) @endif
-                                            @if($sudahAda) ✓ Sudah ada TL @endif
-                                        </option>
-                                    @endforeach
-                                </select>
+                                @if ($selectedUnsur)
+                                    {{-- Unsur sudah dipilih dari index --}}
+                                    <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:#F3EEFF;border:1px solid #C4B5FD;">
+                                        <div class="fw-bold fs-4" style="color:#7C3AED;">{{ $selectedUnsur->kode }}</div>
+                                        <div>
+                                            <div class="fw-semibold" style="color:#180733">{{ $selectedUnsur->nama_unsur }}</div>
+                                            @if ($hasil && isset($hasil['per_unsur'][$selectedUnsur->kode]))
+                                                <div class="small text-muted">Skor: {{ number_format($hasil['per_unsur'][$selectedUnsur->kode]['nrr_skala_100'] ?? 0, 1) }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="unsur_pelayanan_id" value="{{ $selectedUnsurId }}">
+                                @else
+                                    {{-- Manual pilih --}}
+                                    <select name="unsur_pelayanan_id" class="form-select @error('unsur_pelayanan_id') is-invalid @enderror" required>
+                                        <option value="">— Pilih Unsur —</option>
+                                        @foreach ($unsurAktif as $unsur)
+                                            @php
+                                                $skor = $hasil['per_unsur'][$unsur->kode]['nrr_skala_100'] ?? null;
+                                                $sudahAda = $unsurSudahAda->contains($unsur->id);
+                                            @endphp
+                                            <option value="{{ $unsur->id }}"
+                                                @if($sudahAda) disabled @endif
+                                                @selected($selectedUnsurId == $unsur->id)>
+                                                {{ $unsur->kode }} — {{ $unsur->nama_unsur }}
+                                                @if($skor !== null) (Skor: {{ number_format($skor, 1) }}) @endif
+                                                @if($sudahAda) ✓ Sudah ada TL @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @endif
                                 @error('unsur_pelayanan_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="fa-solid fa-clock me-1 text-primary"></i> Triwulan <span class="text-danger">*</span>
                                 </label>
@@ -96,7 +107,7 @@
                                 @error('triwulan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="fa-solid fa-calendar me-1 text-primary"></i> Tahun <span class="text-danger">*</span>
                                 </label>
@@ -108,44 +119,23 @@
                                 @error('tahun') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">
-                                    <i class="fa-solid fa-gauge-high me-1 text-primary"></i> Nilai Kondisi Saat Ini
-                                </label>
-                                <input type="number" name="nilai_kondisi" value="{{ old('nilai_kondisi') }}"
-                                       class="form-control @error('nilai_kondisi') is-invalid @enderror"
-                                       step="0.01" min="0" max="100" placeholder="Contoh: 55.3">
-                                <div class="form-text">Skor NRR skala 100 unsur yang lemah (opsional).</div>
-                                @error('nilai_kondisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-
                             <div class="col-12">
                                 <label class="form-label fw-semibold">
-                                    <i class="fa-solid fa-pen me-1 text-primary"></i> Rencana / Tindakan Perbaikan <span class="text-danger">*</span>
+                                    <i class="fa-solid fa-pen me-1 text-primary"></i> Rencana Tindakan Perbaikan <span class="text-danger">*</span>
                                 </label>
                                 <textarea name="tindakan_perbaikan" class="form-control @error('tindakan_perbaikan') is-invalid @enderror"
-                                          rows="4" required
-                                          placeholder="Contoh: Melatih petugas pelayanan dalam sop penanganan keluhan, menambah perlengkapan, dll.">{{ old('tindakan_perbaikan') }}</textarea>
-                                <div class="form-text">Jelaskan langkah-langkah konkret yang akan dilakukan untuk meningkatkan skor unsur ini.</div>
+                                          rows="5" required
+                                          placeholder="Jelaskan langkah-langkah konkret yang akan dilakukan untuk meningkatkan skor unsur ini...">{{ old('tindakan_perbaikan') }}</textarea>
                                 @error('tindakan_perbaikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">
-                                    <i class="fa-solid fa-align-left me-1 text-primary"></i> Bukti Pendukung (Teks)
-                                </label>
-                                <textarea name="bukti" class="form-control @error('bukti') is-invalid @enderror"
-                                          rows="2" placeholder="Contoh: Surat edaran no. xxx tentang peningkatan pelayanan...">{{ old('bukti') }}</textarea>
-                                @error('bukti') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Upload Foto --}}
+                {{-- Upload Foto / Dokumentasi --}}
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-header">
-                        <i class="fa-solid fa-camera me-2"></i>Foto Bukti / Dokumentasi
+                        <i class="fa-solid fa-camera me-2"></i>Dokumentasi / Foto Bukti
                     </div>
                     <div class="card-body">
                         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('input-foto').click()">
@@ -169,59 +159,15 @@
             </form>
         </div>
 
-        {{-- Sidebar Info --}}
+        {{-- Sidebar Tips --}}
         <div class="col-lg-4">
-            {{-- Info Unsur yang dipilih --}}
-            <div class="unsur-info-card mb-3" id="unsur-info-panel" style="display:none;">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    <div class="icon-box bg-d" id="unsur-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;">
-                        <i class="fa-solid fa-circle-question"></i>
-                    </div>
-                    <div>
-                        <h6 class="mb-0 fw-bold" id="unsur-nama" style="color:#180733;font-size:.9rem;"></h6>
-                        <div class="small text-muted" id="unsur-skor"></div>
-                    </div>
-                </div>
-                <div id="unsur-pertanyaan"></div>
-            </div>
-
-            {{-- Panel Skor --}}
-            @if ($hasil && $hasil['jumlah_responden'] > 0)
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-header"><i class="fa-solid fa-chart-bar me-2"></i>Skor Semua Unsur</div>
-                    <div class="card-body">
-                        @foreach ($hasil['per_unsur'] as $kode => $data)
-                            @php
-                                $skor = $data['nrr_skala_100'] ?? 0;
-                                $warnaBar = match(true) {
-                                    $skor >= 88 => 'bg-success',
-                                    $skor >= 76 => 'bg-primary',
-                                    $skor >= 65 => 'bg-warning',
-                                    default => 'bg-danger',
-                                };
-                            @endphp
-                            <div class="mb-2">
-                                <div class="d-flex justify-content-between small">
-                                    <span class="fw-semibold">{{ $kode }}</span>
-                                    <span>{{ number_format($skor, 1) }}</span>
-                                </div>
-                                <div class="progress" style="height:8px;">
-                                    <div class="progress-bar {{ $warnaBar }}" style="width:{{ $skor }}%"></div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
             <div class="card border-0 shadow-sm" style="background:#FAF8FF;">
                 <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="fa-solid fa-lightbulb text-warning me-1"></i> Tips Pengisian</h6>
                     <ul class="small mb-0 text-muted" style="list-style:none;padding:0;">
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Pilih unsur dengan skor terendah sebagai prioritas.</li>
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Jelaskan tindakan perbaikan secara spesifik.</li>
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Upload foto dokumentasi kondisi / bukti perubahan.</li>
-                        <li class="mb-0"><i class="fa-solid fa-check-circle text-success me-1"></i> Setelah draft, klik <strong>Kirim</strong> untuk submit ke Dinkes.</li>
+                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Jelaskan rencana perbaikan secara spesifik.</li>
+                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Upload foto dokumentasi kondisi saat ini.</li>
+                        <li class="mb-0"><i class="fa-solid fa-check-circle text-success me-1"></i> Klik <strong>Kirim</strong> untuk submit ke Dinkes setelah selesai.</li>
                     </ul>
                 </div>
             </div>
@@ -229,39 +175,6 @@
     </div>
 
     <script>
-        const iconMap = {
-            'U1': 'fa-file-signature', 'U2': 'fa-hand-holding-heart', 'U3': 'fa-gears',
-            'U4': 'fa-shield-halved', 'U5': 'fa-headset', 'U6': 'fa-clock-rotate-left',
-            'U7': 'fa-building-columns', 'U8': 'fa-star', 'U9': 'fa-chart-line',
-        };
-        const levelColors = { 'a': 'bg-a', 'b': 'bg-b', 'c': 'bg-c', 'd': 'bg-d' };
-
-        function getLevel(skor) {
-            if (skor >= 88) return 'a';
-            if (skor >= 76) return 'b';
-            if (skor >= 65) return 'c';
-            return 'd';
-        }
-
-        function updateUnsurInfo() {
-            const sel = document.getElementById('select-unsur');
-            const panel = document.getElementById('unsur-info-panel');
-            const opt = sel.options[sel.selectedIndex];
-            if (!opt || !opt.value) { panel.style.display = 'none'; return; }
-
-            const kode = opt.dataset.kode;
-            const nama = opt.dataset.nama;
-            const skor = parseFloat(opt.dataset.skor) || 0;
-            const level = getLevel(skor);
-
-            document.getElementById('unsur-nama').textContent = kode + ' — ' + nama;
-            document.getElementById('unsur-skor').textContent = 'Skor: ' + skor.toFixed(1) + ' / 100';
-            document.getElementById('unsur-icon').className = 'icon-box ' + levelColors[level];
-            document.getElementById('unsur-icon').innerHTML = '<i class="fa-solid ' + (iconMap[kode] || 'fa-circle-question') + '"></i>';
-            panel.style.display = 'block';
-        }
-
-        // Foto preview
         function previewFoto(input) {
             const container = document.getElementById('preview-container');
             const zone = document.getElementById('upload-zone');
@@ -284,8 +197,5 @@
                 reader.readAsDataURL(file);
             });
         }
-
-        // Init on load
-        updateUnsurInfo();
     </script>
 @endsection

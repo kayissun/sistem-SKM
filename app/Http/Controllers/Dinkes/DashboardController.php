@@ -31,8 +31,10 @@ class DashboardController extends Controller
             return back()->with('error', 'Tidak ada periode survei aktif.');
         }
 
-        $service->klasterPuskesmas($periode);
+        // Satu-satunya jalur yang MENYIMPAN hasil klaster ke cluster_results
+        // (dipakai sebagai riwayat tren di halaman Klaster Performa).
+        $service->klasterPuskesmas($periode, 4, simpanKeDb: true);
 
-        return back()->with('success', 'Clustering berhasil dijalankan');
+        return back()->with('success', 'Clustering berhasil dijalankan dan disimpan sebagai riwayat tren.');
     }
 }

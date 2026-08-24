@@ -6,115 +6,126 @@ use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
 use App\Models\Puskesmas;
 use App\Models\TindakLanjut;
+use App\Models\UnsurPelayanan;
+use App\Services\SkmCalculatorService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class TindakLanjutController extends Controller
 {
     /**
-     * Daftar semua Tindak Lanjut dari seluruh puskesmas (view dinkes).
+     * Monitoring Tindak Lanjut — Dinkes memantau progres TL seluruh faskes.
      */
-    public function index(Request $request)
+    public function index(Request $request, SkmCalculatorService $service)
     {
         $daftarPeriode = PeriodeSurvei::orderByDesc('tanggal_mulai')->get();
+        $periodeId = $request->integer('periode_survei_id')
+            ?: PeriodeSurvei::where('is_active', true)->value('id');
+        $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
 
         $triwulan = $request->integer('triwulan');
         $tahun = $request->integer('tahun');
         $status = $request->input('status');
         $puskesmasId = $request->integer('puskesmas_id');
-
-        $query = TindakLanjut::with(['puskesmas', 'unsurPelayanan', 'progress']);
-
-        if ($triwulan) {
-            $query->where('triwulan', $triwulan);
-        }
-        if ($tahun) {
-            $query->where('tahun', $tahun);
-        }
-        if ($status) {
-            $query->where('status', $status);
-        }
-        if ($puskesmasId) {
-            $query->where('puskesmas_id', $puskesmasId);
-        }
-
-        $tindakLanjuts = $query->orderByDesc('tahun')
-            ->orderByDesc('triwulan')
-            ->paginate(20)
-            ->withQueryString();
+        $search = $request->input('search');
 
         $daftarPuskesmas = Puskesmas::where('is_active', true)
             ->whereIn('jenis', ['puskesmas', 'rsu'])
             ->orderBy('nama')
             ->get();
 
+        // Query utama: semua TL dengan filter
+        $queryTl = TindakLanjut::with(['puskesmas', 'unsurPelayanan', 'progress'])
+            ->when($triwulan, fn($q) => $q->where('triwulan', $triwulan))
+            ->when($tahun, fn($q) => $q->where('tahun', $tahun))
+            ->when($status, fn($q) => $q->where('status', $status))
+            ->when($puskesmasId, fn($q) => $q->where('puskesmas_id', $puskesmasId))
+            ->when($search, fn($q) => $q->whereHas('puskesmas', fn($sq) => $sq->where('nama', 'like', "%{$search}%")))
+            ->orderByDesc('tahun')
+            ->orderByDesc('triwulan')
+            ->orderByDesc('created_at');
+
+        $tindakLanjuts = $queryTl->paginate(20)->withQueryString();
+
+        // Ringkasan per faskes (hanya untuk periode aktif)
+        $dataFaskes = collect();
+        $kodeUnsur = [];
+        $namaUnsur = [];
+
+        if ($periode) {
+            $unsurAktif = UnsurPelayanan::aktif()->get(['kode', 'nama_unsur']);
+            $kodeUnsur = $unsurAktif->pluck('kode')->all();
+            $namaUnsur = $unsurAktif->pluck('nama_unsur', 'kode')->all();
+
+            $faskesQuery = $puskesmasId
+                ? $daftarPuskesmas->where('id', $puskesmasId)
+                : $daftarPuskesmas;
+
+            foreach ($faskesQuery as $puskesmas) {
+                $hasil = $service->hitung($puskesmas, $periode);
+                if ($hasil['jumlah_responden'] === 0) continue;
+
+                $queryTlFaskes = TindakLanjut::where('puskesmas_id', $puskesmas->id)
+                    ->with('unsurPelayanan', 'progress');
+                if ($triwulan) $queryTlFaskes->where('triwulan', $triwulan);
+                if ($tahun) $queryTlFaskes->where('tahun', $tahun);
+                if ($status) $queryTlFaskes->where('status', $status);
+
+                $tindakLanjutsFaskes = $queryTlFaskes->orderByDesc('tahun')
+                    ->orderByDesc('triwulan')
+                    ->get();
+
+                $totalTl = $tindakLanjutsFaskes->count();
+                $tercapaiCount = 0;
+                foreach ($tindakLanjutsFaskes as $tl) {
+                    $tercapaiCount += $tl->progress->where('tercapai', true)->count();
+                }
+                $totalProgress = $tindakLanjutsFaskes->sum(fn($tl) => $tl->progress->count());
+
+                $dataFaskes->push([
+                    'puskesmas' => $puskesmas,
+                    'hasil' => $hasil,
+                    'tindakLanjuts' => $tindakLanjutsFaskes,
+                    'totalTl' => $totalTl,
+                    'totalProgress' => $totalProgress,
+                    'tercapaiCount' => $tercapaiCount,
+                ]);
+            }
+        }
+
         return view('dinkes.tindak-lanjut.index', compact(
-            'tindakLanjuts', 'daftarPeriode', 'daftarPuskesmas',
-            'triwulan', 'tahun', 'status', 'puskesmasId'
+            'daftarPeriode', 'daftarPuskesmas', 'periode',
+            'dataFaskes', 'tindakLanjuts', 'kodeUnsur', 'namaUnsur',
+            'triwulan', 'tahun', 'status', 'puskesmasId', 'search'
         ));
     }
 
     /**
-     * Detail Tindak Lanjut tertentu.
+     * Detail Tindak Lanjut — lihat detail + riwayat progres.
      */
     public function show(TindakLanjut $tindakLanjut)
     {
-        $tindakLanjut->load(['puskesmas', 'unsurPelayanan', 'progress', 'verifiedBy']);
+        $tindakLanjut->load(['puskesmas', 'unsurPelayanan', 'progress']);
 
         return view('dinkes.tindak-lanjut.show', compact('tindakLanjut'));
     }
 
     /**
-     * Setujui Tindak Lanjut.
+     * Ringkasan per puskesmas — riwayat seluruh TL + progres.
      */
-    public function approve(TindakLanjut $tindakLanjut, Request $request)
+    public function rekapPuskesmas(Puskesmas $puskesma, Request $request)
     {
-        $validated = $request->validate([
-            'catatan_dinkes' => 'nullable|string|max:1000',
-        ]);
+        $triwulan = $request->integer('triwulan');
+        $tahun = $request->integer('tahun');
 
-        $tindakLanjut->update([
-            'status' => TindakLanjut::STATUS_APPROVED,
-            'catatan_dinkes' => $validated['catatan_dinkes'] ?? null,
-            'verified_by' => Auth::id(),
-            'verified_at' => now(),
-        ]);
-
-        return redirect()->route('dinkes.tindak-lanjut.show', $tindakLanjut)
-            ->with('success', 'Tindak lanjut berhasil disetujui.');
-    }
-
-    /**
-     * Tolak Tindak Lanjut.
-     */
-    public function reject(TindakLanjut $tindakLanjut, Request $request)
-    {
-        $validated = $request->validate([
-            'catatan_dinkes' => 'required|string|min:5|max:1000',
-        ]);
-
-        $tindakLanjut->update([
-            'status' => TindakLanjut::STATUS_REJECTED,
-            'catatan_dinkes' => $validated['catatan_dinkes'],
-            'verified_by' => Auth::id(),
-            'verified_at' => now(),
-        ]);
-
-        return redirect()->route('dinkes.tindak-lanjut.show', $tindakLanjut)
-            ->with('success', 'Tindak lanjut ditolak dan dikembalikan ke admin puskesmas.');
-    }
-
-    /**
-     * Ringkasan per puskesmas — lihat capaian triwulan per unsur.
-     */
-    public function rekapPuskesmas(Puskesmas $puskesma)
-    {
-        $tindakLanjuts = TindakLanjut::where('puskesmas_id', $puskesma->id)
+        $queryTl = TindakLanjut::where('puskesmas_id', $puskesma->id)
             ->with(['unsurPelayanan', 'progress'])
+            ->when($triwulan, fn($q) => $q->where('triwulan', $triwulan))
+            ->when($tahun, fn($q) => $q->where('tahun', $tahun))
             ->orderByDesc('tahun')
-            ->orderByDesc('triwulan')
-            ->get();
+            ->orderByDesc('triwulan');
 
-        return view('dinkes.tindak-lanjut.rekap-puskesmas', compact('puskesma', 'tindakLanjuts'));
+        $tindakLanjuts = $queryTl->get();
+
+        return view('dinkes.tindak-lanjut.rekap-puskesmas', compact('puskesma', 'tindakLanjuts', 'triwulan', 'tahun'));
     }
 }
