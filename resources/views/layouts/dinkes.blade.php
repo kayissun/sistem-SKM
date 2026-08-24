@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Dinas Kesehatan') - SIPUAS</title>
+    <title>@yield('title', 'Dinas Kesehatan') - SKM</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -250,35 +250,35 @@
 
 <aside class="sp-sidebar" id="spSidebar">
     <div class="sp-sidebar__brand">
-        <img src="{{ asset('images/logo.png') }}" alt="Logo SIPUAS" onerror="this.style.display='none'">
+        <img src="{{ asset('images/logo.png') }}" alt="Logo SKM" onerror="this.style.display='none'">
         <div>
-            <div class="name">SIPUAS</div>
+            <div class="name">SKM</div>
             <div class="role">Panel Dinas Kesehatan</div>
         </div>
     </div>
 
     <nav class="sp-nav">
         <a href="{{ route('dinkes.dashboard') }}" class="{{ request()->routeIs('dinkes.dashboard') ? 'active' : '' }}">
-            <i class="fa-solid fa-gauge-high"></i> Dashboard
+            <i class="fa-solid fa-home"></i> Dashboard
         </a>
 
         <div class="sp-label">Data Layanan</div>
         <a href="{{ route('dinkes.puskesmas.index') }}" class="{{ request()->routeIs('dinkes.puskesmas.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-hospital"></i> Puskesmas / RSU
+            <i class="fa-solid fa-hospital"></i> Data Faskes
         </a>
         <a href="{{ route('dinkes.unsur-pelayanan.index') }}" class="{{ request()->routeIs('dinkes.unsur-pelayanan.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-list-check"></i> Unsur Pelayanan
+            <i class="fa-solid fa-list-check"></i> Data Unsur Pelayanan
         </a>
         <a href="{{ route('dinkes.periode-survei.index') }}" class="{{ request()->routeIs('dinkes.periode-survei.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-calendar-days"></i> Periode Survei
+            <i class="fa-solid fa-calendar-days"></i> Data Periode Survei
         </a>
 
         <div class="sp-label">Pemantauan</div>
         <a href="{{ route('dinkes.laporan.index') }}" class="{{ request()->routeIs('dinkes.laporan.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-chart-line"></i> Laporan
+            <i class="fa-solid fa-chart-line"></i> Data Laporan
         </a>
         <a href="{{ route('dinkes.klaster.index') }}" class="{{ request()->routeIs('dinkes.klaster.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-layer-group"></i> Klaster Performa
+            <i class="fa-solid fa-layer-group"></i> Data Klaster Performa
         </a>
         <a href="{{ route('dinkes.tindak-lanjut.index') }}" class="{{ request()->routeIs('dinkes.tindak-lanjut.*') ? 'active' : '' }}">
             <i class="fa-solid fa-clipboard-check"></i> Tindak Lanjut
@@ -294,7 +294,7 @@
     </nav>
 
     <div class="sp-sidebar__foot">
-        &copy; {{ date('Y') }} SIPUAS &middot; Dinkesda Purworejo
+        &copy; {{ date('Y') }} SKM &middot; Dinkesda Purworejo
     </div>
 </aside>
 

@@ -2,6 +2,8 @@
 @section('title', 'Dashboard')
 @section('content')
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+
     <style>
         .sp-welcome {
             background: linear-gradient(135deg, #7C3AED, #2A0B5E);

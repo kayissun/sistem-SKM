@@ -1,3 +1,20 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+</head>
+
+<style>
+        /* loading bar */
+    #nprogress .bar {
+      background: linear-gradient(90deg, #7C3AED, #C88719) !important;
+      height: 3px !important;
+    }
+    #nprogress .peg {
+      box-shadow: 0 0 10px #7C3AED, 0 0 5px #C88719 !important;
+    }
+    /* sembunyikan spinner bawaan pojok kanan atas, cukup bar saja */
+    #nprogress .spinner { display: none; }
+</style>
+
 <x-guest-layout>
     <div class="mb-6">
         <h2 class="text-xl font-extrabold text-slate-900">Masuk ke Sistem</h2>
@@ -44,4 +61,37 @@
             <i class="fa-solid fa-arrow-right"></i>
         </x-primary-button>
     </form>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <script>
+        NProgress.configure({ showSpinner: false, trickleSpeed: 120, minimum: 0.15 });
+
+        // Mulai bar sesegera mungkin saat halaman ini pertama kali dimuat,
+        // lalu selesaikan begitu semua resource siap.
+        NProgress.start();
+        window.addEventListener('load', () => NProgress.done());
+
+        // Jalankan bar setiap kali user KLIK link yang akan berpindah halaman
+        // (link internal, bukan anchor #, bukan target="_blank", bukan mailto/tel).
+        document.addEventListener('click', function (e) {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const url = link.getAttribute('href') || '';
+        const isSameOrigin = link.hostname === window.location.hostname;
+        const isHash = url.startsWith('#');
+        const isNewTab = link.target === '_blank';
+        const isSpecial = url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('javascript:');
+
+        if (isSameOrigin && !isHash && !isNewTab && !isSpecial) {
+            NProgress.start();
+        }
+        });
+
+        // Jalankan bar juga saat user SUBMIT form (mis. form login)
+        document.addEventListener('submit', function () {
+        NProgress.start();
+        });
+    </script>
 </x-guest-layout>
