@@ -66,9 +66,12 @@
     <!-- Filter & Pencarian -->
     <div class="card sp-filter-card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
-            <form method="GET" class="row g-3 align-items-center">
-                <div class="col-md-4">
-                    <label class="form-label small text-muted mb-1 fw-semibold">Periode Survei</label>
+            <form method="GET" class="row g-3 align-items-end">
+                <!-- Filter Periode Survei -->
+                <div class="col-md-5">
+                    <label class="form-label small text-muted mb-1 fw-semibold">
+                        <i class="fa-solid fa-calendar-days me-1"></i> Periode Survei
+                    </label>
                     <select name="periode_survei_id" class="form-select border rounded-3" onchange="this.form.submit()">
                         @foreach ($daftarPeriode as $p)
                             <option value="{{ $p->id }}" @selected($periode && $periode->id === $p->id)>
@@ -77,20 +80,21 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-5">
-                    <label class="form-label small text-muted mb-1 fw-semibold">Pencarian Unit</label>
+
+                <!-- Pencarian Unit + Tombol Filter & Reset -->
+                <div class="col-md-7">
+                    <label class="form-label small text-muted mb-1 fw-semibold">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Pencarian Unit
+                    </label>
                     <div class="input-group">
-                        <span class="input-group-text border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" name="cari" value="{{ $pencarian ?? '' }}" class="form-control border-start-0 ps-0" placeholder="Cari nama unit pelayanan...">
+                        <input type="text" name="cari" value="{{ $pencarian ?? '' }}" class="form-control border rounded-start-3" placeholder="Cari nama unit pelayanan...">
+                        <button class="btn btn-primary fw-medium" type="submit" title="Cari / Filter">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
+                        </button>
+                        <a href="{{ route('dinkes.laporan.index') }}" class="btn btn-outline-secondary fw-medium rounded-end-3" title="Reset Filter">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Reset
+                        </a>
                     </div>
-                </div>
-                <div class="col-md-3 d-flex gap-2 align-self-end">
-                    <button class="btn btn-primary w-100 fw-medium rounded-3" type="submit">
-                        <i class="fa-solid fa-filter me-1"></i> Filter
-                    </button>
-                    <a href="{{ route('dinkes.laporan.index') }}" class="btn btn-light text-secondary border w-100 fw-medium rounded-3">
-                        <i class="fa-solid fa-rotate-left me-1"></i> Reset
-                    </a>
                 </div>
             </form>
         </div>
@@ -140,6 +144,7 @@
                                 <th rowspan="2" class="align-middle">Responden</th>
                                 <th rowspan="2" class="align-middle">Metode</th>
                                 <th rowspan="2" class="align-middle">Prioritas Perbaikan</th>
+                                <th rowspan="2" class="align-middle">Rencana Tindak Lanjut</th>
                                 <th rowspan="2" class="align-middle">Detail</th>
                             </tr>
                             <tr>
@@ -170,7 +175,16 @@
                                     </td>
                                     <td class="fw-medium">{{ number_format($baris['jumlah_responden']) }}</td>
                                     <td><span class="badge bg-secondary-subtle text-secondary border">Online</span></td>
-                                    <td class="text-start text-muted">{{ $baris['unsur_prioritas'] ?: '-' }}</td>
+                                    <td class="text-start text-muted">
+                                        @foreach ($baris['unsur_prioritas'] as $prioritas)
+                                            <div>{{ $prioritas }}</div>
+                                        @endforeach
+                                    </td>
+                                    <td class="text-start text-muted">
+                                        @foreach ($baris['rencana_tindak_lanjut'] as $rencana)
+                                            <div>{{ $rencana }}</div>
+                                        @endforeach
+                                    </td>
                                     <td>
                                         <a href="{{ route('dinkes.laporan.detail', ['puskesma' => $baris['puskesmas_id'], 'periode_survei_id' => $periode->id]) }}"
                                            class="sp-icon-btn" title="Lihat Detail">
@@ -180,7 +194,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ 11 + count($kodeUnsur) }}" class="text-center text-muted py-5">
+                                    <td colspan="{{ 12 + count($kodeUnsur) }}" class="text-center text-muted py-5">
                                         <i class="fa-regular fa-folder-open fa-2x mb-2 text-secondary opacity-50 d-block"></i>
                                         Belum ada data unit pelayanan aktif pada periode ini.
                                     </td>

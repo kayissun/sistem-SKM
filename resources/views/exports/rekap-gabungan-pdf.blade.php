@@ -17,31 +17,31 @@
             margin: 10mm;
         }
 
-        body { 
-            font-family: sans-serif; 
+        body {
+            font-family: sans-serif;
             font-size: 9px; /* Ukuran font disesuaikan sedikit agar lebih rapi */
-            color: #222; 
+            color: #222;
             margin: 0;
         }
         h2 { margin-bottom: 0; }
         p.sub { color: #666; margin-top: 4px; }
-        
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 12px; 
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
             page-break-inside: auto;
         }
-        
-        tr { 
-            page-break-inside: avoid; 
-            page-break-after: auto; 
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
         }
 
-        th, td { 
-            border: 1px solid #ccc; 
-            padding: 4px 5px; 
-            text-align: center; 
+        th, td {
+            border: 1px solid #ccc;
+            padding: 4px 5px;
+            text-align: center;
         }
         th { background: #f7f0da; }
         td.label { text-align: left; }
@@ -87,11 +87,19 @@
                     <td>{{ $baris['mutu_akhir'] }}</td>
                     <td>{{ $baris['jumlah_responden'] }}</td>
                     <td>SKM Online</td>
-                    <td class="label">{{ $baris['unsur_prioritas'] }}</td>
-                    <td>-</td>
+                    <td class="label">
+                        @foreach ($baris['unsur_prioritas'] as $prioritas)
+                            <div>{{ $prioritas }}</div>
+                        @endforeach
+                    </td>
+                    <td class="label">
+                        @foreach ($baris['rencana_tindak_lanjut'] as $rencana)
+                            <div>{{ $rencana }}</div>
+                        @endforeach
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="{{ 9 + count($kodeUnsur) }}">Belum ada data</td></tr>
+                <tr><td colspan="{{ 10 + count($kodeUnsur) }}">Belum ada data</td></tr>
             @endforelse
         </tbody>
     </table>

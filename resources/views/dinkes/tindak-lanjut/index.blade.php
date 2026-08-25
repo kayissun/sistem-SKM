@@ -23,8 +23,29 @@
     <!-- Filter -->
     <form method="GET" class="card border-0 shadow-sm mb-4">
         <div class="card-body row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-calendar-days me-1"></i> Periode Survei</label>
+            <!-- Input Cari Faskes + Tombol Aksi -->
+            <div class="col-md-5">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Cari Faskes
+                </label>
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Ketik nama faskes..." value="{{ $search ?? '' }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    @if(!empty($search) || !empty($status) || request()->has('periode_survei_id'))
+                        <a href="{{ route('dinkes.tindak-lanjut.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Filter Periode Survei -->
+            <div class="col-md-4">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fa-solid fa-calendar-days me-1"></i> Periode Survei
+                </label>
                 <select name="periode_survei_id" class="form-select" onchange="this.form.submit()">
                     @foreach ($daftarPeriode as $p)
                         <option value="{{ $p->id }}" @selected($periode && $periode->id === $p->id)>
@@ -33,48 +54,17 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-clock me-1"></i> Triwulan</label>
-                <select name="triwulan" class="form-select" onchange="this.form.submit()">
-                    <option value="">Semua</option>
-                    @for ($t = 1; $t <= 4; $t++)
-                        <option value="{{ $t }}" @selected($triwulan == $t)>TW-{{ $t }}</option>
-                    @endfor
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-calendar me-1"></i> Tahun</label>
-                <select name="tahun" class="form-select" onchange="this.form.submit()">
-                    <option value="">Semua</option>
-                    @for ($y = date('Y'); $y >= date('Y') - 3; $y--)
-                        <option value="{{ $y }}" @selected($tahun == $y)>{{ $y }}</option>
-                    @endfor
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-flag me-1"></i> Status TL</label>
+
+            <!-- Filter Status TL -->
+            <div class="col-md-3">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fa-solid fa-flag me-1"></i> Status TL
+                </label>
                 <select name="status" class="form-select" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
                     <option value="draft" @selected($status === 'draft')>Draft</option>
                     <option value="submitted" @selected($status === 'submitted')>Terkirim</option>
                 </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-hospital me-1"></i> Faskes</label>
-                <select name="puskesmas_id" class="form-select" onchange="this.form.submit()">
-                    <option value="">Semua Unit</option>
-                    @foreach ($daftarPuskesmas as $p)
-                        <option value="{{ $p->id }}" @selected($puskesmasId == $p->id)>{{ $p->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted fw-semibold"><i class="fa-solid fa-magnifying-glass me-1"></i> Cari Faskes</label>
-                <input type="text" name="search" class="form-control" placeholder="Ketik nama faskes..." value="{{ $search ?? '' }}">
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-filter me-1"></i> Filter</button>
-                <a href="{{ route('dinkes.tindak-lanjut.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
             </div>
         </div>
     </form>

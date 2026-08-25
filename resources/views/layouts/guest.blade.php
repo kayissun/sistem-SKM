@@ -48,18 +48,18 @@
 
                         {{-- Baris logo instansi/mitra (dengan background netral tipis agar logo terlihat jelas) --}}
                         <div class="flex items-center gap-4 flex-wrap mb-10 p-3 rounded-xl bg-white/10 backdrop-blur-md">
-                            <img src="{{ asset('images/logo-dinkes.png') }}" alt="Logo Dinas Kesehatan" class="h-9 w-auto object-contain">
-                            <img src="{{ asset('images/logo-kemenkes.png') }}" alt="Logo Kementerian Kesehatan" class="h-9 w-auto object-contain">
-                            <img src="{{ asset('images/logo-puskesmas.png') }}" alt="Logo Puskesmas" class="h-9 w-auto object-contain">
-                            <img src="{{ asset('images/logo-pemkab.png') }}" alt="Logo Pemerintah Kabupaten Purworejo" class="h-9 w-auto object-contain">
+                            <img src="{{ asset('images/logo1.svg') }}" alt="Logo Faskes" class="h-10 w-auto object-contain">
+                            <img src="{{ asset('images/logo2.svg') }}" alt="Logo Kemenkes" class="h-9 w-auto object-contain">
+                            <img src="{{ asset('images/logo3.svg') }}" alt="Logo Puskesmas" class="h-9 w-auto object-contain">
+                            <img src="{{ asset('images/logo4.svg') }}" alt="Logo Berakhlak" class="h-9 w-auto object-contain">
+                            <img src="{{ asset('images/logo5.svg') }}" alt="Logo Germas" class="h-9 w-auto object-contain">
                         </div>
 
                         {{-- Judul + penjelasan --}}
                         <h3 class="font-extrabold text-xl mb-3 text-amber-300">Apa itu SKM?</h3>
                         <p class="text-sm text-purple-100 leading-relaxed text-justify mb-4">
                             SKM (Sistem Informasi Survei Kepuasan Masyarakat) adalah sistem digital resmi
-                            milik Dinas Kesehatan Daerah Kabupaten Purworejo yang digunakan seluruh Puskesmas
-                            dan RSU untuk mengumpulkan penilaian warga terhadap layanan kesehatan yang diterima,
+                            milik Dinas Kesehatan Daerah Kabupaten Purworejo yang digunakan seluruh Fasilitas Kesehatan untuk mengumpulkan penilaian Masyarakat terhadap layanan kesehatan yang diterima,
                             mengacu pada 9 unsur pelayanan sesuai Permenpan RB No. 14 Tahun 2017.
                         </p>
                         <p class="text-sm text-purple-100 leading-relaxed text-justify">

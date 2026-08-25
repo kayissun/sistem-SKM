@@ -22,10 +22,7 @@ class TindakLanjutController extends Controller
             ?: PeriodeSurvei::where('is_active', true)->value('id');
         $periode = $periodeId ? PeriodeSurvei::find($periodeId) : null;
 
-        $triwulan = $request->integer('triwulan');
-        $tahun = $request->integer('tahun');
         $status = $request->input('status');
-        $puskesmasId = $request->integer('puskesmas_id');
         $search = $request->input('search');
 
         $daftarPuskesmas = Puskesmas::where('is_active', true)
@@ -35,10 +32,7 @@ class TindakLanjutController extends Controller
 
         // Query utama: semua TL dengan filter
         $queryTl = TindakLanjut::with(['puskesmas', 'unsurPelayanan', 'progress'])
-            ->when($triwulan, fn($q) => $q->where('triwulan', $triwulan))
-            ->when($tahun, fn($q) => $q->where('tahun', $tahun))
             ->when($status, fn($q) => $q->where('status', $status))
-            ->when($puskesmasId, fn($q) => $q->where('puskesmas_id', $puskesmasId))
             ->when($search, fn($q) => $q->whereHas('puskesmas', fn($sq) => $sq->where('nama', 'like', "%{$search}%")))
             ->orderByDesc('tahun')
             ->orderByDesc('triwulan')
@@ -56,9 +50,12 @@ class TindakLanjutController extends Controller
             $kodeUnsur = $unsurAktif->pluck('kode')->all();
             $namaUnsur = $unsurAktif->pluck('nama_unsur', 'kode')->all();
 
-            $faskesQuery = $puskesmasId
-                ? $daftarPuskesmas->where('id', $puskesmasId)
-                : $daftarPuskesmas;
+            $faskesQuery = $daftarPuskesmas;
+            if ($search) {
+                $faskesQuery = $faskesQuery->filter(
+                    fn($p) => str_contains(strtolower($p->nama), strtolower($search))
+                );
+            }
 
             foreach ($faskesQuery as $puskesmas) {
                 $hasil = $service->hitung($puskesmas, $periode);
@@ -66,8 +63,6 @@ class TindakLanjutController extends Controller
 
                 $queryTlFaskes = TindakLanjut::where('puskesmas_id', $puskesmas->id)
                     ->with('unsurPelayanan', 'progress');
-                if ($triwulan) $queryTlFaskes->where('triwulan', $triwulan);
-                if ($tahun) $queryTlFaskes->where('tahun', $tahun);
                 if ($status) $queryTlFaskes->where('status', $status);
 
                 $tindakLanjutsFaskes = $queryTlFaskes->orderByDesc('tahun')
@@ -95,7 +90,7 @@ class TindakLanjutController extends Controller
         return view('dinkes.tindak-lanjut.index', compact(
             'daftarPeriode', 'daftarPuskesmas', 'periode',
             'dataFaskes', 'tindakLanjuts', 'kodeUnsur', 'namaUnsur',
-            'triwulan', 'tahun', 'status', 'puskesmasId', 'search'
+            'status', 'search'
         ));
     }
 

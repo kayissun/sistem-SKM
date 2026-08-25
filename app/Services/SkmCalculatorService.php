@@ -7,6 +7,7 @@ use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
 use App\Models\RekapIkm;
 use App\Models\SurveiJawabanDetail;
+use App\Models\TindakLanjut;
 use App\Models\UnitLayanan;
 use App\Models\UnsurPelayanan;
 use App\Support\OpsiDataDiri;
@@ -284,17 +285,22 @@ class SkmCalculatorService
             ->map(function (Puskesmas $puskesmas) use ($periode) {
                 $hasil = $this->hitung($puskesmas, $periode);
 
-                $unsurTerlemah = ($hasil['jumlah_responden'] ?? 0) > 0
-                    ? $this->peringkatPrioritas($hasil)->first()
-                    : null;
+                // Tindak lanjut yang diajukan faskes ini (dipakai untuk kolom prioritas & rencana)
+                $tindakLanjuts = TindakLanjut::where('puskesmas_id', $puskesmas->id)
+                    ->with('unsurPelayanan')
+                    ->orderByDesc('tahun')
+                    ->orderByDesc('triwulan')
+                    ->get();
 
-                $prioritasTeks = '-';
-                if ($unsurTerlemah) {
-                    $teksPertanyaan = is_array($unsurTerlemah['pertanyaan'])
-                        ? ($unsurTerlemah['pertanyaan'][0]['teks_pertanyaan'] ?? $unsurTerlemah['pertanyaan'][0]['pertanyaan'] ?? '-')
-                        : $unsurTerlemah['pertanyaan'];
-
-                    $prioritasTeks = "{$unsurTerlemah['kode']} - {$teksPertanyaan}";
+                $prioritas = [];
+                $rencana = [];
+                foreach ($tindakLanjuts as $tl) {
+                    $unsur = $tl->unsurPelayanan;
+                    if (! $unsur) {
+                        continue;
+                    }
+                    $prioritas[] = "{$unsur->kode} - {$unsur->nama_unsur}";
+                    $rencana[] = $tl->tindakan_perbaikan;
                 }
 
                 return [
@@ -304,7 +310,8 @@ class SkmCalculatorService
                     'per_unsur' => $hasil['per_unsur'] ?? [],
                     'nilai_akhir_skm' => $hasil['nilai_akhir_skm'] ?? 0,
                     'mutu_akhir' => $hasil['mutu_akhir'] ?? '-',
-                    'unsur_prioritas' => $prioritasTeks,
+                    'unsur_prioritas' => $prioritas ?: ['-'],
+                    'rencana_tindak_lanjut' => $rencana ?: ['-'],
                 ];
             });
     }
