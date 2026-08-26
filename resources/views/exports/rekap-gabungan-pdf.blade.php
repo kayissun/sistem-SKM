@@ -1,35 +1,28 @@
 <!doctype html>
-<html>
+<html lang="id">
 <head>
     <meta charset="utf-8">
+    <title>Rekap SKM Semua Unit</title>
     <style>
-        body { font-family: sans-serif; font-size: 10px; color: #222; }
-        h2 { margin-bottom: 0; }
-        p.sub { color: #666; margin-top: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { border: 1px solid #ccc; padding: 4px 5px; text-align: center; }
-        th { background: #f7f0da; }
-        td.label { text-align: left; }
-        th.label { text-align: left; }
-        /* Atur orientasi kertas ke Lanskap / Horizontal */
         @page {
             size: A4 landscape;
-            margin: 10mm;
+            margin: 10mm 10mm 14mm;
         }
 
         body {
             font-family: sans-serif;
-            font-size: 9px; /* Ukuran font disesuaikan sedikit agar lebih rapi */
+            font-size: 9px;
             color: #222;
             margin: 0;
         }
-        h2 { margin-bottom: 0; }
-        p.sub { color: #666; margin-top: 4px; }
+
+        h2 { margin: 0 0 2px; font-size: 14px; }
+        p.sub { color: #666; margin: 0 0 4px; font-size: 9px; }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 12px;
+            margin-top: 10px;
             page-break-inside: auto;
         }
 
@@ -42,15 +35,27 @@
             border: 1px solid #ccc;
             padding: 4px 5px;
             text-align: center;
+            vertical-align: top;
         }
+
         th { background: #f7f0da; }
-        td.label { text-align: left; }
-        th.label { text-align: left; }
+        td.label, th.label { text-align: left; }
+
+        /* Footer nomor halaman — dirender DomPDF di tiap halaman */
+        .page-footer {
+            position: fixed;
+            bottom: -8mm;
+            left: 0;
+            right: 0;
+            text-align: right;
+            font-size: 8px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
-    <h2>Rekap Survei Kepuasan Masyarakat - Semua Unit</h2>
-    <p class="sub">Periode: {{ $periode->nama }} &middot; Dicetak: {{ now()->format('d M Y H:i') }}</p>
+    <h2>Rekap Survei Kepuasan Masyarakat &mdash; Semua Unit</h2>
+    <p class="sub">Periode: {{ $periode->nama }} &middot; Dicetak: {{ now()->translatedFormat('d M Y H:i') }}</p>
 
     <table>
         <thead>
@@ -77,13 +82,11 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td class="label">{{ $baris['puskesmas'] }}</td>
-                    <td>
-                        {{ $namaPeriodeLengkap ?? $periode?->nama }}
-                    </td>
+                    <td>{{ $namaPeriodeLengkap ?? $periode?->nama }}</td>
                     @foreach ($kodeUnsur as $kode)
                         <td>{{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}</td>
                     @endforeach
-                    <td>{{ $baris['nilai_akhir_skm'] }}</td>
+                    <td>{{ number_format($baris['nilai_akhir_skm'], 2) }}</td>
                     <td>{{ $baris['mutu_akhir'] }}</td>
                     <td>{{ $baris['jumlah_responden'] }}</td>
                     <td>SKM Online</td>
@@ -103,5 +106,9 @@
             @endforelse
         </tbody>
     </table>
+
+    <div class="page-footer">
+        Halaman {PAGE_NUM} dari {PAGE_COUNT}
+    </div>
 </body>
 </html>

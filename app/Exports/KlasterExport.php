@@ -2,15 +2,20 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\StyledSheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class KlasterExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize
+class KlasterExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithEvents
 {
+    use StyledSheet;
+
     private int $nomorBaris = 0;
 
     private Collection $baris;
@@ -63,5 +68,24 @@ class KlasterExport implements FromCollection, WithHeadings, WithMapping, WithTi
     public function title(): string
     {
         return 'Klaster Performa';
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $barisAkhir = max(2, $sheet->getHighestRow());
+
+                $this->terapkanGayaTabel(
+                    $sheet,
+                    kolomWrap: 'G-H',
+                    formatAngka: [
+                        // Nilai SKM: 2 desimal seragam dengan PDF klaster
+                        "E2:E{$barisAkhir}" => '0.00',
+                    ],
+                );
+            },
+        ];
     }
 }

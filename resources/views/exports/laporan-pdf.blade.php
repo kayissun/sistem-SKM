@@ -1,8 +1,11 @@
 <!doctype html>
-<html>
+<html lang="id">
 <head>
     <meta charset="utf-8">
+    <title>Laporan SKM {{ $puskesmas->nama }}</title>
     <style>
+        @page { margin: 12mm 12mm 16mm; }
+
         body { font-family: sans-serif; font-size: 11px; color: #222; }
         h2 { margin-bottom: 0; }
         h3 { margin-top: 22px; margin-bottom: 6px; font-size: 13px; }
@@ -18,6 +21,18 @@
         .ringkasan .label { color: #666; }
         .nilai-akhir { font-size: 16px; font-weight: bold; }
         .poli-block { margin-top: 18px; }
+        th, td { vertical-align: top; }
+
+        /* Footer nomor halaman — dirender DomPDF di tiap halaman */
+        .page-footer {
+            position: fixed;
+            bottom: -9mm;
+            left: 0;
+            right: 0;
+            text-align: right;
+            font-size: 8px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -72,5 +87,9 @@
             </tbody>
         </table>
     @endif
+
+    <div class="page-footer">
+        Halaman {PAGE_NUM} dari {PAGE_COUNT}
+    </div>
 </body>
 </html>

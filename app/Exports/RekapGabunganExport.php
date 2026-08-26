@@ -2,15 +2,20 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\StyledSheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize
+class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithEvents
 {
+    use StyledSheet;
+
     private int $nomorBaris = 0;
 
     /**
@@ -62,5 +67,30 @@ class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, 
     public function title(): string
     {
         return substr('Rekap ' . $this->namaPeriode, 0, 31);
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $barisAkhir = max(2, $sheet->getHighestRow());
+
+                // Struktur kolom: A No | B Unit | C Periode | D.. U1..U9 | IKM | Kategori |
+                // Responden | Metode | Unsur Prioritas | Rencana Tindak Lanjut
+                $kolomUnsurAwal = 4;
+                $kolomUnsurAkhir = 3 + count($this->kodeUnsur);
+
+                $this->terapkanGayaTabel(
+                    $sheet,
+                    kolomWrap: $this->hurufKolom($kolomUnsurAkhir + 5) . '-' . $this->hurufKolom($kolomUnsurAkhir + 6),
+                    formatAngka: [
+                        // NRR skala 100 per unsur & nilai IKM: 2 desimal seragam
+                        "D2:{$this->hurufKolom($kolomUnsurAkhir)}{$barisAkhir}" => '0.00',
+                        $this->hurufKolom($kolomUnsurAkhir + 1) . "2:{$this->hurufKolom($kolomUnsurAkhir + 1)}{$barisAkhir}" => '0.00',
+                    ],
+                );
+            },
+        ];
     }
 }
