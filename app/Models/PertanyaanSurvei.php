@@ -18,13 +18,24 @@ class PertanyaanSurvei extends Model
     protected $guarded = ['id'];
 
     protected $fillable = [
-        'puskesmas_id', 'unsur_pelayanan_id', 'teks_pertanyaan', 'tipe_input',
-        'gaya_tampilan', 'label_skala_1', 'label_skala_2', 'label_skala_3', 'label_skala_4',
-        'urutan', 'is_active',
+        'puskesmas_id', 
+        'unsur_pelayanan_id', 
+        'teks_pertanyaan', 
+        'header_image', 
+        'layout_mode',
+        'tipe_input',
+        'gaya_tampilan', 
+        'label_skala_1', 
+        'label_skala_2', 
+        'label_skala_3', 
+        'label_skala_4',
+        'urutan', 
+        'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'urutan' => 'integer',
     ];
 
     protected static function booted(): void
@@ -40,10 +51,11 @@ class PertanyaanSurvei extends Model
         });
     }
 
-    /**
-     * Label tampilan untuk tiap level skala 1-4. Kalau admin-puskesmas tidak isi label kustom,
-     * jatuh ke angka biasa supaya form tetap bisa dipakai.
-     */
+    public function headerImageUrl(): ?string
+    {
+        return $this->header_image ? asset('storage/' . $this->header_image) : null;
+    }
+
     public function labelSkala(): array
     {
         return [
@@ -108,17 +120,11 @@ class PertanyaanSurvei extends Model
         return $this->hasMany(SurveiJawabanDetail::class);
     }
 
-    /**
-     * Pertanyaan yang terkait salah satu unsur wajib (U1-U9), dihitung ke nilai SKM resmi.
-     */
     public function scopeUnsurWajib($query)
     {
         return $query->whereNotNull('unsur_pelayanan_id');
     }
 
-    /**
-     * Pertanyaan tambahan di luar 9 unsur wajib, tidak dihitung ke nilai SKM resmi.
-     */
     public function scopeTambahan($query)
     {
         return $query->whereNull('unsur_pelayanan_id');

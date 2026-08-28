@@ -8,12 +8,14 @@ use App\Http\Requests\Puskesmas\PertanyaanSurveiRequest;
 use App\Models\PertanyaanSurvei;
 use App\Models\UnsurPelayanan;
 use App\Support\PresetLabelSkala;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class PertanyaanSurveiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $puskesmasId = Auth::user()->puskesmas_id;
 
@@ -22,74 +24,172 @@ class PertanyaanSurveiController extends Controller
             ->orderBy('urutan')
             ->get();
 
-        // unsur wajib (U1-U9) yang belum/tidak punya pertanyaan aktif di unit ini,
-        // supaya admin sadar kalau ada unsur yang bolong dan nilai SKM-nya jadi tidak akurat
+        // Jika request via AJAX / JSON
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $daftarPertanyaan->map(function ($item) {
+                    $arr = $item->toArray();
+                    $arr['header_image_url'] = $item->headerImageUrl();
+                    return $arr;
+                }),
+            ]);
+        }
+
+        $daftarUnsur = UnsurPelayanan::aktif()->get();
+        $presetLabel = PresetLabelSkala::daftar();
+
         $unsurTerpakai = $daftarPertanyaan->where('is_active', true)->pluck('unsur_pelayanan_id')->filter();
         $unsurBelumAda = UnsurPelayanan::aktif()->get()->reject(fn ($unsur) => $unsurTerpakai->contains($unsur->id));
 
-        return view('puskesmas.pertanyaan.index', compact('daftarPertanyaan', 'unsurBelumAda'));
-    }
-
-    public function create()
-    {
-        $daftarUnsur = UnsurPelayanan::aktif()->get();
-        $presetLabel = PresetLabelSkala::daftar();
-        $urutanBerikutnya = (PertanyaanSurvei::where('puskesmas_id', Auth::user()->puskesmas_id)->max('urutan') ?? 0) + 1;
-
-        return view('puskesmas.pertanyaan.create', compact('daftarUnsur', 'presetLabel', 'urutanBerikutnya'));
+        return view('puskesmas.pertanyaan.index', compact('daftarPertanyaan', 'daftarUnsur', 'presetLabel', 'unsurBelumAda'));
     }
 
     public function store(PertanyaanSurveiRequest $request)
     {
-        PertanyaanSurvei::create([
-            'puskesmas_id' => Auth::user()->puskesmas_id,
-            ...$request->validated(),
-            'is_active' => true,
-        ]);
+        $puskesmasId = Auth::user()->puskesmas_id;
+        $maxUrutan = PertanyaanSurvei::where('puskesmas_id', $puskesmasId)->max('urutan') ?? 0;
 
-        return redirect()
-            ->route('puskesmas.pertanyaan.index')
-            ->with('success', 'Pertanyaan survei berhasil ditambahkan.');
-    }
+        $data = $request->validated();
+        $data['puskesmas_id'] = $puskesmasId;
+        $data['is_active'] = $request->boolean('is_active', true);
+        $data['urutan'] = $maxUrutan + 1;
 
-    public function edit(PertanyaanSurvei $pertanyaan)
-    {
-        $this->pastikanSatuUnit($pertanyaan);
+        if ($request->hasFile('header_image')) {
+            $data['header_image'] = $request->file('header_image')->store('pertanyaan-header', 'public');
+        }
 
-        $daftarUnsur = UnsurPelayanan::aktif()->get();
-        $presetLabel = PresetLabelSkala::daftar();
+        $pertanyaan = PertanyaanSurvei::create($data);
+        $pertanyaan->load('unsurPelayanan');
 
-        return view('puskesmas.pertanyaan.edit', compact('pertanyaan', 'daftarUnsur', 'presetLabel'));
+        if ($request->wantsJson()) {
+            $arr = $pertanyaan->toArray();
+            $arr['header_image_url'] = $pertanyaan->headerImageUrl();
+            return response()->json(['success' => true, 'message' => 'Pertanyaan baru berhasil ditambahkan.', 'data' => $arr]);
+        }
+
+        return redirect()->route('puskesmas.pertanyaan.index')->with('success', 'Pertanyaan survei berhasil ditambahkan.');
     }
 
     public function update(PertanyaanSurveiRequest $request, PertanyaanSurvei $pertanyaan)
     {
-        // kepemilikan unit sudah divalidasi di PertanyaanSurveiRequest::authorize()
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
-        $pertanyaan->update($data);
+        if ($request->hasFile('header_image')) {
+            if ($pertanyaan->header_image) {
+                Storage::disk('public')->delete($pertanyaan->header_image);
+            }
+            $data['header_image'] = $request->file('header_image')->store('pertanyaan-header', 'public');
+        }
 
-        return redirect()
-            ->route('puskesmas.pertanyaan.index')
-            ->with('success', 'Pertanyaan survei berhasil diperbarui.');
+        $pertanyaan->update($data);
+        $pertanyaan->load('unsurPelayanan');
+
+        if ($request->wantsJson()) {
+            $arr = $pertanyaan->toArray();
+            $arr['header_image_url'] = $pertanyaan->headerImageUrl();
+            return response()->json(['success' => true, 'message' => 'Pertanyaan berhasil diperbarui.', 'data' => $arr]);
+        }
+
+        return redirect()->route('puskesmas.pertanyaan.index')->with('success', 'Pertanyaan survei berhasil diperbarui.');
     }
 
-    public function destroy(PertanyaanSurvei $pertanyaan)
+    public function destroy(Request $request, PertanyaanSurvei $pertanyaan)
     {
         $this->pastikanSatuUnit($pertanyaan);
 
-        if ($pertanyaan->surveiJawabanDetail()->exists()) {
-            return redirect()
-                ->route('puskesmas.pertanyaan.index')
-                ->with('error', 'Pertanyaan ini sudah punya jawaban responden, nonaktifkan saja daripada dihapus.');
+        $hasAnswers = $pertanyaan->surveiJawabanDetail()->exists();
+
+        if ($hasAnswers) {
+            $pertanyaan->update(['is_active' => false]);
+            $msg = 'Pertanyaan sudah memiliki jawaban responden. Status otomatis diubah menjadi Nonaktif.';
+            
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'deactivated' => true, 'message' => $msg]);
+            }
+            return redirect()->route('puskesmas.pertanyaan.index')->with('error', $msg);
+        }
+
+        if ($pertanyaan->header_image) {
+            Storage::disk('public')->delete($pertanyaan->header_image);
         }
 
         $pertanyaan->delete();
 
-        return redirect()
-            ->route('puskesmas.pertanyaan.index')
-            ->with('success', 'Pertanyaan survei berhasil dihapus.');
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Pertanyaan berhasil dihapus permanen.']);
+        }
+
+        return redirect()->route('puskesmas.pertanyaan.index')->with('success', 'Pertanyaan survei berhasil dihapus.');
+    }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'urutan' => 'required|array',
+            'urutan.*' => 'integer|exists:pertanyaan_survei,id',
+        ]);
+
+        $puskesmasId = Auth::user()->puskesmas_id;
+
+        foreach ($request->urutan as $index => $id) {
+            PertanyaanSurvei::where('id', $id)
+                ->where('puskesmas_id', $puskesmasId)
+                ->update(['urutan' => $index + 1]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Urutan pertanyaan berhasil disimpan.']);
+    }
+
+    public function duplikat(PertanyaanSurvei $pertanyaan)
+    {
+        $this->pastikanSatuUnit($pertanyaan);
+
+        $baru = $pertanyaan->replicate();
+        $baru->teks_pertanyaan = $pertanyaan->teks_pertanyaan . ' (Salinan)';
+        $baru->urutan = $pertanyaan->urutan + 1;
+        $baru->save();
+        $baru->load('unsurPelayanan');
+
+        // Geser urutan setelahnya
+        PertanyaanSurvei::where('puskesmas_id', Auth::user()->puskesmas_id)
+            ->where('id', '!=', $baru->id)
+            ->where('urutan', '>=', $baru->urutan)
+            ->increment('urutan');
+
+        $arr = $baru->toArray();
+        $arr['header_image_url'] = $baru->headerImageUrl();
+
+        return response()->json(['success' => true, 'message' => 'Pertanyaan berhasil diduplikat.', 'data' => $arr]);
+    }
+
+    public function updateHeaderImage(Request $request, PertanyaanSurvei $pertanyaan)
+    {
+        $this->pastikanSatuUnit($pertanyaan);
+
+        $request->validate([
+            'header_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'hapus_header_image' => 'nullable|boolean',
+        ]);
+
+        if ($request->boolean('hapus_header_image')) {
+            if ($pertanyaan->header_image) {
+                Storage::disk('public')->delete($pertanyaan->header_image);
+                $pertanyaan->update(['header_image' => null]);
+            }
+        } elseif ($request->hasFile('header_image')) {
+            if ($pertanyaan->header_image) {
+                Storage::disk('public')->delete($pertanyaan->header_image);
+            }
+            $path = $request->file('header_image')->store('pertanyaan-header', 'public');
+            $pertanyaan->update(['header_image' => $path]);
+        }
+
+        $arr = $pertanyaan->fresh()->toArray();
+        $arr['header_image_url'] = $pertanyaan->headerImageUrl();
+
+        return response()->json(['success' => true, 'message' => 'Gambar header berhasil diperbarui.', 'data' => $arr]);
     }
 
     public function aksiMassal(PertanyaanBulkActionRequest $request)
@@ -108,25 +208,22 @@ class PertanyaanSurveiController extends Controller
                 continue;
             }
 
+            if ($pertanyaan->header_image) {
+                Storage::disk('public')->delete($pertanyaan->header_image);
+            }
+
             $pertanyaan->delete();
             $berhasilDihapus++;
         }
 
         $pesan = "{$berhasilDihapus} pertanyaan berhasil dihapus permanen.";
         if (! empty($dilewati)) {
-            $pesan .= ' Pertanyaan berikut sudah punya jawaban responden, jadi cuma dinonaktifkan (tidak dihapus): ' . implode(', ', array_slice($dilewati, 0, 3)) . '.';
+            $pesan .= ' Pertanyaan yang sudah punya jawaban responden dinonaktifkan otomatis: ' . implode(', ', array_slice($dilewati, 0, 3)) . '.';
         }
 
-        return redirect()
-            ->route('puskesmas.pertanyaan.index')
-            ->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
+        return redirect()->route('puskesmas.pertanyaan.index')->with('success', $pesan);
     }
 
-    /**
-     * Dipakai untuk edit() (tampilan form) dan destroy() (tidak ada FormRequest karena
-     * tidak ada input body). Untuk store()/update(), pengecekan yang sama sudah dilakukan
-     * di PertanyaanSurveiRequest::authorize().
-     */
     private function pastikanSatuUnit(PertanyaanSurvei $pertanyaan): void
     {
         if ($pertanyaan->puskesmas_id !== Auth::user()->puskesmas_id) {
