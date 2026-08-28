@@ -16,12 +16,18 @@ class Puskesmas extends Model
     protected $table = 'puskesmas';
 
     protected $fillable = [
-        'nama', 'slug', 'jenis', 'alamat', 'kecamatan', 'no_telepon', 'is_active',
+        'nama', 'slug', 'jenis', 'alamat', 'kecamatan', 'no_telepon', 'is_active', 'form_header_image', 'form_pisah_halaman',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'form_pisah_halaman' => 'boolean',
     ];
+
+    public function formHeaderImageUrl(): ?string
+    {
+        return $this->form_header_image ? asset('storage/' . $this->form_header_image) : null;
+    }
 
     public function getActivitylogOptions(): LogOptions
     {

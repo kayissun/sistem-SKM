@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class PertanyaanSurveiController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $puskesmasId = Auth::user()->puskesmas_id;
 
@@ -24,25 +24,27 @@ class PertanyaanSurveiController extends Controller
             ->orderBy('urutan')
             ->get();
 
-        // Jika request via AJAX / JSON
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $daftarPertanyaan->map(function ($item) {
-                    $arr = $item->toArray();
-                    $arr['header_image_url'] = $item->headerImageUrl();
-                    return $arr;
-                }),
-            ]);
-        }
-
-        $daftarUnsur = UnsurPelayanan::aktif()->get();
-        $presetLabel = PresetLabelSkala::daftar();
-
         $unsurTerpakai = $daftarPertanyaan->where('is_active', true)->pluck('unsur_pelayanan_id')->filter();
         $unsurBelumAda = UnsurPelayanan::aktif()->get()->reject(fn ($unsur) => $unsurTerpakai->contains($unsur->id));
 
-        return view('puskesmas.pertanyaan.index', compact('daftarPertanyaan', 'daftarUnsur', 'presetLabel', 'unsurBelumAda'));
+        return view('puskesmas.pertanyaan.index', compact('daftarPertanyaan', 'unsurBelumAda'));
+    }
+
+    public function create(Request $request)
+    {
+        $puskesmasId = Auth::user()->puskesmas_id;
+
+        $daftarPertanyaan = PertanyaanSurvei::with('unsurPelayanan')
+            ->where('puskesmas_id', $puskesmasId)
+            ->orderBy('urutan')
+            ->get();
+
+        $daftarUnsur = UnsurPelayanan::aktif()->get();
+        $presetLabel = PresetLabelSkala::daftar();
+        $formHeaderImageUrl = Auth::user()->puskesmas->formHeaderImageUrl();
+        $pisahHalaman = Auth::user()->puskesmas->form_pisah_halaman;
+
+        return view('puskesmas.pertanyaan.create', compact('daftarPertanyaan', 'daftarUnsur', 'presetLabel', 'formHeaderImageUrl', 'pisahHalaman'));
     }
 
     public function store(PertanyaanSurveiRequest $request)
@@ -53,7 +55,7 @@ class PertanyaanSurveiController extends Controller
         $data = $request->validated();
         $data['puskesmas_id'] = $puskesmasId;
         $data['is_active'] = $request->boolean('is_active', true);
-        $data['urutan'] = $maxUrutan + 1;
+        $data['urutan'] = $request->input('urutan', $maxUrutan + 1);
 
         if ($request->hasFile('header_image')) {
             $data['header_image'] = $request->file('header_image')->store('pertanyaan-header', 'public');
@@ -71,8 +73,16 @@ class PertanyaanSurveiController extends Controller
         return redirect()->route('puskesmas.pertanyaan.index')->with('success', 'Pertanyaan survei berhasil ditambahkan.');
     }
 
+    public function edit(PertanyaanSurvei $pertanyaan)
+    {
+        // Alihkan edit ke halaman builder utama
+        return redirect()->route('puskesmas.pertanyaan.create');
+    }
+
     public function update(PertanyaanSurveiRequest $request, PertanyaanSurvei $pertanyaan)
     {
+        $this->pastikanSatuUnit($pertanyaan);
+
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
@@ -104,7 +114,7 @@ class PertanyaanSurveiController extends Controller
         if ($hasAnswers) {
             $pertanyaan->update(['is_active' => false]);
             $msg = 'Pertanyaan sudah memiliki jawaban responden. Status otomatis diubah menjadi Nonaktif.';
-            
+
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'deactivated' => true, 'message' => $msg]);
             }
@@ -152,7 +162,6 @@ class PertanyaanSurveiController extends Controller
         $baru->save();
         $baru->load('unsurPelayanan');
 
-        // Geser urutan setelahnya
         PertanyaanSurvei::where('puskesmas_id', Auth::user()->puskesmas_id)
             ->where('id', '!=', $baru->id)
             ->where('urutan', '>=', $baru->urutan)
@@ -192,6 +201,56 @@ class PertanyaanSurveiController extends Controller
         return response()->json(['success' => true, 'message' => 'Gambar header berhasil diperbarui.', 'data' => $arr]);
     }
 
+    public function togglePisahHalaman(Request $request)
+    {
+        $request->validate(['pisah_halaman' => ['required', 'boolean']]);
+
+        Auth::user()->puskesmas->update([
+            'form_pisah_halaman' => $request->boolean('pisah_halaman'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $request->boolean('pisah_halaman')
+                ? 'Form survei akan dipisah per halaman (Data Diri → Pertanyaan).'
+                : 'Form survei dalam satu halaman penuh.',
+        ]);
+    }
+
+    public function uploadFormHeaderImage(Request $request)
+    {
+        $request->validate([
+            'form_header_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        $puskesmas = Auth::user()->puskesmas;
+
+        if ($puskesmas->form_header_image) {
+            Storage::disk('public')->delete($puskesmas->form_header_image);
+        }
+
+        $path = $request->file('form_header_image')->store('form-header', 'public');
+        $puskesmas->update(['form_header_image' => $path]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Gambar identitas form berhasil diunggah.',
+            'data' => ['form_header_image_url' => $puskesmas->formHeaderImageUrl()],
+        ]);
+    }
+
+    public function hapusFormHeaderImage()
+    {
+        $puskesmas = Auth::user()->puskesmas;
+
+        if ($puskesmas->form_header_image) {
+            Storage::disk('public')->delete($puskesmas->form_header_image);
+            $puskesmas->update(['form_header_image' => null]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Gambar identitas form dihapus.']);
+    }
+
     public function aksiMassal(PertanyaanBulkActionRequest $request)
     {
         $daftar = PertanyaanSurvei::where('puskesmas_id', Auth::user()->puskesmas_id)
@@ -221,7 +280,7 @@ class PertanyaanSurveiController extends Controller
             $pesan .= ' Pertanyaan yang sudah punya jawaban responden dinonaktifkan otomatis: ' . implode(', ', array_slice($dilewati, 0, 3)) . '.';
         }
 
-        return redirect()->route('puskesmas.pertanyaan.index')->with('success', $pesan);
+        return redirect()->route('puskesmas.pertanyaan.index')->with($berhasilDihapus > 0 ? 'success' : 'error', $pesan);
     }
 
     private function pastikanSatuUnit(PertanyaanSurvei $pertanyaan): void

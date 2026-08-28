@@ -25,13 +25,16 @@ Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('petugas', PetugasController::class)->except(['show']);
-        
-        // Pertanyaan Survei & Google Forms Builder Routes
-        Route::resource('pertanyaan', PertanyaanSurveiController::class)->only(['index', 'store', 'update', 'destroy']);
+
+        // Resource Pertanyaan
+        Route::resource('pertanyaan', PertanyaanSurveiController::class)->except(['show']);
         Route::post('/pertanyaan/reorder', [PertanyaanSurveiController::class, 'reorder'])->name('pertanyaan.reorder');
         Route::post('/pertanyaan/{pertanyaan}/duplikat', [PertanyaanSurveiController::class, 'duplikat'])->name('pertanyaan.duplikat');
         Route::post('/pertanyaan/{pertanyaan}/header-gambar', [PertanyaanSurveiController::class, 'updateHeaderImage'])->name('pertanyaan.update-header-image');
         Route::post('/pertanyaan/aksi-massal', [PertanyaanSurveiController::class, 'aksiMassal'])->name('pertanyaan.aksi-massal');
+        Route::post('/pertanyaan/form-header-gambar', [PertanyaanSurveiController::class, 'uploadFormHeaderImage'])->name('pertanyaan.form-header-upload');
+        Route::delete('/pertanyaan/form-header-gambar', [PertanyaanSurveiController::class, 'hapusFormHeaderImage'])->name('pertanyaan.form-header-hapus');
+        Route::post('/pertanyaan/pengaturan-form', [PertanyaanSurveiController::class, 'togglePisahHalaman'])->name('pertanyaan.pengaturan-form');
 
         Route::resource('unit-layanan', UnitLayananController::class)->except(['show']);
         Route::post('/unit-layanan/aksi-massal', [UnitLayananController::class, 'aksiMassal'])->name('unit-layanan.aksi-massal');
