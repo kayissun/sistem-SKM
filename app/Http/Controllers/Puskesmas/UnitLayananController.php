@@ -15,7 +15,7 @@ class UnitLayananController extends Controller
     {
         $daftarUnitLayanan = UnitLayanan::where('puskesmas_id', Auth::user()->puskesmas_id)
             ->orderBy('nama')
-            ->get();
+            ->paginate();
 
         return view('puskesmas.unit-layanan.index', compact('daftarUnitLayanan'));
     }

@@ -3,60 +3,83 @@
 @section('title', 'Unit Layanan')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Unit Layanan / Poli</h3>
-        <a href="{{ route('puskesmas.unit-layanan.create') }}" class="btn btn-primary btn-sm">+ Tambah unit layanan</a>
+    <div class="sp-page-head">
+        <div>
+            <h3>Unit Layanan / Poli</h3>
+            <p>{{ $daftarUnitLayanan->count() }} unit terdaftar. Daftar ini muncul sebagai pilihan dropdown di form survei publik.</p>
+        </div>
+        <a href="{{ route('puskesmas.unit-layanan.create') }}" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i> Tambah Unit Layanan
+        </a>
     </div>
-    <p class="text-muted">Daftar ini akan muncul sebagai pilihan dropdown di form survei publik.</p>
 
     <form method="POST" action="{{ route('puskesmas.unit-layanan.aksi-massal') }}" id="form-aksi-massal">
         @csrf
 
-        <div class="d-flex align-items-center gap-2 mb-2" id="bar-aksi-massal" style="display:none">
+        <div class="sp-bulkbar" id="bar-aksi-massal">
             <span class="small text-muted"><strong id="jumlah-terpilih">0</strong> unit dipilih</span>
             <button type="submit" name="aksi" value="hapus" class="btn btn-sm btn-outline-danger"
                     onclick="return confirm('Hapus PERMANEN unit layanan yang dipilih? Unit yang sudah dipakai di data survei tidak akan ikut terhapus, cuma dinonaktifkan otomatis.')">
-                Hapus Terpilih
+                <i class="fa-solid fa-trash me-1"></i> Hapus Terpilih
             </button>
+        </div>
+
+        <div class="card sp-table-card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:36px"><input type="checkbox" id="pilih-semua"></th>
+                            <th>Nama</th>
+                            <th style="width:120px">Status</th>
+                            <th style="width:160px">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($daftarUnitLayanan as $unit)
+                            <tr>
+                                <td><input type="checkbox" name="dipilih[]" value="{{ $unit->id }}" class="cek-item"></td>
+                                <td class="fw-semibold" style="color:#180733">{{ $unit->nama }}</td>
+                                <td>
+                                    @if ($unit->is_active)
+                                        <span class="badge-status-active">Aktif</span>
+                                    @else
+                                        <span class="badge-status-inactive">Nonaktif</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{{ route('puskesmas.unit-layanan.edit', $unit) }}" class="sp-icon-btn" title="Edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        <form action="{{ route('puskesmas.unit-layanan.destroy', $unit) }}" method="POST" class="d-inline"
+                                              onsubmit="return confirm('Hapus unit layanan ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="sp-icon-btn" title="Hapus" style="color:#DC2626;border-color:rgba(220,38,38,.15)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="fa-regular fa-folder-open fa-2x mb-2 d-block opacity-50"></i>
+                                    Belum ada unit layanan. Klik tombol <strong>Tambah Unit Layanan</strong> untuk menambahkan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </form>
 
-    <table class="table table-bordered bg-white">
-            <thead>
-                <tr>
-                    <th style="width:36px"><input type="checkbox" id="pilih-semua"></th>
-                    <th>Nama</th>
-                    <th style="width:100px">Status</th>
-                    <th style="width:160px">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($daftarUnitLayanan as $unit)
-                    <tr>
-                        <td><input type="checkbox" name="dipilih[]" value="{{ $unit->id }}" class="cek-item"></td>
-                        <td>{{ $unit->nama }}</td>
-                        <td>
-                            @if ($unit->is_active)
-                                <span class="badge bg-success">Aktif</span>
-                            @else
-                                <span class="badge bg-secondary">Nonaktif</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('puskesmas.unit-layanan.edit', $unit) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <form action="{{ route('puskesmas.unit-layanan.destroy', $unit) }}" method="POST" class="d-inline"
-                                  onsubmit="return confirm('Hapus unit layanan ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger">Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="4" class="text-center text-muted">Belum ada unit layanan</td></tr>
-                @endforelse
-            </tbody>
-    </table>
+    <div class="mt-3 sp-pagination">
+        {{ $daftarUnitLayanan->links('pagination::bootstrap-5') }}
+    </div>
 
     <script>
         (function () {

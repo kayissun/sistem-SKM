@@ -78,10 +78,21 @@
 
         .badge.bg-primary { background: var(--sp-purple-700) !important; }
 
+        .form-select {
+            border-color: #D4D0E8;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236D28D9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 16px 12px;
+        }
+        .form-select:hover { border-color: #A78BFA; }
+        .form-control:hover { border-color: #A78BFA; }
+
         .form-control:focus,
         .form-select:focus {
-            border-color: #A78BFA;
-            box-shadow: 0 0 0 .2rem rgba(109, 40, 217, .15);
+            border-color: #7C3AED !important;
+            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15) !important;
+            outline: none;
         }
 
         .form-check-input:checked {
@@ -370,6 +381,7 @@
     spBackdrop?.addEventListener('click', spCloseSidebar);
 </script>
 
+@include('partials.sp-puskesmas-css')
 @include('partials.skrip-salin-tabel')
 </body>
 </html>
