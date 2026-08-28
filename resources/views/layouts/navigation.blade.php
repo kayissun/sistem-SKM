@@ -15,13 +15,24 @@
     class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col text-white transition-transform duration-200 ease-in-out lg:translate-x-0"
     style="background: linear-gradient(180deg,#2A0B5E 0%,#180733 100%)"
 >
+    @php
+        // Diambil dari Spatie Laravel-Permission (HasRoles).
+        $roleName = Auth::user()->getRoleNames()->first();
+        $roleLabel = match ($roleName) {
+            'dinkes' => 'Superadmin',
+            'admin-puskesmas', 'dinkes-skm' => 'Admin',
+            'petugas' => 'Petugas',
+            default => $roleName ? ucfirst(str_replace(['_', '-'], ' ', $roleName)) : 'Superadmin',
+        };
+    @endphp
+
     <!-- Brand -->
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-5">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0">
+        <a href="{{ route('dinkes.dashboard') }}" class="flex items-center gap-3 min-w-0">
             <x-application-logo class="w-9 h-9 fill-current text-white shrink-0" />
             <span class="min-w-0">
-                <span class="block font-extrabold text-[1.02rem] leading-tight truncate">{{ config('app.name', 'SIPUAS') }}</span>
-                <span class="block text-[0.72rem] text-white/50 font-semibold truncate">{{ Auth::user()->name ?? '' }}</span>
+                <span class="block font-extrabold text-[1.02rem] leading-tight truncate">SKM</span>
+                <span class="block text-[0.72rem] text-white/50 font-semibold truncate">{{ $roleLabel }}</span>
             </span>
         </a>
         <button @click="sidebarOpen = false" class="lg:hidden text-white/60 hover:text-white">
@@ -31,10 +42,10 @@
 
     <!-- Nav links -->
     <nav class="flex-1 overflow-y-auto px-3.5 py-2 space-y-0.5">
-        <a href="{{ route('dashboard') }}"
+        <a href="{{ route('dinkes.dashboard') }}"
            class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition
-                  {{ request()->routeIs('dashboard') ? 'bg-white/[.12] text-white shadow-[inset_3px_0_0_#E4A63B]' : 'text-white/70 hover:bg-white/[.08] hover:text-white' }}">
-            <i class="fa-solid fa-gauge-high w-[18px] text-center"></i>
+                  {{ request()->routeIs('dinkes.dashboard') ? 'bg-white/[.12] text-white shadow-[inset_3px_0_0_#E4A63B]' : 'text-white/70 hover:bg-white/[.08] hover:text-white' }}">
+            <i class="fa-solid fa-house w-[18px] text-center"></i>
             {{ __('Dashboard') }}
         </a>
 
@@ -60,6 +71,6 @@
     </div>
 
     <div class="px-6 pb-5 text-[0.7rem] text-white/35">
-        &copy; {{ date('Y') }} {{ config('app.name', 'SIPUAS') }}
+        &copy; {{ date('Y') }} SKM
     </div>
 </aside>

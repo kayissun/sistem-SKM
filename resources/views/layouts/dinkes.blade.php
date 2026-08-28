@@ -318,6 +318,12 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
                 <li>
+                    <a href="{{ route('profile.edit') }}" class="dropdown-item">
+                        <i class="fa-solid fa-user-gear me-2 text-purple" style="color: var(--sp-purple-700);"></i> Profil
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item">
