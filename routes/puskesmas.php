@@ -34,7 +34,6 @@ Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
         Route::post('/pertanyaan/aksi-massal', [PertanyaanSurveiController::class, 'aksiMassal'])->name('pertanyaan.aksi-massal');
         Route::post('/pertanyaan/form-header-gambar', [PertanyaanSurveiController::class, 'uploadFormHeaderImage'])->name('pertanyaan.form-header-upload');
         Route::delete('/pertanyaan/form-header-gambar', [PertanyaanSurveiController::class, 'hapusFormHeaderImage'])->name('pertanyaan.form-header-hapus');
-        Route::post('/pertanyaan/pengaturan-form', [PertanyaanSurveiController::class, 'togglePisahHalaman'])->name('pertanyaan.pengaturan-form');
 
         Route::resource('unit-layanan', UnitLayananController::class)->except(['show']);
         Route::post('/unit-layanan/aksi-massal', [UnitLayananController::class, 'aksiMassal'])->name('unit-layanan.aksi-massal');

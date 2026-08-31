@@ -25,11 +25,6 @@
     .drag-handle:hover {
         opacity: 1;
     }
-    .floating-toolbar {
-        position: sticky;
-        top: 20px;
-        z-index: 10;
-    }
 </style>
 
 <div x-data="formBuilder()" x-init="initData()" class="container-fluid pb-5">
@@ -51,10 +46,42 @@
         </div>
     </div>
 
-    <div class="row g-4 position-relative">
+    <div class="position-relative">
 
         <!-- Main Form Area -->
-        <div class="col-lg-10">
+        <div>
+
+            <!-- Gambar Identitas Form -->
+            <div class="card mb-4 bg-white" style="border: 2px solid #e4a63b;">
+                <div class="card-body py-3 px-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded" style="width: 48px; height: 48px; background: #fcf1dc;">
+                                <i class="bi bi-image fs-5" style="color: #a66a0e;"></i>
+                            </div>
+                            <div>
+                                <p class="fw-bold mb-0 small" style="color: #a66a0e;">Gambar Identitas Form</p>
+                                <p class="text-muted mb-0" style="font-size: 0.75em;">Banner yang tampil di atas form survei responden</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <template x-if="formHeaderImageUrl">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img :src="formHeaderImageUrl" class="rounded border" style="height: 56px; max-width: 200px; object-fit: cover;">
+                                    <button type="button" @click="hapusFormHeader()" class="btn btn-sm btn-outline-danger" title="Hapus gambar identitas">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </template>
+                            <label class="btn btn-sm mb-0 cursor-pointer" style="border: 1px solid #e4a63b; color: #a66a0e;">
+                                <i class="bi bi-image me-1"></i> <span x-text="formHeaderImageUrl ? 'Ganti' : 'Upload Gambar'"></span>
+                                <input type="file" class="d-none" accept="image/*" @change="uploadFormHeader($event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="sortable-cards" class="space-y-3">
 
                 <!-- 1. JIKA BELUM ADA SOAL SAMA SEKALI -->
@@ -191,13 +218,6 @@
                                     <!-- Footer Actions Kartu Aktif -->
                                     <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <label class="small text-muted mb-0">Layout Mode:</label>
-                                            <select class="form-select form-select-sm w-auto" x-model="editForm.layout_mode" @change="markDirty()">
-                                                <option value="default">Default</option>
-                                                <option value="stacked">Stacked Card</option>
-                                                <option value="separated">Separated Block</option>
-                                            </select>
-
                                             <label class="btn btn-sm btn-outline-secondary mb-0 cursor-pointer">
                                                 <i class="bi bi-image"></i> Upload Gambar
                                                 <input type="file" class="d-none" accept="image/*" @change="uploadGambarHeader($event, item)">
@@ -223,6 +243,13 @@
                                                 <label class="form-check-label small fw-bold" :for="'active-' + item.id" x-text="editForm.is_active ? 'Aktif' : 'Nonaktif'"></label>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <!-- Tombol Tambah Soal di bawah kartu aktif -->
+                                    <div class="text-center mt-3">
+                                        <button type="button" @click="tambahKartu(index)" :disabled="saving" class="btn btn-sm rounded-pill px-3" style="border: 1px dashed #0d6efd; color: #0d6efd; background: transparent;">
+                                            <i class="bi bi-plus-lg me-1"></i> Tambah Soal di Bawah Ini
+                                        </button>
                                     </div>
                                 </div>
 
@@ -258,35 +285,6 @@
             </div>
         </div>
 
-        <!-- Floating Side Menu -->
-        <div class="col-lg-2">
-            <div class="floating-toolbar card shadow-sm p-2 text-center bg-white border">
-                <p class="fw-bold small mb-2 text-start"><i class="bi bi-patch-check text-primary me-1"></i> Identitas Form</p>
-                <template x-if="formHeaderImageUrl">
-                    <div class="position-relative mb-2">
-                        <img :src="formHeaderImageUrl" class="img-fluid rounded border" style="max-height: 90px; object-fit: cover;">
-                        <button type="button" @click="hapusFormHeader()" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" title="Hapus gambar identitas">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </template>
-                <label class="btn btn-sm btn-outline-primary w-100 mb-2 cursor-pointer">
-                    <i class="bi bi-image me-1"></i> <span x-text="formHeaderImageUrl ? 'Ganti Gambar' : 'Upload Gambar'"></span>
-                    <input type="file" class="d-none" accept="image/*" @change="uploadFormHeader($event)">
-                </label>
-                <div class="form-check form-switch text-start small mb-2 border-top pt-2">
-                    <input class="form-check-input" type="checkbox" id="pisahHalamanSwitch" x-model="pisahHalaman" @change="simpanPisahHalaman()">
-                    <label class="form-check-label" for="pisahHalamanSwitch">
-                        Pisah halaman<br><span class="text-muted" style="font-size: 0.75em;">Data diri terpisah dari pertanyaan</span>
-                    </label>
-                </div>
-                <button type="button" @click="tambahKartu()" :disabled="saving" class="btn btn-primary btn-sm w-100 mb-2 py-2">
-                    <i class="bi bi-plus-circle me-1"></i> Tambah Kartu
-                </button>
-                <p class="text-muted text-xs mb-0">Total: <strong x-text="items.length"></strong> Soal</p>
-            </div>
-        </div>
-
     </div>
 </div>
 
@@ -299,7 +297,6 @@
             activeId: null,
             editForm: {},
             formHeaderImageUrl: @json($formHeaderImageUrl),
-            pisahHalaman: @json($pisahHalaman),
             isDirty: false,
             saving: false,
             toastMessage: '',
@@ -452,7 +449,7 @@
                 }
             },
 
-            async tambahKartu() {
+            async tambahKartu(afterIndex) {
                 if (this.saving) return;
 
                 if (this.isDirty && !confirm('Ada perubahan belum disimpan. Lanjutkan menambah pertanyaan?')) {
@@ -473,10 +470,17 @@
                     });
 
                     const newItem = data.data;
-                    this.items.push(newItem);
+
+                    if (afterIndex !== undefined && afterIndex !== null) {
+                        // Sisipkan setelah kartu yang diklik
+                        this.items.splice(afterIndex + 1, 0, newItem);
+                    } else {
+                        this.items.push(newItem);
+                    }
+
                     this.isDirty = false;
                     this.setActive(newItem.id);
-                    this.showToast('Kartu baru ditambahkan');
+                    this.showToast('Soal baru ditambahkan');
                     this.saveReorder(this.items.map(item => item.id));
                 } catch (error) {
                     this.showToast(error.message || 'Gagal menambahkan pertanyaan.', false);
@@ -601,24 +605,6 @@
                         this.showToast('Gambar header dihapus');
                     }
                 } catch (error) {
-                    this.showToast(error.message, false);
-                } finally {
-                    this.saving = false;
-                }
-            },
-
-            async simpanPisahHalaman() {
-                this.saving = true;
-                try {
-                    const data = await this.apiFetch("{{ route('puskesmas.pertanyaan.pengaturan-form') }}", {
-                        method: 'POST',
-                        body: JSON.stringify({ pisah_halaman: this.pisahHalaman })
-                    });
-                    if (data.success) {
-                        this.showToast(data.message);
-                    }
-                } catch (error) {
-                    this.pisahHalaman = !this.pisahHalaman;
                     this.showToast(error.message, false);
                 } finally {
                     this.saving = false;

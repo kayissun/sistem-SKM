@@ -22,7 +22,6 @@ class PertanyaanSurvei extends Model
         'unsur_pelayanan_id', 
         'teks_pertanyaan', 
         'header_image', 
-        'layout_mode',
         'tipe_input',
         'gaya_tampilan', 
         'label_skala_1', 

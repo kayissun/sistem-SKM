@@ -442,7 +442,7 @@
       <div class="hero-text" data-aos="fade-right" data-aos-duration="700">
         <span class="eyebrow">
           <i class="fa-solid fa-landmark"></i>
-          Sistem Informasi Resmi Dinkesda
+          Sistem Informasi
         </span>
         <h1>Survei Kepuasan Masyarakat <em class="accent">Dinas Kesehatan Daerah</em> Kabupaten Purworejo</h1>
         <p class="lead">

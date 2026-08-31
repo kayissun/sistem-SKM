@@ -42,9 +42,8 @@ class PertanyaanSurveiController extends Controller
         $daftarUnsur = UnsurPelayanan::aktif()->get();
         $presetLabel = PresetLabelSkala::daftar();
         $formHeaderImageUrl = Auth::user()->puskesmas->formHeaderImageUrl();
-        $pisahHalaman = Auth::user()->puskesmas->form_pisah_halaman;
 
-        return view('puskesmas.pertanyaan.create', compact('daftarPertanyaan', 'daftarUnsur', 'presetLabel', 'formHeaderImageUrl', 'pisahHalaman'));
+        return view('puskesmas.pertanyaan.create', compact('daftarPertanyaan', 'daftarUnsur', 'presetLabel', 'formHeaderImageUrl'));
     }
 
     public function store(PertanyaanSurveiRequest $request)
@@ -201,22 +200,6 @@ class PertanyaanSurveiController extends Controller
         return response()->json(['success' => true, 'message' => 'Gambar header berhasil diperbarui.', 'data' => $arr]);
     }
 
-    public function togglePisahHalaman(Request $request)
-    {
-        $request->validate(['pisah_halaman' => ['required', 'boolean']]);
-
-        Auth::user()->puskesmas->update([
-            'form_pisah_halaman' => $request->boolean('pisah_halaman'),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => $request->boolean('pisah_halaman')
-                ? 'Form survei akan dipisah per halaman (Data Diri → Pertanyaan).'
-                : 'Form survei dalam satu halaman penuh.',
-        ]);
-    }
-
     public function uploadFormHeaderImage(Request $request)
     {
         $request->validate([
@@ -239,7 +222,7 @@ class PertanyaanSurveiController extends Controller
         ]);
     }
 
-    public function hapusFormHeaderImage()
+    public function hapusFormHeaderImage(Request $request)
     {
         $puskesmas = Auth::user()->puskesmas;
 

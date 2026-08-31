@@ -25,7 +25,6 @@ class PertanyaanSurveiRequest extends FormRequest
             'teks_pertanyaan'    => ['required', 'string', 'max:255'],
             'tipe_input'         => ['required', 'in:skala,teks'],
             'gaya_tampilan'      => ['nullable', 'in:radio,dropdown', 'required_if:tipe_input,skala'],
-            'layout_mode'        => ['nullable', 'in:default,stacked,separated'],
             'header_image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'label_skala_1'      => ['nullable', 'string', 'max:100'],
             'label_skala_2'      => ['nullable', 'string', 'max:100'],
@@ -40,7 +39,6 @@ class PertanyaanSurveiRequest extends FormRequest
     {
         $this->merge([
             'unsur_pelayanan_id' => $this->input('unsur_pelayanan_id') ?: null,
-            'layout_mode'        => $this->input('layout_mode') ?: 'default',
         ]);
 
         if ($this->input('tipe_input') === 'teks') {

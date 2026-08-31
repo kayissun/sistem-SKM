@@ -93,6 +93,20 @@
             box-shadow: 0 0 0 .2rem rgba(109, 40, 217, .15);
         }
 
+        /* --- Opsi dropdown: highlight ungu (bukan biru default browser) --- */
+        select option {
+            background-color: #FFFFFF;
+            color: #180733;
+            padding: .5rem;
+        }
+        select option:hover,
+        select option:focus,
+        select option:checked,
+        select option:selected {
+            background-color: #EDE9FE;
+            color: #6D28D9;
+        }
+
         /* ---------- Sidebar ---------- */
         .sp-sidebar {
             position: fixed;
@@ -357,6 +371,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@include('partials.tom-select')
 <script>
     const spSidebar = document.getElementById('spSidebar');
     const spToggle = document.getElementById('spToggle');
