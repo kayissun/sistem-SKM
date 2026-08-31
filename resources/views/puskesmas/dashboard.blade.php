@@ -25,19 +25,6 @@
     <div class="col-md-4">
         <div class="card h-100 sp-stat-card">
             <div class="card-body">
-                <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
-                    <i class="fa-solid fa-users-gear"></i>
-                </div>
-                <div class="label">Jumlah Petugas</div>
-                <div class="value fs-2">{{ $jumlahPetugas }}</div>
-                <a href="{{ route('puskesmas.petugas.index') }}">Kelola petugas <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card h-100 sp-stat-card">
-            <div class="card-body">
                 <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>

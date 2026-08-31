@@ -345,7 +345,7 @@ function surveiApp() {
             @include('survei.partials.header')
             <div class="skm-body">
                 <div class="skm-alert skm-alert-warning" role="alert">
-                    Survei sedang tidak dibuka saat ini. Silakan hubungi petugas {{ $puskesmas->nama }}.
+                    Survei sedang tidak dibuka saat ini. Silakan hubungi admin {{ $puskesmas->nama }}.
                 </div>
             </div>
         @elseif ($daftarPertanyaan->isEmpty())

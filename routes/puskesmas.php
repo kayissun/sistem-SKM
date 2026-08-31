@@ -3,7 +3,6 @@
 use App\Http\Controllers\Puskesmas\DashboardController;
 use App\Http\Controllers\Puskesmas\LaporanController;
 use App\Http\Controllers\Puskesmas\PertanyaanSurveiController;
-use App\Http\Controllers\Puskesmas\PetugasController;
 use App\Http\Controllers\Puskesmas\TindakLanjutController;
 use App\Http\Controllers\Puskesmas\UnitLayananController;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 | Cara pakai: require file ini dari routes/web.php, contoh:
 |   require __DIR__.'/puskesmas.php';
 |
-| - Kelola petugas, pertanyaan survei, unit layanan: hanya role admin-puskesmas
-| - Laporan: admin-puskesmas & petugas boleh lihat
+| - Pertanyaan survei, unit layanan: hanya role admin-puskesmas
+| - Laporan: admin-puskesmas
 */
 
 Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
@@ -24,8 +23,6 @@ Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
     ->name('puskesmas.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::resource('petugas', PetugasController::class)->except(['show']);
-
         // Resource Pertanyaan
         Route::resource('pertanyaan', PertanyaanSurveiController::class)->except(['show']);
         Route::post('/pertanyaan/reorder', [PertanyaanSurveiController::class, 'reorder'])->name('pertanyaan.reorder');
@@ -51,7 +48,7 @@ Route::middleware(['auth', 'role:admin-puskesmas|dinkes-skm'])
         Route::post('/tindak-lanjut/{tindakLanjut}/progress', [TindakLanjutController::class, 'storeProgress'])->name('tindak-lanjut.progress.store');
     });
 
-Route::middleware(['auth', 'role:admin-puskesmas|petugas'])
+Route::middleware(['auth', 'role:admin-puskesmas'])
     ->prefix('puskesmas')
     ->name('puskesmas.')
     ->group(function () {

@@ -290,9 +290,6 @@
 
         @role('admin-puskesmas')
         <div class="sp-label">Pengaturan</div>
-        <a href="{{ route('puskesmas.petugas.index') }}" class="{{ request()->routeIs('puskesmas.petugas.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-users-gear"></i> Petugas
-        </a>
         <a href="{{ route('puskesmas.pertanyaan.index') }}" class="{{ request()->routeIs('puskesmas.pertanyaan.*') ? 'active' : '' }}">
             <i class="fa-solid fa-file-lines"></i> Pertanyaan Survei
         </a>

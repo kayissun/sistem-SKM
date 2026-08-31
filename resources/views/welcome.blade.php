@@ -278,31 +278,15 @@
     .why-row h3 { margin: 0 0 4px; font-size: 1.03rem; font-weight: 700; color: var(--purple-900); }
     .why-row p { margin: 0; font-size: .92rem; color: var(--ink-muted); }
  
-    /* ---------- How it works — two tracks (tab, no JS) ---------- */
+    /* ---------- How it works ---------- */
     .how-wrap { background: var(--surface-0); border-radius: 32px; padding: 48px 32px; box-shadow: var(--shadow-sm); border: 1px solid rgba(109,40,217,.06); }
-    .tabs input[type="radio"] { display: none; }
-    .tab-labels { display: inline-flex; gap: 6px; background: var(--surface-1); padding: 6px; border-radius: 99px; margin: 0 auto 44px; }
-    .tab-labels label {
-      padding: 10px 22px; border-radius: 99px; font-weight: 700; font-size: .88rem;
-      color: var(--ink-muted); cursor: pointer; transition: all .2s ease;
-    }
-    #tab-warga:checked ~ .tab-labels label[for="tab-warga"],
-    #tab-petugas:checked ~ .tab-labels label[for="tab-petugas"] {
-      background: var(--gradient-primary); color: #fff; box-shadow: 0 8px 16px -4px rgba(46,16,101,.4);
-    }
-    .tab-labels-outer { text-align: center; }
-    .tab-panel { display: none; }
-    #tab-warga:checked ~ .panels #panel-warga { display: block; }
-    #tab-petugas:checked ~ .panels #panel-petugas { display: block; }
  
     .how-grid { display: grid; gap: 40px; position: relative; }
     .how-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .how-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
     .how-grid::before {
       content: ''; position: absolute; top: 30px; left: calc(100% / 6); right: calc(100% / 6);
       height: 0; border-top: 2px dashed rgba(109,40,217,.25); z-index: 0;
     }
-    .how-grid.cols-4::before { left: calc(100% / 8); right: calc(100% / 8); }
     .how-step { text-align: center; padding: 16px; position: relative; z-index: 1; }
     .how-step .num {
       width: 60px; height: 60px; border-radius: 50%; background: var(--gradient-primary); color: #fff;
@@ -394,7 +378,6 @@
       .stat-item { justify-content: flex-start; border: none !important; padding-top: 12px; }
       .cta-banner { padding: 40px 28px; flex-direction: column; text-align: center; }
       .footer-bottom { flex-direction: column; text-align: center; }
-      .tab-labels { flex-direction: column; width: 100%; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -552,10 +535,9 @@
           </div>
           <div class="why-row" data-aos="fade-up" data-aos-duration="600" data-aos-delay="450" data-aos-easing="ease-out-back">
             <div class="num">04</div>
-            <div><h3>Transparansi ke Publik</h3><p>Hasil IKM dapat dipublikasikan sebagai bentuk akuntabilitas layanan kesehatan daerah.</p></div>
+            <div><h3>Transparansi ke Publik</h3><p>Hasil IKM dapat dipublikasikan sebagai bentuk akuntabilitas layanan kesehatan daerah.</p>            </div>
           </div>
         </div>
-      </div>
     </div>
   </section>
 
@@ -563,23 +545,11 @@
     <div class="how-wrap" data-aos="fade-up">
       <div class="section-head">
         <span class="eyebrow"><i class="fa-solid fa-route"></i> Alur Kerja</span>
-        <h2>Dua alur, satu sistem</h2>
-        <p>Pilih sisi yang sesuai dengan peran Anda untuk melihat langkah-langkahnya.</p>
+        <h2>Cara Mengisi Survei</h2>
+        <p>Langkah mudah untuk memberikan penilaian terhadap layanan kesehatan.</p>
       </div>
 
-      <div class="tabs">
-        <input type="radio" name="how-tab" id="tab-warga" checked>
-        <input type="radio" name="how-tab" id="tab-petugas">
-
-        <div class="tab-labels-outer">
-          <div class="tab-labels">
-            <label for="tab-warga">Untuk Masyarakat</label>
-            <label for="tab-petugas">Untuk Petugas Unit</label>
-          </div>
-        </div>
-
-        <div class="panels">
-          <div class="tab-panel" id="panel-warga">
+      <div>
             <div class="how-grid cols-3">
               <div class="how-step" data-aos="zoom-in" data-aos-duration="450">
                 <div class="num"><i class="fa-solid fa-qrcode"></i></div>
@@ -599,30 +569,6 @@
             </div>
           </div>
 
-          <div class="tab-panel" id="panel-petugas">
-            <div class="how-grid cols-4">
-              <div class="how-step" data-aos="zoom-in" data-aos-duration="450">
-                <div class="num"><i class="fa-solid fa-right-to-bracket"></i></div>
-                <h3>1. Login Akun Unit</h3>
-                <p>Masuk menggunakan akun FasKes yang telah didaftarkan Dinkesda.</p>
-              </div>
-              <div class="how-step" data-aos="zoom-in" data-aos-duration="450" data-aos-delay="80">
-                <div class="num"><i class="fa-solid fa-sliders"></i></div>
-                <h3>2. Atur Kuesioner</h3>
-                <p>Sesuaikan pertanyaan per unit layanan mengacu pada 9 unsur pelayanan.</p>
-              </div>
-              <div class="how-step" data-aos="zoom-in" data-aos-duration="450" data-aos-delay="160">
-                <div class="num"><i class="fa-solid fa-print"></i></div>
-                <h3>3. Cetak QR Code</h3>
-                <p>Unduh dan tempel QR code di loket, meja periksa, atau ruang tunggu.</p>
-              </div>
-              <div class="how-step" data-aos="zoom-in" data-aos-duration="450" data-aos-delay="240">
-                <div class="num"><i class="fa-solid fa-gauge-high"></i></div>
-                <h3>4. Pantau Dashboard</h3>
-                <p>Nilai IKM dan rekap tanggapan terlihat langsung di dashboard unit.</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

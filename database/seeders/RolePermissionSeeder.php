@@ -22,7 +22,6 @@ class RolePermissionSeeder extends Seeder
 
             // lingkup admin-puskesmas
             'manage-unit-layanan',   // kelola unit layanan internal (opsional, versi lanjutan)
-            'manage-petugas',        // kelola akun petugas di unitnya sendiri
             'view-laporan-sendiri',  // lihat rekap & laporan IKM unitnya sendiri
         ];
 
@@ -41,20 +40,12 @@ class RolePermissionSeeder extends Seeder
         $adminPuskesmas = Role::firstOrCreate(['name' => 'admin-puskesmas']);
         $adminPuskesmas->syncPermissions([
             'manage-unit-layanan',
-            'manage-petugas',
             'view-laporan-sendiri',
         ]);
 
         $dinkesSkm = Role::firstOrCreate(['name' => 'dinkes-skm']);
         $dinkesSkm->syncPermissions([
             'manage-unit-layanan',
-            'manage-petugas',
-            'view-laporan-sendiri',
-        ]);
-
-        // role turunan, opsional: petugas hanya bisa lihat laporan, tidak kelola akun
-        $petugas = Role::firstOrCreate(['name' => 'petugas']);
-        $petugas->syncPermissions([
             'view-laporan-sendiri',
         ]);
     }

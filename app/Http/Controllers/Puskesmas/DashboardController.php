@@ -16,17 +16,15 @@ class DashboardController extends Controller
         $periodeAktif = PeriodeSurvei::where('is_active', true)->first();
 
         if ($user->hasRole('dinkes-skm')) {
-            $jumlahPetugas = $puskesmas ? $puskesmas->users()->count() : 0;
             $hasilPeriodeAktif = $puskesmas && $periodeAktif ? $service->hitung($puskesmas, $periodeAktif) : null;
 
-            return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'jumlahPetugas', 'hasilPeriodeAktif'))
+            return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'hasilPeriodeAktif'))
                 ->with('roleLabel', 'Dinkes SKM');
         }
 
-        $jumlahPetugas = $puskesmas->users()->count();
         $hasilPeriodeAktif = $periodeAktif ? $service->hitung($puskesmas, $periodeAktif) : null;
 
-        return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'jumlahPetugas', 'hasilPeriodeAktif'))
+        return view('puskesmas.dashboard', compact('puskesmas', 'periodeAktif', 'hasilPeriodeAktif'))
             ->with('roleLabel', 'Admin Puskesmas');
     }
 }

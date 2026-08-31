@@ -4,7 +4,6 @@
     $roleLabel = match ($roleName) {
         'dinkes' => 'Superadmin',
         'admin-puskesmas', 'dinkes-skm' => 'Admin',
-        'petugas' => 'Petugas',
         default => $roleName ? ucfirst(str_replace(['_', '-'], ' ', $roleName)) : 'Tidak diketahui',
     };
 
