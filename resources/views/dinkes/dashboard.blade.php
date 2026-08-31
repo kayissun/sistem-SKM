@@ -2,42 +2,21 @@
 @section('title', 'Dashboard')
 @section('content')
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
-
 <style>
-    :root {
-        --surface-0: #FFFFFF;
-        --surface-1: #FAF8FF;
-        --surface-2: #F3EEFF;
-        --purple-900: #180733;
-        --purple-800: #2E1065;
-        --purple-700: #6D28D9;
-        --purple-600: #7C3AED;
-        --purple-500: #8B5CF6;
-        --purple-100: #EDE9FE;
-        --ink: #14102B;
-        --ink-muted: #625B78;
-        --gold-700: #A66A0E;
-        --gold-600: #C88719;
-        --gold-400: #E4A63B;
-        --gold-100: #FCF1DC;
-        --gradient-primary: linear-gradient(135deg, #7C3AED 0%, #5B21B6 55%, #2A0B5E 100%);
-    }
-
-    /* ===== Page header: fungsional, tanpa sapaan personal ===== */
+    /* ===== Page header ===== */
     .sp-pagehead {
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 14px;
-        margin-bottom: 22px;
+        margin-bottom: 28px;
         padding-bottom: 18px;
-        border-bottom: 1px solid rgba(24, 7, 51, .08);
+        border-bottom: 1px solid rgba(24,7,51,.06);
     }
     .sp-pagehead .eyebrow {
-        font-size: .72rem;
-        font-weight: 800;
+        font-size: .7rem;
+        font-weight: 700;
         letter-spacing: .08em;
         text-transform: uppercase;
         color: var(--gold-700);
@@ -56,7 +35,7 @@
     }
     .sp-pagehead h1 {
         font-weight: 800;
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         color: var(--purple-900);
         margin: 0;
         letter-spacing: -.01em;
@@ -64,120 +43,165 @@
     .sp-pagehead .meta {
         display: flex;
         align-items: center;
-        gap: 18px;
+        gap: 16px;
         flex-wrap: wrap;
     }
     .sp-pagehead .meta-item {
-        font-size: .82rem;
+        font-size: .78rem;
         color: var(--ink-muted);
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 6px;
     }
     .sp-pagehead .meta-item i { color: var(--purple-600); }
     .sp-pagehead .meta-item.status-ok i { color: #10B981; }
 
-    /* ===== Stat cards ===== */
-    .sp-stat-card {
-        border: 1px solid rgba(24, 7, 51, .06);
-        border-radius: 16px;
+    /* ===== Stat row — clean, no colored icon ===== */
+    .sp-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .sp-stat {
+        background: #fff;
+        border: 1px solid rgba(24,7,51,.06);
+        border-radius: 14px;
+        padding: 20px 22px;
         transition: box-shadow .18s, transform .18s;
     }
-    .sp-stat-card:hover {
-        box-shadow: 0 10px 26px rgba(46, 16, 101, .10);
-        transform: translateY(-2px);
+    .sp-stat:hover {
+        box-shadow: 0 8px 20px rgba(46,16,101,.07);
+        transform: translateY(-1px);
     }
-    .sp-stat-card .icon {
-        width: 46px; height: 46px;
-        border-radius: 12px;
+    .sp-stat-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .sp-stat-icon {
+        width: 40px; height: 40px;
+        border-radius: 11px;
         display: flex; align-items: center; justify-content: center;
-        color: #fff; font-size: 1.05rem;
-        margin-bottom: 14px;
+        font-size: .95rem;
+        flex-shrink: 0;
     }
-    .sp-stat-card .label {
-        font-size: .78rem;
-        color: var(--ink-muted);
+    .sp-stat-icon.purple { background: var(--purple-100); color: var(--purple-700); }
+    .sp-stat-icon.gold   { background: var(--gold-100);   color: var(--gold-700); }
+    .sp-stat-icon.green  { background: #ECFDF5;           color: #059669; }
+
+    .sp-stat .stat-label {
+        font-size: .72rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .03em;
+        letter-spacing: .04em;
+        color: var(--ink-muted);
+        margin-bottom: 4px;
     }
-    .sp-stat-card .value { font-weight: 800; color: var(--purple-900); margin: 4px 0 10px; }
-    .sp-stat-card a {
-        font-size: .83rem; font-weight: 700; color: var(--purple-700);
-        text-decoration: none;
-        display: inline-flex; align-items: center; gap: 5px;
+    .sp-stat .stat-value {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: var(--purple-900);
+        line-height: 1.2;
+        margin-bottom: 4px;
     }
-    .sp-stat-card a:hover { color: var(--purple-800); gap: 8px; }
-    .sp-stat-card a i { transition: margin .15s; }
+    .sp-stat .stat-sub {
+        font-size: .78rem;
+        color: var(--ink-muted);
+        font-weight: 500;
+    }
+    .sp-stat a {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .78rem;
+        font-weight: 700;
+        color: var(--purple-700);
+        margin-top: 8px;
+        transition: gap .15s;
+    }
+    .sp-stat a:hover { gap: 8px; }
 
-    /* ===== Akses cepat ===== */
+    /* ===== Section card ===== */
     .sp-section-card {
-        border: 1px solid rgba(24, 7, 51, .06);
-        border-radius: 16px;
+        border: 1px solid rgba(24,7,51,.06);
+        border-radius: 14px;
         overflow: hidden;
     }
     .sp-section-card .card-header {
         background: var(--surface-1);
-        border-bottom: 1px solid rgba(24, 7, 51, .06);
-        font-weight: 800;
+        border-bottom: 1px solid rgba(24,7,51,.06);
+        font-weight: 700;
         color: var(--purple-900);
-        font-size: .95rem;
-        padding: 14px 20px;
+        font-size: .88rem;
+        padding: 13px 20px;
     }
+
+    /* ===== Quick links ===== */
     .sp-quick a {
-        display: flex; align-items: center; gap: 12px;
-        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 16px;
         border-radius: 12px;
-        border: 1px solid rgba(109, 40, 217, .10);
+        border: 1px solid rgba(109,40,217,.08);
         background: #fff;
-        font-weight: 600; font-size: .88rem; color: var(--ink);
+        font-weight: 600;
+        font-size: .84rem;
+        color: var(--ink);
         text-decoration: none;
         transition: .15s;
     }
-    .sp-quick a:hover { background: var(--surface-1); border-color: rgba(109, 40, 217, .25); }
+    .sp-quick a:hover { background: var(--surface-1); border-color: rgba(109,40,217,.2); }
     .sp-quick a i {
-        width: 34px; height: 34px;
+        width: 32px; height: 32px;
         border-radius: 9px;
-        background: var(--purple-100); color: var(--purple-700);
-        display: flex; align-items: center; justify-content: center;
-        font-size: .9rem; flex-shrink: 0;
+        background: var(--purple-100);
+        color: var(--purple-700);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .85rem;
+        flex-shrink: 0;
     }
 
-    /* ===== Tabel klaster performa ===== */
+    /* ===== Cluster table ===== */
     .sp-cluster-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: .88rem;
+        font-size: .84rem;
     }
     .sp-cluster-table thead th {
         text-align: left;
-        font-size: .72rem;
-        font-weight: 800;
+        font-size: .7rem;
+        font-weight: 700;
         letter-spacing: .04em;
         text-transform: uppercase;
         color: var(--ink-muted);
         background: var(--surface-1);
-        padding: 12px 16px;
-        border-bottom: 1px solid rgba(24, 7, 51, .08);
+        padding: 11px 16px;
+        border-bottom: 1px solid rgba(24,7,51,.06);
     }
     .sp-cluster-table thead th:first-child { border-top-left-radius: 10px; }
     .sp-cluster-table thead th:last-child { border-top-right-radius: 10px; }
     .sp-cluster-table tbody td {
-        padding: 12px 16px;
+        padding: 11px 16px;
         color: var(--ink);
-        border-bottom: 1px solid rgba(24, 7, 51, .05);
+        border-bottom: 1px solid rgba(24,7,51,.04);
     }
     .sp-cluster-table tbody tr:last-child td { border-bottom: none; }
     .sp-cluster-table tbody tr:hover td { background: var(--surface-1); }
     .sp-cluster-table .unit-name { font-weight: 700; color: var(--purple-900); }
-    .sp-cluster-table .nilai { font-weight: 800; color: var(--purple-700); }
+    .sp-cluster-table .nilai { font-weight: 700; color: var(--purple-700); }
+
     .sp-badge-cluster {
         display: inline-block;
-        padding: 3px 11px;
-        border-radius: 999px;
-        font-size: .74rem;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: .72rem;
         font-weight: 700;
     }
     .sp-badge-cluster.c-tinggi { background: #DCFCE7; color: #15803D; }
@@ -186,30 +210,18 @@
 
     .sp-empty-state {
         text-align: center;
-        padding: 46px 20px;
+        padding: 44px 20px;
         color: var(--ink-muted);
     }
-    .sp-empty-state i {
-        font-size: 1.8rem;
-        color: var(--purple-500);
-        margin-bottom: 10px;
-        display: block;
-    }
+    .sp-empty-state i { font-size: 1.6rem; color: var(--purple-500); margin-bottom: 10px; display: block; }
 
-    /* loadingbar */
-    #nprogress .bar {
-        background: linear-gradient(90deg, #7C3AED, #C88719) !important;
-        height: 3px !important;
+    @media (max-width: 768px) {
+        .sp-stats { grid-template-columns: 1fr; }
     }
-    #nprogress .peg {
-        box-shadow: 0 0 10px #7C3AED, 0 0 5px #C88719 !important;
-    }
-    #nprogress .spinner { display: none; }
 </style>
 
 <div class="sp-pagehead">
     <div>
-        <div class="eyebrow">Dinkesda Kabupaten Purworejo</div>
         <h1>Dashboard</h1>
     </div>
     <div class="meta">
@@ -222,48 +234,47 @@
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card h-100 sp-stat-card">
-            <div class="card-body">
-                <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
-                    <i class="fa-solid fa-hospital"></i>
-                </div>
-                <div class="label">Unit Aktif</div>
-                <div class="value fs-2">{{ $jumlahUnit }}</div>
-                <a href="{{ route('dinkes.puskesmas.index') }}">Kelola unit <i class="fa-solid fa-arrow-right"></i></a>
+{{-- Stat tanpa icon berwarna --}}
+<div class="sp-stats">
+    <div class="sp-stat">
+        <div class="sp-stat-head">
+            <div class="sp-stat-icon purple"><i class="fa-solid fa-hospital"></i></div>
+            <div>
+                <div class="stat-label">Unit Aktif</div>
+                <div class="stat-value">{{ $jumlahUnit }}</div>
             </div>
         </div>
+        <div class="stat-sub">Puskesmas &amp; RSU terdaftar</div>
+        <a href="{{ route('dinkes.puskesmas.index') }}">Kelola unit</a>
     </div>
 
-    <div class="col-md-4">
-        <div class="card h-100 sp-stat-card">
-            <div class="card-body">
-                <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
-                    <i class="fa-solid fa-calendar-days"></i>
-                </div>
-                <div class="label">Periode Survei Aktif</div>
-                <div class="value fs-5">{{ $periodeAktif->nama ?? 'Belum ada' }}</div>
-                <a href="{{ route('dinkes.periode-survei.index') }}">Kelola periode <i class="fa-solid fa-arrow-right"></i></a>
+    <div class="sp-stat">
+        <div class="sp-stat-head">
+            <div class="sp-stat-icon gold"><i class="fa-solid fa-calendar-days"></i></div>
+            <div>
+                <div class="stat-label">Periode Survei Aktif</div>
+                <div class="stat-value" style="font-size:1.15rem;">{{ $periodeAktif->nama ?? '—' }}</div>
             </div>
         </div>
+        <div class="stat-sub">{{ $periodeAktif ? $periodeAktif->tanggal_mulai->format('d M Y') . ' – ' . $periodeAktif->tanggal_selesai->format('d M Y') : 'Belum ada periode aktif' }}</div>
+        <a href="{{ route('dinkes.periode-survei.index') }}">Kelola periode</a>
     </div>
 
-    <div class="col-md-4">
-        <div class="card h-100 sp-stat-card">
-            <div class="card-body">
-                <div class="icon" style="background: linear-gradient(135deg,#10B981,#047857)">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div class="label">Laporan</div>
-                <div class="value fs-6">Rekap IKM seluruh unit</div>
-                <a href="{{ route('dinkes.laporan.index') }}">Buka laporan <i class="fa-solid fa-arrow-right"></i></a>
+    <div class="sp-stat">
+        <div class="sp-stat-head">
+            <div class="sp-stat-icon green"><i class="fa-solid fa-chart-line"></i></div>
+            <div>
+                <div class="stat-label">Laporan IKM</div>
+                <div class="stat-value" style="font-size:1.15rem;">Rekap Seluruh Unit</div>
             </div>
         </div>
+        <div class="stat-sub">Indeks Kepuasan Masyarakat per unit</div>
+        <a href="{{ route('dinkes.laporan.index') }}">Buka laporan</a>
     </div>
 </div>
 
-<div class="card sp-section-card mt-4">
+{{-- Akses Cepat --}}
+<div class="card sp-section-card mb-4">
     <div class="card-header">Akses Cepat</div>
     <div class="card-body">
         <div class="row g-3 sp-quick">
@@ -286,7 +297,8 @@
     </div>
 </div>
 
-<div class="card sp-section-card mt-4">
+{{-- Tabel Klaster --}}
+<div class="card sp-section-card">
     <div class="card-header">Klaster Performa Unit</div>
     <div class="card-body p-0">
         @if($clusters->count())
@@ -296,7 +308,7 @@
                     <tr>
                         <th>Unit</th>
                         <th>Nilai</th>
-                        <th>Cluster</th>
+                        <th>Klaster</th>
                         <th>Rekomendasi</th>
                     </tr>
                 </thead>
@@ -329,33 +341,5 @@
         @endif
     </div>
 </div>
-
-<!-- loading-bar -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
-<script>
-    NProgress.configure({ showSpinner: false, trickleSpeed: 120, minimum: 0.15 });
-
-    NProgress.start();
-    window.addEventListener('load', () => NProgress.done());
-
-    document.addEventListener('click', function (e) {
-        const link = e.target.closest('a');
-        if (!link) return;
-
-        const url = link.getAttribute('href') || '';
-        const isSameOrigin = link.hostname === window.location.hostname;
-        const isHash = url.startsWith('#');
-        const isNewTab = link.target === '_blank';
-        const isSpecial = url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('javascript:');
-
-        if (isSameOrigin && !isHash && !isNewTab && !isSpecial) {
-            NProgress.start();
-        }
-    });
-
-    document.addEventListener('submit', function () {
-        NProgress.start();
-    });
-</script>
 
 @endsection
