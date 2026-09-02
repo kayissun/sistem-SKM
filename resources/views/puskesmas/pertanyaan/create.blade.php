@@ -7,284 +7,380 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <style>
+    /* ===== Form Builder overrides ===== */
     .gform-card {
-        transition: all 0.2s ease-in-out;
-        border-left: 6px solid transparent;
+        transition: all .2s ease-in-out;
+        border-left: 5px solid transparent;
+        border-radius: 14px;
     }
     .gform-card.active-card {
         border-left-color: #7C3AED;
-        box-shadow: 0 4px 14px rgba(109,40,217,.18);
+        box-shadow: 0 8px 24px rgba(109,40,217,.12);
+        background: #fff;
     }
     .gform-card.dirty-card {
-        border-left-color: #C88719 !important; /* Warna emas jika ada perubahan belum disimpan */
+        border-left-color: #C88719 !important;
+        box-shadow: 0 8px 24px rgba(200,135,25,.10);
     }
+    .gform-card:hover:not(.active-card) {
+        box-shadow: 0 4px 14px rgba(46,16,101,.06);
+    }
+
     .drag-handle {
         cursor: grab;
-        opacity: 0.3;
+        opacity: .3;
+        transition: opacity .15s;
     }
-    .drag-handle:hover {
-        opacity: 1;
+    .drag-handle:hover { opacity: 1; }
+
+    .gf-icon {
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .95rem;
+        flex-shrink: 0;
+    }
+    .gf-icon.purple { background: #EDE9FE; color: #6D28D9; }
+    .gf-icon.gold   { background: #FCF1DC; color: #A66A0E; }
+    .gf-icon.green  { background: #ECFDF5; color: #059669; }
+    .gf-icon.red    { background: #FEE2E2; color: #B91C1C; }
+
+    .gf-action-btn {
+        width: 30px; height: 30px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 8px; border: 1px solid rgba(109,40,217,.12);
+        background: #fff; color: #6B6480;
+        font-size: .82rem;
+        transition: .15s;
+    }
+    .gf-action-btn:hover { background: #FAF8FF; color: #6D28D9; border-color: rgba(109,40,217,.25); }
+    .gf-action-btn.danger { color: #B91C1C; border-color: rgba(185,28,28,.15); }
+    .gf-action-btn.danger:hover { background: #FEF2F2; color: #B91C1C; border-color: rgba(185,28,28,.3); }
+
+    .gf-question-num {
+        width: 30px; height: 30px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #7C3AED, #2A0B5E);
+        color: #fff;
+        font-weight: 800; font-size: .78rem;
+    }
+
+    .gf-add-btn {
+        border: 1.5px dashed #C4B5FD;
+        background: transparent;
+        color: #7C3AED;
+        border-radius: 99px;
+        padding: 6px 18px;
+        font-weight: 700;
+        font-size: .8rem;
+        transition: .15s;
+    }
+    .gf-add-btn:hover {
+        background: #F3EEFF;
+        border-color: #7C3AED;
+    }
+
+    .gf-badge {
+        display: inline-block;
+        font-size: .68rem;
+        font-weight: 700;
+        padding: .3em .7em;
+        border-radius: 99px;
+    }
+    .gf-badge.skala { background: #EDE9FE; color: #6D28D9; border: 1px solid #DDD6FE; }
+    .gf-badge.teks  { background: #FCF1DC; color: #A66A0E; border: 1px solid #F0DFB2; }
+
+    .gf-scale-label {
+        display: block;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        margin-bottom: 4px;
     }
 </style>
 
-<div x-data="formBuilder()" x-init="initData()" class="container-fluid pb-5">
+<div x-data="formBuilder()" x-init="initData()" class="pb-5">
 
-    <!-- Header & Tombol Kembali -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    {{-- ===== PAGE HEADER ===== --}}
+    <div class="sp-pagehead">
         <div>
-            <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-text text-primary me-2"></i>Form Builder Pertanyaan SKM</h3>
-            <p class="text-muted small mb-0">Klik kartu untuk mengedit. Tekan <strong>Simpan Pertanyaan</strong> setelah mengubah data.</p>
+            <div class="eyebrow">Form Builder</div>
+            <h1><i class="bi bi-file-earmark-text me-2" style="font-size:1.1rem;"></i>Pertanyaan Survei SKM</h1>
         </div>
-        <div class="d-flex align-items-center gap-3">
-            <span x-show="isDirty" class="badge" style="background:#FCF1DC;color:#A66A0E;border:1px solid #F0DFB2;"><i class="bi bi-exclamation-circle me-1"></i>Ada perubahan belum disimpan</span>
-            <span x-show="saving" class="spinner-border spinner-border-sm text-primary" role="status"></span>
-            <span x-text="toastMessage" class="badge" :class="toastSuccess ? 'bg-success' : 'bg-danger'" x-show="toastMessage"></span>
-
-            <a href="{{ route('puskesmas.pertanyaan.index') }}" @click="confirmLeave($event)" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
+        <div class="meta">
+            <div x-show="isDirty" class="meta-item" style="color:#A66A0E;">
+                <i class="fa-solid fa-circle-exclamation"></i> Belum disimpan
+            </div>
+            <div x-show="saving" class="meta-item">
+                <span class="spinner-border spinner-border-sm text-primary" role="status"></span> Menyimpan…
+            </div>
+            <span x-text="toastMessage" class="gf-badge" :class="toastSuccess ? 'skala' : 'teks'" x-show="toastMessage"
+                style="padding:.4em .9em; font-size:.78rem;"></span>
+            <a href="{{ route('puskesmas.pertanyaan.index') }}" @click="confirmLeave($event)" class="sp-icon-btn" title="Kembali">
+                <i class="bi bi-arrow-left"></i>
             </a>
         </div>
     </div>
 
     <div class="position-relative">
 
-        <!-- Main Form Area -->
-        <div>
-
-            <!-- Gambar Identitas Form -->
-            <div class="card mb-4 bg-white" style="border: 2px solid #e4a63b;">
-                <div class="card-body py-3 px-4">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="d-flex align-items-center justify-content-center rounded" style="width: 48px; height: 48px; background: #fcf1dc;">
-                                <i class="bi bi-image fs-5" style="color: #a66a0e;"></i>
-                            </div>
-                            <div>
-                                <p class="fw-bold mb-0 small" style="color: #a66a0e;">Gambar Identitas Form</p>
-                                <p class="text-muted mb-0" style="font-size: 0.75em;">Banner yang tampil di atas form survei responden</p>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <template x-if="formHeaderImageUrl">
-                                <div class="d-flex align-items-center gap-2">
-                                    <img :src="formHeaderImageUrl" class="rounded border" style="height: 56px; max-width: 200px; object-fit: cover;">
-                                    <button type="button" @click="hapusFormHeader()" class="btn btn-sm btn-outline-danger" title="Hapus gambar identitas">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </template>
-                            <label class="btn btn-sm mb-0 cursor-pointer" style="border: 1px solid #e4a63b; color: #a66a0e;">
-                                <i class="bi bi-image me-1"></i> <span x-text="formHeaderImageUrl ? 'Ganti' : 'Upload Gambar'"></span>
-                                <input type="file" class="d-none" accept="image/*" @change="uploadFormHeader($event)">
-                            </label>
-                        </div>
+        {{-- ===== GAMBAR IDENTITAS FORM ===== --}}
+        <div class="sp-section-card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="gf-icon gold">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size:.92rem; color:#180733;">Gambar Identitas Form</div>
+                        <div style="font-size:.76rem; color:#635C7A;">Banner yang tampil di atas form survei responden</div>
                     </div>
                 </div>
-            </div>
-
-            <div id="sortable-cards" class="space-y-3">
-
-                <!-- 1. JIKA BELUM ADA SOAL SAMA SEKALI -->
-                <template x-if="items.length === 0">
-                    <div class="text-center p-5 border border-dashed rounded bg-white">
-                        <p class="text-muted mb-3">Belum ada pertanyaan survei.</p>
-                        <button type="button" @click="tambahKartu()" :disabled="saving" class="btn btn-primary btn-sm rounded-pill px-4">
-                            <i class="bi bi-plus-lg me-1"></i> Buat Pertanyaan Pertama
-                        </button>
-                    </div>
-                </template>
-
-                <!-- 2. LOOP DAFTAR PERTANYAAN -->
-                <template x-for="(item, index) in items" :key="item.id">
-                    <div class="position-relative mb-3">
-
-                        <!-- Nomor urut & tombol geser atas/bawah -->
-                        <div class="position-absolute top-0 start-0 m-2 d-flex align-items-center gap-1" style="z-index: 5;">
-                            <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" x-text="index + 1"></span>
-                            <button type="button" @click.stop="geserKartu(index, -1)" :disabled="index === 0 || saving" class="btn btn-sm btn-light border shadow-sm" title="Geser ke Atas">
-                                <i class="bi bi-arrow-up"></i>
-                            </button>
-                            <button type="button" @click.stop="geserKartu(index, 1)" :disabled="index === items.length - 1 || saving" class="btn btn-sm btn-light border shadow-sm" title="Geser ke Bawah">
-                                <i class="bi bi-arrow-down"></i>
-                            </button>
-                        </div>
-
-                        <!-- Tombol aksi cepat (selalu tampil di pojok kanan atas kartu) -->
-                        <div class="position-absolute top-0 end-0 m-2 d-flex gap-1" style="z-index: 5;">
-                            <button type="button" @click.stop="duplikatItem(item.id)" class="btn btn-sm btn-light border shadow-sm" title="Duplikat">
-                                <i class="bi bi-files"></i>
-                            </button>
-                            <button type="button" @click.stop="hapusItem(item.id)" class="btn btn-sm btn-light border shadow-sm text-danger" title="Hapus">
+                <div class="d-flex align-items-center gap-2">
+                    <template x-if="formHeaderImageUrl">
+                        <div class="d-flex align-items-center gap-2">
+                            <img :src="formHeaderImageUrl" class="rounded" style="height:52px; max-width:180px; object-fit:cover; border:2px solid #E4DEF7;">
+                            <button type="button" @click="hapusFormHeader()" class="gf-action-btn danger" title="Hapus gambar identitas">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
-
-                        <!-- KARTU PERTANYAAN -->
-                        <div
-                            :data-id="item.id"
-                            @click="setActive(item.id)"
-                            class="card gform-card border-1"
-                            :class="{
-                                'active-card bg-white': activeId === item.id,
-                                'bg-light border-light': activeId !== item.id,
-                                'dirty-card': activeId === item.id && isDirty
-                            }"
-                        >
-                            <!-- Drag Handle -->
-                            <div class="text-center py-1 bg-light border-bottom drag-handle rounded-top">
-                                <i class="bi bi-grip-horizontal fs-6"></i>
-                            </div>
-
-                            <div class="card-body p-4">
-
-                                <!-- A. STATE EDITING (AKTIF) -->
-                                <div x-show="activeId === item.id">
-
-                                    <!-- Header Image Banner -->
-                                    <template x-if="editForm.header_image_url">
-                                        <div class="position-relative mb-3">
-                                            <img :src="editForm.header_image_url" class="img-fluid rounded w-100" style="max-height: 180px; object-fit: cover;">
-                                            <button @click.stop="hapusGambarHeader(item)" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2">
-                                                <i class="bi bi-trash"></i> Hapus Gambar
-                                            </button>
-                                        </div>
-                                    </template>
-
-                                    <!-- Teks Pertanyaan & Dropdown Tipe -->
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-md-8">
-                                            <label class="form-label text-muted small fw-bold">Teks Pertanyaan</label>
-                                            <input
-                                                type="text"
-                                                class="form-control form-control-lg border-0 border-bottom rounded-0 bg-light"
-                                                x-model="editForm.teks_pertanyaan"
-                                                @input="markDirty()"
-                                                placeholder="Tuliskan pertanyaan di sini..."
-                                            >
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label text-muted small fw-bold">Tipe Jawaban</label>
-                                            <select class="form-select" x-model="editForm.tipe_input" @change="markDirty()">
-                                                <option value="skala">Skala Likert (1 - 4)</option>
-                                                <option value="teks">Teks Isian/Saran Bebas</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <!-- Opsi Khusus Tipe Skala -->
-                                    <template x-if="editForm.tipe_input === 'skala'">
-                                        <div class="bg-light p-3 rounded mb-3 border">
-                                            <div class="row g-2 mb-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label text-muted small">Terkait Unsur SKM Wajib</label>
-                                                    <select class="form-select form-select-sm" x-model="editForm.unsur_pelayanan_id" @change="terpilihUnsur()">
-                                                        <option value="">-- Pertanyaan Tambahan (Tanpa Unsur) --</option>
-                                                        <template x-for="unsur in daftarUnsur" :key="unsur.id">
-                                                            <option :value="unsur.id" :selected="unsur.id == editForm.unsur_pelayanan_id" x-text="unsur.kode + ' - ' + unsur.nama_unsur"></option>
-                                                        </template>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label text-muted small">Gaya Tampilan Skala</label>
-                                                    <select class="form-select form-select-sm" x-model="editForm.gaya_tampilan" @change="markDirty()">
-                                                        <option value="radio">Radio Button Vertical</option>
-                                                        <option value="dropdown">Dropdown Select</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <label class="form-label text-muted small fw-bold mb-2">Label Opsi Jawaban Skala (1 - 4):</label>
-                                            <div class="row g-2">
-                                                <div class="col-6 col-md-3">
-                                                    <span class="badge bg-secondary mb-1">Skala 1</span>
-                                                    <input type="text" class="form-control form-control-sm" x-model="editForm.label_skala_1" @input="markDirty()" placeholder="Sangat Tidak Baik">
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <span class="badge bg-secondary mb-1">Skala 2</span>
-                                                    <input type="text" class="form-control form-control-sm" x-model="editForm.label_skala_2" @input="markDirty()" placeholder="Kurang Baik">
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <span class="badge bg-secondary mb-1">Skala 3</span>
-                                                    <input type="text" class="form-control form-control-sm" x-model="editForm.label_skala_3" @input="markDirty()" placeholder="Baik">
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <span class="badge bg-secondary mb-1">Skala 4</span>
-                                                    <input type="text" class="form-control form-control-sm" x-model="editForm.label_skala_4" @input="markDirty()" placeholder="Sangat Baik">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <!-- Footer Actions Kartu Aktif -->
-                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <label class="btn btn-sm btn-outline-secondary mb-0 cursor-pointer">
-                                                <i class="bi bi-image"></i> Upload Gambar
-                                                <input type="file" class="d-none" accept="image/*" @change="uploadGambarHeader($event, item)">
-                                            </label>
-                                        </div>
-
-                                        <div class="d-flex align-items-center gap-2">
-                                            <!-- Tombol Simpan & Batal Manual -->
-                                            <button x-show="isDirty" @click="saveActiveCard()" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-check-circle me-1"></i> Simpan Pertanyaan
-                                            </button>
-                                            <button x-show="isDirty" @click="resetActiveCard()" class="btn btn-sm btn-outline-secondary">
-                                                Batal
-                                            </button>
-
-                                            <div class="vr mx-1"></div>
-
-                                            <button @click.stop="duplikatItem(item.id)" class="btn btn-sm btn-link text-muted p-0" title="Duplikat"><i class="bi bi-files fs-5"></i></button>
-                                            <button @click.stop="hapusItem(item.id)" class="btn btn-sm btn-link text-danger p-0" title="Hapus"><i class="bi bi-trash fs-5"></i></button>
-                                            <div class="vr mx-1"></div>
-                                            <div class="form-check form-switch mb-0">
-                                                <input class="form-check-input" type="checkbox" :id="'active-' + item.id" x-model="editForm.is_active" @change="markDirty()">
-                                                <label class="form-check-label small fw-bold" :for="'active-' + item.id" x-text="editForm.is_active ? 'Aktif' : 'Nonaktif'"></label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Tombol Tambah Soal di bawah kartu aktif -->
-                                    <div class="text-center mt-3">
-                                        <button type="button" @click="tambahKartu(index)" :disabled="saving" class="btn btn-sm rounded-pill px-3" style="border: 1px dashed #7C3AED; color: #7C3AED; background: transparent;">
-                                            <i class="bi bi-plus-lg me-1"></i> Tambah Soal di Bawah Ini
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- B. STATE PREVIEW (UNFOCUSED / READ-ONLY) -->
-                                <div x-show="activeId !== item.id">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h5 class="fw-bold mb-1" x-text="(index + 1) + '. ' + (item.teks_pertanyaan || 'Pertanyaan Tanpa Judul')"></h5>
-
-                                            <template x-if="item.header_image_url">
-                                                <img :src="item.header_image_url" class="img-thumbnail my-2" style="max-height: 80px;">
-                                            </template>
-
-                                            <div class="d-flex gap-2 align-items-center mt-2">
-                                                <span class="badge" :class="item.tipe_input === 'teks' ? 'bg-gold' : 'bg-secondary'" x-text="item.tipe_input === 'teks' ? 'Teks Isian' : 'Skala Likert (1-4)'"></span>
-
-                                                <template x-if="item.unsur_pelayanan">
-                                                    <span class="badge bg-primary" x-text="item.unsur_pelayanan.kode"></span>
-                                                </template>
-
-                                                <span x-text="item.is_active ? 'Aktif' : 'Nonaktif'" :class="item.is_active ? 'badge-status-active' : 'badge-status-inactive'"></span>
-                                            </div>
-                                        </div>
-                                        <i class="bi bi-pencil text-muted"></i>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </template>
-
+                    </template>
+                    <label class="gf-action-btn cursor-pointer" title="Upload gambar">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <input type="file" class="d-none" accept="image/*" @change="uploadFormHeader($event)">
+                    </label>
+                </div>
             </div>
         </div>
 
+        {{-- ===== DAFTAR PERTANYAAN ===== --}}
+        <div id="sortable-cards">
+
+            {{-- Empty state --}}
+            <template x-if="items.length === 0">
+                <div class="sp-empty-state">
+                    <i class="bi bi-inbox" style="font-size:2.2rem;"></i>
+                    <p class="mb-3">Belum ada pertanyaan survei.</p>
+                    <button type="button" @click="tambahKartu()" :disabled="saving" class="btn btn-primary btn-sm rounded-pill px-4">
+                        <i class="bi bi-plus-lg me-1"></i> Buat Pertanyaan Pertama
+                    </button>
+                </div>
+            </template>
+
+            {{-- Loop pertanyaan --}}
+            <template x-for="(item, index) in items" :key="item.id">
+                <div class="position-relative mb-3">
+
+                    {{-- Nomor urut --}}
+                    <div class="position-absolute top-0 start-0 m-2 d-flex align-items-center gap-1" style="z-index:5;">
+                        <span class="gf-question-num" x-text="index + 1"></span>
+                        <button type="button" @click.stop="geserKartu(index, -1)" :disabled="index === 0 || saving"
+                            class="gf-action-btn" title="Geser ke atas">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                        <button type="button" @click.stop="geserKartu(index, 1)" :disabled="index === items.length - 1 || saving"
+                            class="gf-action-btn" title="Geser ke bawah">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
+
+                    {{-- Aksi cepat --}}
+                    <div class="position-absolute top-0 end-0 m-2 d-flex gap-1" style="z-index:5;">
+                        <button type="button" @click.stop="duplikatItem(item.id)" class="gf-action-btn" title="Duplikat">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                        <button type="button" @click.stop="hapusItem(item.id)" class="gf-action-btn danger" title="Hapus">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+
+                    {{-- KARTU PERTANYAAN --}}
+                    <div :data-id="item.id"
+                        @click="setActive(item.id)"
+                        class="card gform-card"
+                        :class="{
+                            'active-card': activeId === item.id,
+                            'bg-white': activeId === item.id,
+                            'bg-light bg-opacity-50 border-light': activeId !== item.id,
+                            'dirty-card': activeId === item.id && isDirty
+                        }">
+
+                        {{-- Drag handle --}}
+                        <div class="text-center py-1 border-bottom drag-handle rounded-top" style="background:#FAF8FF;">
+                            <i class="bi bi-grip-horizontal" style="color:#C4B5FD; font-size:1rem;"></i>
+                        </div>
+
+                        <div class="card-body p-4">
+
+                            {{-- A. EDITING STATE --}}
+                            <div x-show="activeId === item.id">
+
+                                {{-- Header Image Banner --}}
+                                <template x-if="editForm.header_image_url">
+                                    <div class="position-relative mb-3">
+                                        <img :src="editForm.header_image_url" class="img-fluid rounded w-100" style="max-height:160px; object-fit:cover;">
+                                        <button @click.stop="hapusGambarHeader(item)"
+                                            class="btn btn-sm position-absolute top-0 end-0 m-2"
+                                            style="background:#B91C1C; color:#fff; border:none; border-radius:8px;">
+                                            <i class="bi bi-trash3 me-1"></i> Hapus
+                                        </button>
+                                    </div>
+                                </template>
+
+                                {{-- Teks Pertanyaan & Tipe --}}
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-8">
+                                        <label class="sp-section-label">Teks Pertanyaan</label>
+                                        <input type="text" class="form-control" style="border:1px solid #E4DEF7; border-radius:10px; padding:10px 14px;"
+                                            x-model="editForm.teks_pertanyaan" @input="markDirty()"
+                                            placeholder="Tuliskan pertanyaan di sini…">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="sp-section-label">Tipe Jawaban</label>
+                                        <select class="form-select" style="border-radius:10px; padding:10px 14px;"
+                                            x-model="editForm.tipe_input" @change="markDirty()">
+                                            <option value="skala">Skala Likert (1–4)</option>
+                                            <option value="teks">Teks Isian / Saran Bebas</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {{-- Opsi Khusus Tipe Skala --}}
+                                <template x-if="editForm.tipe_input === 'skala'">
+                                    <div style="background:#FAF8FF; border:1px solid #E4DEF7; border-radius:12px; padding:18px;" class="mb-3">
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                <label class="sp-section-label">Terkait Unsur SKM</label>
+                                                <select class="form-select form-select-sm" style="border-radius:8px;"
+                                                    x-model="editForm.unsur_pelayanan_id" @change="terpilihUnsur()">
+                                                    <option value="">— Pertanyaan Tambahan —</option>
+                                                    <template x-for="unsur in daftarUnsur" :key="unsur.id">
+                                                        <option :value="unsur.id" :selected="unsur.id == editForm.unsur_pelayanan_id"
+                                                            x-text="unsur.kode + ' — ' + unsur.nama_unsur"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="sp-section-label">Gaya Tampilan</label>
+                                                <select class="form-select form-select-sm" style="border-radius:8px;"
+                                                    x-model="editForm.gaya_tampilan" @change="markDirty()">
+                                                    <option value="radio">Radio Button Vertical</option>
+                                                    <option value="dropdown">Dropdown Select</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <label class="sp-section-label mb-2">Label Opsi Jawaban Skala (1–4)</label>
+                                        <div class="row g-2">
+                                            <div class="col-6 col-md-3">
+                                                <span class="gf-badge skala mb-1">Skala 1</span>
+                                                <input type="text" class="form-control form-control-sm" style="border-radius:8px;"
+                                                    x-model="editForm.label_skala_1" @input="markDirty()"
+                                                    placeholder="Sangat Tidak Baik">
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <span class="gf-badge skala mb-1">Skala 2</span>
+                                                <input type="text" class="form-control form-control-sm" style="border-radius:8px;"
+                                                    x-model="editForm.label_skala_2" @input="markDirty()"
+                                                    placeholder="Kurang Baik">
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <span class="gf-badge skala mb-1">Skala 3</span>
+                                                <input type="text" class="form-control form-control-sm" style="border-radius:8px;"
+                                                    x-model="editForm.label_skala_3" @input="markDirty()"
+                                                    placeholder="Baik">
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <span class="gf-badge skala mb-1">Skala 4</span>
+                                                <input type="text" class="form-control form-control-sm" style="border-radius:8px;"
+                                                    x-model="editForm.label_skala_4" @input="markDirty()"
+                                                    placeholder="Sangat Baik">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Footer Actions --}}
+                                <div class="d-flex justify-content-between align-items-center pt-3" style="border-top:1px solid #E4DEF7;">
+                                    <div>
+                                        <label class="gf-action-btn cursor-pointer" title="Upload gambar header">
+                                            <i class="bi bi-image"></i>
+                                            <input type="file" class="d-none" accept="image/*" @change="uploadGambarHeader($event, item)">
+                                        </label>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button x-show="isDirty" @click="saveActiveCard()"
+                                            class="btn btn-primary btn-sm" style="border-radius:8px; padding:6px 14px;">
+                                            <i class="bi bi-check-lg me-1"></i> Simpan
+                                        </button>
+                                        <button x-show="isDirty" @click="resetActiveCard()"
+                                            class="btn btn-outline-secondary btn-sm" style="border-radius:8px; padding:6px 14px;">
+                                            Batal
+                                        </button>
+
+                                        <div class="vr mx-1" style="height:24px;"></div>
+
+                                        <button @click.stop="duplikatItem(item.id)" class="gf-action-btn" title="Duplikat">
+                                            <i class="bi bi-copy"></i>
+                                        </button>
+                                        <button @click.stop="hapusItem(item.id)" class="gf-action-btn danger" title="Hapus">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+
+                                        <div class="vr mx-1" style="height:24px;"></div>
+
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox"
+                                                :id="'active-' + item.id" x-model="editForm.is_active" @change="markDirty()">
+                                            <label class="form-check-label small fw-bold" :for="'active-' + item.id"
+                                                x-text="editForm.is_active ? 'Aktif' : 'Nonaktif'"
+                                                :style="editForm.is_active ? 'color:#A66A0E' : 'color:#6B6480'"></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Tambah Soal --}}
+                                <div class="text-center mt-3">
+                                    <button type="button" @click="tambahKartu(index)" :disabled="saving" class="gf-add-btn">
+                                        <i class="bi bi-plus-lg me-1"></i> Tambah Soal di Bawah Ini
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- B. PREVIEW STATE --}}
+                            <div x-show="activeId !== item.id" class="d-flex justify-content-between align-items-start">
+                                <div style="min-width:0;">
+                                    <h5 class="fw-bold mb-1" style="color:#180733; font-size:.95rem;"
+                                        x-text="(index + 1) + '. ' + (item.teks_pertanyaan || 'Pertanyaan Tanpa Judul')"></h5>
+
+                                    <template x-if="item.header_image_url">
+                                        <img :src="item.header_image_url" class="img-thumbnail my-2" style="max-height:64px;">
+                                    </template>
+
+                                    <div class="d-flex gap-2 align-items-center mt-2">
+                                        <span class="gf-badge" :class="item.tipe_input === 'teks' ? 'teks' : 'skala'"
+                                            x-text="item.tipe_input === 'teks' ? 'Teks Isian' : 'Skala Likert (1-4)'"></span>
+
+                                        <template x-if="item.unsur_pelayanan">
+                                            <span class="gf-badge skala" x-text="item.unsur_pelayanan.kode"></span>
+                                        </template>
+
+                                        <span x-text="item.is_active ? 'Aktif' : 'Nonaktif'"
+                                            :class="item.is_active ? 'badge-status-active' : 'badge-status-inactive'"
+                                            style="font-size:.68rem;"></span>
+                                    </div>
+                                </div>
+                                <i class="bi bi-pencil" style="color:#C4B5FD;"></i>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+        </div>
     </div>
 </div>
 
@@ -374,7 +470,6 @@
                     handle: '.drag-handle',
                     animation: 150,
                     onEnd: (evt) => {
-                        // sinkronkan array items dengan urutan DOM hasil drag
                         const newOrderIds = Array.from(el.querySelectorAll('.gform-card')).map(card => parseInt(card.getAttribute('data-id')));
                         this.items.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
                         this.saveReorder(newOrderIds);
@@ -401,7 +496,6 @@
                     }
 
                     if (!response.ok) {
-                        // Laravel kirim errors dalam bentuk object validasi
                         const firstError = data.errors ? Object.values(data.errors)[0][0] : null;
                         throw new Error(firstError || data.message || 'Terjadi kesalahan pada server (HTTP ' + response.status + ').');
                     }
@@ -472,7 +566,6 @@
                     const newItem = data.data;
 
                     if (afterIndex !== undefined && afterIndex !== null) {
-                        // Sisipkan setelah kartu yang diklik
                         this.items.splice(afterIndex + 1, 0, newItem);
                     } else {
                         this.items.push(newItem);
@@ -570,11 +663,9 @@
                         const url = data.data.header_image_url;
                         this.editForm.header_image_url = url;
                         this.editForm.header_image = data.data.header_image;
-                        // sinkronkan juga di array items agar preview kartu ikut berubah
                         const index = this.items.findIndex(i => i.id === item.id);
                         if (index !== -1) {
                             this.items[index] = { ...this.items[index], header_image_url: url, header_image: data.data.header_image };
-                            // muat ulang editForm agar banner pratinjau langsung tampil
                             this.editForm = JSON.parse(JSON.stringify(this.items[index]));
                         }
                         this.showToast('Gambar header berhasil diunggah');

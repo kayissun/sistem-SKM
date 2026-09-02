@@ -14,8 +14,6 @@ class QrCodeController extends Controller
      */
     public function tampil(Puskesmas $puskesmas): Response
     {
-        abort_if(! $puskesmas->is_active, 404);
-
         $hasil = $this->buatQr($puskesmas, 300, 10);
 
         return response($hasil->getString(), 200)
@@ -27,8 +25,6 @@ class QrCodeController extends Controller
      */
     public function unduh(Puskesmas $puskesmas): Response
     {
-        abort_if(! $puskesmas->is_active, 404);
-
         $hasil = $this->buatQr($puskesmas, 800, 20);
 
         return response($hasil->getString(), 200)

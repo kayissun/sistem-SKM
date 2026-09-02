@@ -26,6 +26,23 @@
             --sp-ink:        #14102B;
             --sp-ink-muted:  #635C7A;
             --sp-sidebar-w:  268px;
+
+            /* Alias tanpa prefix (biar kompatibel dgn dashboard/section views) */
+            --purple-900:  #180733;
+            --purple-800:  #2E1065;
+            --purple-700:  #6D28D9;
+            --purple-600:  #7C3AED;
+            --purple-500:  #8B5CF6;
+            --purple-100:  #EDE9FE;
+            --purple-50:   #FAF8FF;
+            --gold-700:    #A66A0E;
+            --gold-600:    #C88719;
+            --gold-400:    #E4A63B;
+            --gold-100:    #FCF1DC;
+            --ink:         #14102B;
+            --ink-muted:   #635C7A;
+            --surface-1:   #FAF8FF;
+            --gradient-primary: linear-gradient(135deg, #7C3AED 0%, #5B21B6 55%, #2A0B5E 100%);
             --bs-primary: #6D28D9;
             --bs-primary-rgb: 109, 40, 217;
             --bs-link-color: #6D28D9;

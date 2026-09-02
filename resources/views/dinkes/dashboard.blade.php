@@ -228,9 +228,6 @@
         <div class="meta-item">
             <i class="fa-regular fa-calendar"></i> {{ now()->translatedFormat('l, d F Y') }}
         </div>
-        <div class="meta-item status-ok">
-            <i class="fa-solid fa-circle-check"></i> {{ $periodeAktif->nama ?? 'Belum ada periode aktif' }}
-        </div>
     </div>
 </div>
 
