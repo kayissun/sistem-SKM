@@ -69,7 +69,7 @@
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
                     <div class="card-body">
-                        <div class="icon" style="background: linear-gradient(135deg,#10B981,#047857)">
+                        <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
                             <i class="fa-solid fa-medal"></i>
                         </div>
                         <div class="label">Mutu Pelayanan</div>
@@ -159,7 +159,7 @@
                                                 </a>
                                                 <form method="POST" action="{{ route('puskesmas.tindak-lanjut.submit', $sudahAdaTl) }}" class="d-inline">
                                                     @csrf
-                                                    <button type="submit" class="sp-icon-btn" title="Kirim ke Dinkes" style="color:#10B981;border-color:rgba(16,185,129,.15)" onclick="return confirm('Kirim tindak lanjut ini ke Dinkes?')">
+                                                    <button type="submit" class="sp-icon-btn" title="Kirim ke Dinkes" style="color:#E4A63B;border-color:rgba(228,166,59,.35)" onclick="return confirm('Kirim tindak lanjut ini ke Dinkes?')">
                                                         <i class="fa-solid fa-paper-plane"></i>
                                                     </button>
                                                 </form>
@@ -225,7 +225,7 @@
                                 <td><span class="badge-tl {{ $tl->status_badge_class }}">{{ $tl->status_label }}</span></td>
                                 <td>
                                     @if ($tl->foto && count($tl->foto) > 0)
-                                        <span class="badge bg-success bg-opacity-10 text-success">
+                                        <span class="badge" style="background:#FCF1DC;color:#A66A0E;border:1px solid #F0DFB2;">
                                             <i class="fa-solid fa-camera me-1"></i>{{ count($tl->foto) }}
                                         </span>
                                     @else
@@ -236,7 +236,7 @@
                                     @if ($totalProgress > 0)
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="progress flex-grow-1" style="height:6px;">
-                                                <div class="progress-bar bg-success" style="width:{{ ($tercapaiCount / $totalProgress) * 100 }}%"></div>
+                                                <div class="progress-bar bg-gold" style="width:{{ ($tercapaiCount / $totalProgress) * 100 }}%"></div>
                                             </div>
                                             <span class="small text-muted">{{ $tercapaiCount }}/{{ $totalProgress }}</span>
                                         </div>
@@ -255,7 +255,7 @@
                                             </a>
                                             <form method="POST" action="{{ route('puskesmas.tindak-lanjut.submit', $tl) }}" class="d-inline">
                                                 @csrf
-                                                <button type="submit" class="sp-icon-btn" title="Kirim ke Dinkes" style="color:#10B981;border-color:rgba(16,185,129,.15)" onclick="return confirm('Kirim tindak lanjut ini ke Dinkes?')">
+                                                <button type="submit" class="sp-icon-btn" title="Kirim ke Dinkes" style="color:#C88719;border-color:rgba(200,135,25,.35)" onclick="return confirm('Kirim tindak lanjut ini ke Dinkes?')">
                                                     <i class="fa-solid fa-paper-plane"></i>
                                                 </button>
                                             </form>

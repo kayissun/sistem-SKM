@@ -21,13 +21,21 @@
         $roleLabel = match ($roleName) {
             'dinkes' => 'Superadmin',
             'admin-puskesmas', 'dinkes-skm' => 'Admin',
+            'petugas' => 'Petugas',
             default => $roleName ? ucfirst(str_replace(['_', '-'], ' ', $roleName)) : 'Superadmin',
         };
+
+        // Dashboard tujuan menyesuaikan role yang sedang login, biar nggak nyasar ke
+        // dashboard role lain (dinkes vs puskesmas/admin) dan kena 403.
+        $dashboardRoute = Auth::user()->hasRole('dinkes')
+            ? route('dinkes.dashboard')
+            : route('puskesmas.dashboard');
+        $dashboardActive = request()->routeIs('dinkes.dashboard') || request()->routeIs('puskesmas.dashboard');
     @endphp
 
     <!-- Brand -->
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-5">
-        <a href="{{ route('dinkes.dashboard') }}" class="flex items-center gap-3 min-w-0">
+        <a href="{{ $dashboardRoute }}" class="flex items-center gap-3 min-w-0">
             <x-application-logo class="w-9 h-9 fill-current text-white shrink-0" />
             <span class="min-w-0">
                 <span class="block font-extrabold text-[1.02rem] leading-tight truncate">SKM</span>
@@ -41,9 +49,9 @@
 
     <!-- Nav links -->
     <nav class="flex-1 overflow-y-auto px-3.5 py-2 space-y-0.5">
-        <a href="{{ route('dinkes.dashboard') }}"
+        <a href="{{ $dashboardRoute }}"
            class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition
-                  {{ request()->routeIs('dinkes.dashboard') ? 'bg-white/[.12] text-white shadow-[inset_3px_0_0_#E4A63B]' : 'text-white/70 hover:bg-white/[.08] hover:text-white' }}">
+                  {{ $dashboardActive ? 'bg-white/[.12] text-white shadow-[inset_3px_0_0_#E4A63B]' : 'text-white/70 hover:bg-white/[.08] hover:text-white' }}">
             <i class="fa-solid fa-house w-[18px] text-center"></i>
             {{ __('Dashboard') }}
         </a>

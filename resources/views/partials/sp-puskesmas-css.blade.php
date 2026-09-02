@@ -147,8 +147,8 @@
     .sp-table-card thead th { font-size: .72rem; border-bottom: 2px solid #E4DEF7; background: #FAF8FF; }
     .sp-table-card tbody tr:last-child td { border-bottom: none; }
 
-    /* --- Badge status --- */
-    .badge-status-active   { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
+    /* --- Badge status (sesuai aturan warna putih-ungu-emas) --- */
+    .badge-status-active   { background: #FCF1DC; color: #A66A0E; border: 1px solid #F0DFB2; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
     .badge-status-inactive { background: #F3F1FA; color: #6B6480; border: 1px solid #E4DEF7; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
     .badge-tl { font-weight: 600; padding: .35em .7em; border-radius: 99px; font-size: .75rem; }
 
@@ -313,4 +313,37 @@
 
     /* --- Rekomendasi box --- */
     .rekomendasi-box { background: linear-gradient(135deg,#FFF9EA,#FFFDF5); border-left: 4px solid #C88719; border-radius: 8px; padding: 12px 16px; }
+
+    /* --- Export buttons (PDF ungu, Excel emas) --- */
+    .sp-btn-pdf {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: .8rem; font-weight: 600; padding: 8px 14px;
+        border-radius: 10px; border: 1px solid rgba(109,40,217,.2);
+        background: #fff; color: #6D28D9; text-decoration: none; transition: .15s;
+    }
+    .sp-btn-pdf:hover { background: #6D28D9; border-color: #6D28D9; color: #fff; }
+    .sp-btn-excel {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: .8rem; font-weight: 600; padding: 8px 14px;
+        border-radius: 10px; border: 1px solid #F0DFB2;
+        background: #FCF1DC; color: #A66A0E; text-decoration: none; transition: .15s;
+    }
+    .sp-btn-excel:hover { background: #C88719; border-color: #C88719; color: #fff; }
+
+    /* --- Badge chip (unsur / tipe, sesuai palette) --- */
+    .sp-badge-chip-light {
+        display: inline-block; font-size: .7rem; font-weight: 600;
+        background: #EDE9FE; color: #6D28D9;
+        border: 1px solid #DDD6FE; border-radius: 8px; padding: 4px 10px;
+    }
+    .sp-badge-chip-gold {
+        display: inline-block; font-size: .7rem; font-weight: 600;
+        background: #FCF1DC; color: #A66A0E;
+        border: 1px solid #F0DFB2; border-radius: 8px; padding: 4px 10px;
+    }
+    .sp-badge-chip-muted {
+        display: inline-block; font-size: .7rem; font-weight: 600;
+        background: #F3F1FA; color: #6B6480;
+        border: 1px solid #E4DEF7; border-radius: 8px; padding: 4px 10px;
+    }
 </style>

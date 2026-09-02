@@ -155,46 +155,56 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h6 class="mb-2">Peringkat Prioritas Perbaikan</h6>
-                    <table class="table table-sm mb-1">
-                        <thead>
-                            <tr><th>Unsur</th><th>Rata-rata</th><th style="width:80px">Peringkat</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($peringkat as $p)
-                                <tr>
-                                    <td>{{ $p['kode'] }} - {{ $p['pertanyaan'] }}</td>
-                                    <td>{{ number_format($p['nrr'], 3) }}</td>
-                                    <td>{{ $p['peringkat'] }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-1">
+                            <thead>
+                                <tr><th>Unsur</th><th style="width:100px">Rata-rata</th><th style="width:80px">Peringkat</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($peringkat as $p)
+                                    <tr>
+                                        <td class="text-nowrap">{{ $p['kode'] }} - {{ $p['nama_unsur'] }}</td>
+                                        <td class="text-center">{{ number_format($p['nrr'], 3) }}</td>
+                                        <td class="text-center">{{ $p['peringkat'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                     <p class="text-muted small mb-0">Peringkat 1 = nilai paling rendah, paling perlu diperbaiki duluan.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="d-flex flex-wrap gap-4 align-items-start mb-4">
-        <div class="card">
-            <div class="card-body">
-                <div class="text-muted small">IKM Unit Pelayanan</div>
-                <div class="fs-3 fw-bold">{{ $hasil['nilai_akhir_skm'] }}</div>
-                <div>Mutu Pelayanan: {{ $hasil['mutu_akhir'] }}</div>
+    <div class="row g-3 mb-4">
+        <div class="col-auto">
+            <div class="card h-100">
+                <div class="card-body text-center" style="min-width:180px">
+                    <div class="text-muted small">IKM Unit Pelayanan</div>
+                    <div class="fs-3 fw-bold">{{ $hasil['nilai_akhir_skm'] }}</div>
+                    <div>Mutu Pelayanan: <strong>{{ $hasil['mutu_akhir'] }}</strong></div>
+                </div>
             </div>
         </div>
-
-        <table class="table table-bordered table-sm bg-white mb-0" style="max-width:480px">
-            <tbody>
-                <tr>
-                    <td class="table-warning">A (Sangat Baik)</td><td>88,31 - 100,00</td>
-                    <td class="table-warning">C (Kurang Baik)</td><td>65,00 - 76,60</td>
-                </tr>
-                <tr>
-                    <td class="table-warning">B (Baik)</td><td>76,61 - 88,30</td>
-                    <td class="table-warning">D (Tidak Baik)</td><td>25,00 - 64,99</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-2">Klasifikasi Mutu Pelayanan</div>
+                    <table class="table table-bordered table-sm mb-0" style="max-width:480px">
+                        <tbody>
+                            <tr>
+                                <td class="table-warning fw-semibold">A (Sangat Baik)</td><td>88,31 - 100,00</td>
+                                <td class="table-warning fw-semibold">C (Kurang Baik)</td><td>65,00 - 76,60</td>
+                            </tr>
+                            <tr>
+                                <td class="table-warning fw-semibold">B (Baik)</td><td>76,61 - 88,30</td>
+                                <td class="table-warning fw-semibold">D (Tidak Baik)</td><td>25,00 - 64,99</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 @endif

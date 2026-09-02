@@ -50,6 +50,7 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::get('/laporan/{puskesma}', [LaporanController::class, 'detail'])->name('laporan.detail');
 
         Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas.index');
+        Route::post('/aktivitas/clear', [AktivitasController::class, 'clear'])->name('aktivitas.clear');
 
         Route::get('/klaster', [KlasterController::class, 'index'])->name('klaster.index');
         Route::get('/klaster/export/pdf', [KlasterController::class, 'exportPdf'])->name('klaster.export-pdf');
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'role:dinkes'])
         Route::post('/puskesmas/aksi-massal', [PuskesmasController::class, 'aksiMassal'])->name('puskesmas.aksi-massal');
         Route::post('/periode-survei/aksi-massal', [PeriodeSurveiController::class, 'aksiMassal'])->name('periode-survei.aksi-massal');
         Route::post('/unsur-pelayanan/aksi-massal', [UnsurPelayananController::class, 'aksiMassal'])->name('unsur-pelayanan.aksi-massal');
+        Route::post('/laporan/aksi-massal', [LaporanController::class, 'aksiMassal'])->name('laporan.aksi-massal');
 
         // Tindak Lanjut
         Route::get('/tindak-lanjut', [TindakLanjutController::class, 'index'])->name('tindak-lanjut.index');

@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -77,6 +78,28 @@
         .alert-danger  { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
 
         .badge.bg-primary { background: var(--sp-purple-700) !important; }
+
+        /* ---------- Utility warna (putih-ungu-emas) ---------- */
+        .text-purple { color: var(--sp-purple-700) !important; }
+        .text-gold { color: var(--sp-gold-600) !important; }
+        .bg-purple-soft { background: var(--sp-purple-50) !important; }
+        .bg-gold {
+            background: linear-gradient(135deg, #C88719 0%, #E4A63B 100%) !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        .border-purple-soft { border-color: rgba(109,40,217,.18) !important; }
+        .btn-gold {
+            background: linear-gradient(135deg, #C88719 0%, #E4A63B 100%);
+            border: none; color: #fff;
+            box-shadow: 0 8px 16px -6px rgba(166,106,14,.45);
+        }
+        .btn-gold:hover, .btn-gold:focus { background: linear-gradient(135deg, #B07712 0%, #D89A29 100%); color: #fff; }
+        .btn-outline-gold {
+            color: var(--sp-gold-600); border-color: #E4A63B;
+            background: var(--sp-gold-100);
+        }
+        .btn-outline-gold:hover { background: var(--sp-gold-600); color: #fff; border-color: var(--sp-gold-600); }
 
         .form-select {
             border-color: #D4D0E8;
@@ -177,6 +200,7 @@
         .sp-nav a.sp-switch {
             background: rgba(228,166,59,.14);
             color: #F5D28A;
+            box-shadow: inset 3px 0 0 var(--sp-gold-400);
         }
         .sp-nav a.sp-switch:hover { background: rgba(228,166,59,.24); color: #fff; }
 
@@ -342,6 +366,12 @@
                 <i class="fa-solid fa-chevron-down text-muted small"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
+                <li>
+                    <a href="{{ route('profile.edit') }}" class="dropdown-item">
+                        <i class="fa-solid fa-user-gear me-2" style="color: var(--sp-purple-700);"></i> Profil
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

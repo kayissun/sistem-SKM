@@ -19,9 +19,7 @@ class UnsurPelayananController extends Controller
 
     public function create()
     {
-        $urutanBerikutnya = (UnsurPelayanan::max('urutan') ?? 0) + 1;
-
-        return view('dinkes.unsur-pelayanan.create', compact('urutanBerikutnya'));
+        return redirect()->route('dinkes.unsur-pelayanan.index');
     }
 
     public function store(StoreUnsurPelayananRequest $request)

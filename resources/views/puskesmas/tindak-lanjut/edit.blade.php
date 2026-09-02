@@ -15,7 +15,7 @@
             cursor: pointer;
         }
         .upload-zone:hover { border-color: #7C3AED; background: #F3EEFF; }
-        .upload-zone.has-files { border-color: #10B981; background: #ECFDF5; }
+        .upload-zone.has-files { border-color: #7C3AED; background: #F3EEFF; }
         .upload-zone i { font-size: 2rem; color: #7C3AED; }
         .preview-img {
             width: 80px; height: 80px; object-fit: cover;

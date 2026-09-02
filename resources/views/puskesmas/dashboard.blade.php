@@ -14,7 +14,7 @@
             <i class="fa-regular fa-calendar"></i> {{ now()->translatedFormat('l, d F Y') }}
         </div>
         @if ($periodeAktif)
-        <div class="meta-item" style="color:#10B981">
+        <div class="meta-item" style="color:#7C3AED">
             <i class="fa-solid fa-circle-check"></i> {{ $periodeAktif->nama }}
         </div>
         @endif
@@ -37,7 +37,7 @@
     <div class="col-md-4">
         <div class="card h-100 sp-stat-card">
             <div class="card-body">
-                <div class="icon" style="background: linear-gradient(135deg,#10B981,#047857)">
+                <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
                 <div class="label">Responden Periode Ini</div>
@@ -53,12 +53,12 @@
     <div class="col-md-4">
         <div class="card h-100 sp-stat-card">
             <div class="card-body">
-                <div class="icon" style="background: linear-gradient(135deg,#3B82F6,#1D4ED8)">
+                <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
                     <i class="fa-solid fa-star"></i>
                 </div>
                 <div class="label">Nilai SKM Periode Ini</div>
                 <div class="value fs-2">{{ $hasilPeriodeAktif['nilai_akhir_skm'] }}</div>
-                <span class="small fw-bold" style="color:#6D28D9">{{ $hasilPeriodeAktif['mutu_akhir'] }}</span>
+                <span class="small fw-bold text-purple">{{ $hasilPeriodeAktif['mutu_akhir'] }}</span>
             </div>
         </div>
     </div>
@@ -95,15 +95,15 @@
     </div>
 </div>
 
-<div class="card sp-section-card mt-4" style="max-width:340px">
+        <div class="card sp-section-card mt-4" style="max-width:340px">
     <div class="card-body text-center">
-        <div class="small text-muted mb-2 fw-semibold">QR Code Survei</div>
-        <img src="{{ route('qrcode.tampil', $puskesmas) }}" width="220" height="220" alt="QR survei {{ $puskesmas->nama }}" class="rounded border p-1">
+        <div class="small text-muted mb-2 fw-semibold" style="color:#A66A0E;">QR Code Survei</div>
+        <img src="{{ route('qrcode.tampil', $puskesmas) }}" width="220" height="220" alt="QR survei {{ $puskesmas->nama }}" class="rounded border p-1" style="border-color:#F0DFB2 !important;">
         <div class="mt-3 d-flex gap-2 justify-content-center">
-            <a href="{{ route('qrcode.unduh', $puskesmas) }}" class="btn btn-outline-primary btn-sm">
+            <a href="{{ route('qrcode.unduh', $puskesmas) }}" class="btn btn-gold btn-sm">
                 <i class="fa-solid fa-download me-1"></i> Unduh QR
             </a>
-            <a href="{{ route('survei.create', $puskesmas) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+            <a href="{{ route('survei.create', $puskesmas) }}" target="_blank" class="btn btn-outline-gold btn-sm">
                 <i class="fa-solid fa-link me-1"></i> Buka Link
             </a>
         </div>

@@ -19,7 +19,7 @@ class UpdateUnsurPelayananRequest extends FormRequest
                 'required', 'string', 'max:10',
                 Rule::unique('unsur_pelayanan', 'kode')->ignore($this->route('unsur_pelayanan')),
             ],
-            'pertanyaan' => ['required', 'string', 'max:255'],
+            'nama_unsur' => ['required', 'string', 'max:255'],
             'urutan' => ['required', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ];

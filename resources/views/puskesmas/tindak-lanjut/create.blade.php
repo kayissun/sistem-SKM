@@ -15,7 +15,7 @@
             cursor: pointer;
         }
         .upload-zone:hover { border-color: #7C3AED; background: #F3EEFF; }
-        .upload-zone.has-files { border-color: #10B981; background: #ECFDF5; }
+        .upload-zone.has-files { border-color: #7C3AED; background: #F3EEFF; }
         .upload-zone i { font-size: 2rem; color: #7C3AED; }
         .preview-img {
             width: 80px; height: 80px; object-fit: cover;
@@ -165,9 +165,9 @@
                 <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="fa-solid fa-lightbulb text-warning me-1"></i> Tips Pengisian</h6>
                     <ul class="small mb-0 text-muted" style="list-style:none;padding:0;">
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Jelaskan rencana perbaikan secara spesifik.</li>
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-success me-1"></i> Upload foto dokumentasi kondisi saat ini.</li>
-                        <li class="mb-0"><i class="fa-solid fa-check-circle text-success me-1"></i> Klik <strong>Kirim</strong> untuk submit ke Dinkes setelah selesai.</li>
+                        <li class="mb-2"><i class="fa-solid fa-check-circle text-gold-emphasis me-1"></i> Jelaskan rencana perbaikan secara spesifik.</li>
+                        <li class="mb-2"><i class="fa-solid fa-check-circle text-gold-emphasis me-1"></i> Upload foto dokumentasi kondisi saat ini.</li>
+                        <li class="mb-0"><i class="fa-solid fa-check-circle text-gold-emphasis me-1"></i> Klik <strong>Kirim</strong> untuk submit ke Dinkes setelah selesai.</li>
                     </ul>
                 </div>
             </div>

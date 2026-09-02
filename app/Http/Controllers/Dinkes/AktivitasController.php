@@ -15,4 +15,10 @@ class AktivitasController extends Controller
 
         return view('dinkes.aktivitas.index', compact('daftarAktivitas'));
     }
+
+    public function clear()
+    {
+        Activity::truncate();
+        return back()->with('success', 'Log aktivitas berhasil dihapus semua.');
+    }
 }

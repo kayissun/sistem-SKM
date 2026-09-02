@@ -15,8 +15,8 @@
             <p class="text-muted small mb-0">Daftar responden yang mengisi survei pada periode ini.</p>
         </div>
         @if ($periode)
-            <a href="{{ route('puskesmas.laporan.data-responden.export-excel', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-success btn-sm rounded-3 fw-medium">
-                <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+            <a href="{{ route('puskesmas.laporan.data-responden.export-excel', ['periode_survei_id' => $periode->id]) }}" class="sp-btn-excel">
+                <i class="fa-solid fa-file-excel"></i> Export Excel
             </a>
         @endif
     </div>

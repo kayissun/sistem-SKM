@@ -7,6 +7,7 @@ use App\Exports\LaporanUnsurExport;
 use App\Exports\RekapGabunganExport;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeSurvei;
+use App\Models\SurveiJawaban;
 use App\Models\UnitLayanan;
 use App\Models\PertanyaanSurvei;
 use App\Models\Puskesmas;
@@ -24,8 +25,24 @@ class LaporanController extends Controller
 
         $pencarian = $request->input('cari');
         $namaPeriodeLengkap = $periode ? $this->formatNamaPeriode($periode) : null;
+        
+        // Ekstrak kodeUnsur dari semua baris rekap (union dari semua key per_unsur)
+        $kodeUnsurSet = [];
+        foreach ($rekap as $baris) {
+            if (isset($baris['per_unsur']) && is_array($baris['per_unsur'])) {
+                $kodeUnsurSet = array_merge($kodeUnsurSet, array_keys($baris['per_unsur']));
+            }
+        }
+        
+        // Unique dan sort
+        $kodeUnsur = array_unique($kodeUnsurSet);
+        usort($kodeUnsur, function ($a, $b) {
+            $noA = (int) filter_var($a, FILTER_SANITIZE_NUMBER_INT);
+            $noB = (int) filter_var($b, FILTER_SANITIZE_NUMBER_INT);
+            return $noA <=> $noB;
+        });
 
-        return view('dinkes.laporan.index', compact('rekap', 'periode', 'daftarPeriode', 'pencarian', 'namaPeriodeLengkap'));
+        return view('dinkes.laporan.index', compact('rekap', 'periode', 'daftarPeriode', 'pencarian', 'namaPeriodeLengkap', 'kodeUnsur'));
     }
 
     public function exportPdfGabungan(Request $request, SkmCalculatorService $service)
@@ -189,16 +206,49 @@ class LaporanController extends Controller
         $unitLayanan = $unitLayananId ? UnitLayanan::find($unitLayananId) : null;
 
         $publikasi = $service->publikasiIkm($puskesma, $periode, $unitLayanan);
-        $namaLayanan = $unitLayanan->nama ?? $puskesma->nama;
+        $namaLayanan = $unitLayanan->nama ?? $puskesmas->nama;
 
         $pdf = Pdf::loadView('exports.publikasi-ikm-pdf', [
-            'puskesmas' => $puskesma,
+            'puskesmas' => $puskesmas,
             'periode' => $periode,
             'publikasi' => $publikasi,
             'namaLayanan' => $namaLayanan,
         ]);
 
-        return $pdf->download("publikasi-ikm-{$puskesma->slug}-{$periode->id}.pdf");
+        return $pdf->download("publikasi-ikm-{$puskesmas->slug}-{$periode->id}.pdf");
+    }
+
+    /**
+     * Hapus data survei (survei_jawaban + detail) untuk puskesmas terpilih pada periode tertentu.
+     */
+    public function aksiMassal(Request $request)
+    {
+        $request->validate([
+            'dipilih' => ['required', 'array', 'min:1'],
+            'dipilih.*' => ['exists:puskesmas,id'],
+            'periode_survei_id' => ['required', 'exists:periode_survei,id'],
+        ]);
+
+        $periodeId = $request->input('periode_survei_id');
+        $daftarPuskesmas = Puskesmas::whereIn('id', $request->input('dipilih'))->get();
+
+        $berhasilDihapus = 0;
+
+        foreach ($daftarPuskesmas as $puskesma) {
+            $jawabanIds = SurveiJawaban::where('puskesmas_id', $puskesma->id)
+                ->where('periode_survei_id', $periodeId)
+                ->pluck('id');
+
+            if ($jawabanIds->isNotEmpty()) {
+                SurveiJawabanDetail::whereIn('survei_jawaban_id', $jawabanIds)->delete();
+                SurveiJawaban::whereIn('id', $jawabanIds)->delete();
+                $berhasilDihapus++;
+            }
+        }
+
+        return redirect()
+            ->route('dinkes.laporan.index', ['periode_survei_id' => $periodeId])
+            ->with('success', "Data survei untuk {$berhasilDihapus} unit berhasil dihapus.");
     }
 
     /**

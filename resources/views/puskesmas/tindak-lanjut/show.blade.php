@@ -9,8 +9,8 @@
         .tl-timeline::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:2px; background:#E4DEF7; }
         .tl-timeline .tl-item { position:relative; margin-bottom:20px; }
         .tl-timeline .tl-dot { position:absolute; left:-26px; top:4px; width:14px; height:14px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 2px #E4DEF7; }
-        .tl-timeline .tl-dot.tercapai { background:#10B981; box-shadow:0 0 0 2px #10B981; }
-        .tl-timeline .tl-dot.belum { background:#F59E0B; box-shadow:0 0 0 2px #F59E0B; }
+        .tl-timeline .tl-dot.tercapai { background:#7C3AED; box-shadow:0 0 0 2px #7C3AED; }
+        .tl-timeline .tl-dot.belum { background:#E4A63B; box-shadow:0 0 0 2px #E4A63B; }
         .foto-grid { display:flex; flex-wrap:wrap; gap:10px; }
         .foto-grid img {
             width:100px; height:100px; object-fit:cover;
@@ -52,7 +52,7 @@
                 @if ($tindakLanjut->isEditable())
                     <form method="POST" action="{{ route('puskesmas.tindak-lanjut.submit', $tindakLanjut) }}" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Kirim ke Dinkes?')">
+                        <button type="submit" class="btn btn-gold btn-sm" onclick="return confirm('Kirim ke Dinkes?')">
                             <i class="fa-solid fa-paper-plane me-1"></i> Kirim ke Dinkes
                         </button>
                     </form>
@@ -146,7 +146,7 @@
                             @foreach ($tindakLanjut->progress->sortByDesc('triwulan_target')->sortByDesc('tahun_target') as $prog)
                                 <div class="tl-item">
                                     <div class="tl-dot {{ $prog->tercapai ? 'tercapai' : 'belum' }}"></div>
-                                    <div class="card border-0 shadow-sm" style="background:{{ $prog->tercapai ? '#ECFDF5' : '#FFFBEB' }}">
+                                    <div class="card border-0 shadow-sm" style="background:{{ $prog->tercapai ? '#FCF1DC' : '#FFFBEB' }}">
                                         <div class="card-body p-3">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div>
@@ -154,7 +154,7 @@
                                                         TW-{{ $prog->triwulan_target }} {{ $prog->tahun_target }}
                                                     </span>
                                                     @if ($prog->nilai_akhir !== null)
-                                                        <span class="ms-2 badge {{ $prog->tercapai ? 'bg-success' : 'bg-warning text-dark' }}">
+                                                        <span class="ms-2 badge {{ $prog->tercapai ? 'bg-gold' : 'badge-outline-gold' }}">
                                                             {{ $prog->tercapai ? 'Tercapai' : 'Belum Tercapai' }}
                                                         </span>
                                                     @endif

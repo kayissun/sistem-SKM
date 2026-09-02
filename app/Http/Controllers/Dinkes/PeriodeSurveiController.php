@@ -13,7 +13,17 @@ class PeriodeSurveiController extends Controller
     {
         $daftarPeriode = PeriodeSurvei::orderByDesc('tanggal_mulai')->paginate(10);
 
-        return view('dinkes.periode-survei.index', compact('daftarPeriode'));
+        $sekarang = now();
+        $totalPeriode = PeriodeSurvei::count();
+        $aktif = PeriodeSurvei::where('is_active', true)->count();
+        $berjalan = PeriodeSurvei::where('tanggal_mulai', '<=', $sekarang)
+            ->where('tanggal_selesai', '>=', $sekarang)
+            ->count();
+        $nonaktif = $totalPeriode - $aktif;
+
+        return view('dinkes.periode-survei.index', compact(
+            'daftarPeriode', 'totalPeriode', 'aktif', 'berjalan', 'nonaktif'
+        ));
     }
 
     public function create()

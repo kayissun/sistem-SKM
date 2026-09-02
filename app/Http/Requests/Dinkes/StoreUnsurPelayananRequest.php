@@ -15,7 +15,7 @@ class StoreUnsurPelayananRequest extends FormRequest
     {
         return [
             'kode' => ['required', 'string', 'max:10', 'unique:unsur_pelayanan,kode'],
-            'pertanyaan' => ['required', 'string', 'max:255'],
+            'nama_unsur' => ['required', 'string', 'max:255'],
             'urutan' => ['required', 'integer', 'min:1'],
         ];
     }

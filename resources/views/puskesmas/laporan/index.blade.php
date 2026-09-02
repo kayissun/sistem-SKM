@@ -10,11 +10,11 @@
         </div>
         @if ($periode && $hasil)
             <div class="d-flex gap-2">
-                <a href="{{ route('puskesmas.laporan.export-pdf', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-danger btn-sm rounded-3">
-                    <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+                <a href="{{ route('puskesmas.laporan.export-pdf', ['periode_survei_id' => $periode->id]) }}" class="sp-btn-pdf">
+                    <i class="fa-solid fa-file-pdf"></i> Export PDF
                 </a>
-                <a href="{{ route('puskesmas.laporan.export-excel', ['periode_survei_id' => $periode->id]) }}" class="btn btn-outline-success btn-sm rounded-3">
-                    <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+                <a href="{{ route('puskesmas.laporan.export-excel', ['periode_survei_id' => $periode->id]) }}" class="sp-btn-excel">
+                    <i class="fa-solid fa-file-excel"></i> Export Excel
                 </a>
             </div>
         @endif
@@ -90,7 +90,7 @@
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
                     <div class="card-body">
-                        <div class="icon" style="background: linear-gradient(135deg,#10B981,#047857)">
+                        <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
                             <i class="fa-solid fa-medal"></i>
                         </div>
                         <div class="label">Mutu Pelayanan</div>
@@ -167,9 +167,11 @@
                                 <tr>
                                     <td class="fw-semibold" style="color:#180733">{{ $tambahan['teks_pertanyaan'] }}</td>
                                     <td>
-                                        <span class="badge {{ $tambahan['tipe_input'] === 'teks' ? 'bg-info text-dark' : 'bg-light text-dark border' }}">
-                                            {{ $tambahan['tipe_input'] === 'teks' ? 'Teks' : 'Skala' }}
-                                        </span>
+                                        @if ($tambahan['tipe_input'] === 'teks')
+                                            <span class="sp-badge-chip-gold">Teks</span>
+                                        @else
+                                            <span class="sp-badge-chip-light">Skala</span>
+                                        @endif
                                     </td>
                                     <td>{{ $tambahan['jumlah_jawaban'] }}</td>
                                     <td class="fw-bold">{{ $tambahan['rata_rata'] ?? '-' }}</td>

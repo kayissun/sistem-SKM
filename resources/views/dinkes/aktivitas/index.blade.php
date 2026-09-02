@@ -11,9 +11,9 @@
 
         /* Card & Scrollbar Tabel */
         .sp-table-card { border-radius: 14px; overflow: hidden; }
-        .sp-table-card .table-responsive { 
-            scrollbar-width: thin; 
-            scrollbar-color: #C4B5FD #F3EEFF; 
+        .sp-table-card .table-responsive {
+            scrollbar-width: thin;
+            scrollbar-color: #C4B5FD #F3EEFF;
         }
         .sp-table-card .table-responsive::-webkit-scrollbar { height: 8px; }
         .sp-table-card .table-responsive::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 99px; }
@@ -55,6 +55,11 @@
         <div>
             <h3>Log Aktivitas</h3>
             <p>Riwayat aktivitas &amp; audit data unit, unsur pelayanan, periode survei, dan akun pengguna.</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearActivityModal" title="Hapus semua log aktivitas">
+                <i class="fa-solid fa-trash-can me-1"></i> Bersihkan Aktivitas
+            </button>
         </div>
     </div>
 
@@ -169,6 +174,31 @@
 
     <div class="mt-3 sp-pagination">
         {{ $daftarAktivitas->links('pagination::bootstrap-5') }}
+    </div>
+
+    {{-- Modal Konfirmasi Clear Aktivitas --}}
+    <div class="modal fade" id="clearActivityModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" style="color:#180733; font-weight:800;"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Bersihkan Semua Log Aktivitas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2" style="color:#180733; font-weight:600;">Anda yakin ingin menghapus semua log aktivitas?</p>
+                    <p class="text-muted small mb-0"><i class="fa-solid fa-info-circle me-1"></i> Tindakan ini tidak dapat dibatalkan. Semua riwayat aktivitas akan dihapus permanen.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batalkan</button>
+                    <form action="{{ route('dinkes.aktivitas.clear') }}" method="POST" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fa-solid fa-trash-can me-1"></i> Hapus Semua
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
 @endsection

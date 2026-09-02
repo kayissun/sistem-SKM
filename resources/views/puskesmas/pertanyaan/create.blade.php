@@ -12,11 +12,11 @@
         border-left: 6px solid transparent;
     }
     .gform-card.active-card {
-        border-left-color: #0d6efd;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-left-color: #7C3AED;
+        box-shadow: 0 4px 14px rgba(109,40,217,.18);
     }
     .gform-card.dirty-card {
-        border-left-color: #ffc107 !important; /* Warna kuning jika ada perubahan belum disimpan */
+        border-left-color: #C88719 !important; /* Warna emas jika ada perubahan belum disimpan */
     }
     .drag-handle {
         cursor: grab;
@@ -36,7 +36,7 @@
             <p class="text-muted small mb-0">Klik kartu untuk mengedit. Tekan <strong>Simpan Pertanyaan</strong> setelah mengubah data.</p>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <span x-show="isDirty" class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Ada perubahan belum disimpan</span>
+            <span x-show="isDirty" class="badge" style="background:#FCF1DC;color:#A66A0E;border:1px solid #F0DFB2;"><i class="bi bi-exclamation-circle me-1"></i>Ada perubahan belum disimpan</span>
             <span x-show="saving" class="spinner-border spinner-border-sm text-primary" role="status"></span>
             <span x-text="toastMessage" class="badge" :class="toastSuccess ? 'bg-success' : 'bg-danger'" x-show="toastMessage"></span>
 
@@ -247,7 +247,7 @@
 
                                     <!-- Tombol Tambah Soal di bawah kartu aktif -->
                                     <div class="text-center mt-3">
-                                        <button type="button" @click="tambahKartu(index)" :disabled="saving" class="btn btn-sm rounded-pill px-3" style="border: 1px dashed #0d6efd; color: #0d6efd; background: transparent;">
+                                        <button type="button" @click="tambahKartu(index)" :disabled="saving" class="btn btn-sm rounded-pill px-3" style="border: 1px dashed #7C3AED; color: #7C3AED; background: transparent;">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah Soal di Bawah Ini
                                         </button>
                                     </div>
@@ -264,13 +264,13 @@
                                             </template>
 
                                             <div class="d-flex gap-2 align-items-center mt-2">
-                                                <span class="badge" :class="item.tipe_input === 'teks' ? 'bg-info text-dark' : 'bg-secondary'" x-text="item.tipe_input === 'teks' ? 'Teks Isian' : 'Skala Likert (1-4)'"></span>
+                                                <span class="badge" :class="item.tipe_input === 'teks' ? 'bg-gold' : 'bg-secondary'" x-text="item.tipe_input === 'teks' ? 'Teks Isian' : 'Skala Likert (1-4)'"></span>
 
                                                 <template x-if="item.unsur_pelayanan">
                                                     <span class="badge bg-primary" x-text="item.unsur_pelayanan.kode"></span>
                                                 </template>
 
-                                                <span class="badge" :class="item.is_active ? 'bg-success' : 'bg-danger'" x-text="item.is_active ? 'Aktif' : 'Nonaktif'"></span>
+                                                <span x-text="item.is_active ? 'Aktif' : 'Nonaktif'" :class="item.is_active ? 'badge-status-active' : 'badge-status-inactive'"></span>
                                             </div>
                                         </div>
                                         <i class="bi bi-pencil text-muted"></i>

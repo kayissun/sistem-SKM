@@ -315,10 +315,6 @@
             <i class="fa-solid fa-clock-rotate-left"></i> Log Aktivitas
         </a>
 
-        <div class="sp-label">Lainnya</div>
-        <a href="{{ route('puskesmas.dashboard') }}" class="sp-switch">
-            <i class="fa-solid fa-building-columns"></i> SKM Dinkes Sendiri
-        </a>
     </nav>
 
     <div class="sp-sidebar__foot">
@@ -349,6 +345,13 @@
                         <i class="fa-solid fa-user-gear me-2" style="color:var(--purple-700);"></i> Profil
                     </a>
                 </li>
+                @if (auth()->user()->hasRole('dinkes'))
+                    <li>
+                        <a href="{{ route('puskesmas.dashboard') }}" class="dropdown-item" style="font-size:.84rem;">
+                            <i class="fa-solid fa-building-columns me-2" style="color:var(--purple-700);"></i> SKM Dinkes Sendiri
+                        </a>
+                    </li>
+                @endif
                 <li><hr class="dropdown-divider" style="border-color:rgba(24,7,51,.06);"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">

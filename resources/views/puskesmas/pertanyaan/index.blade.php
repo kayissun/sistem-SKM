@@ -90,23 +90,23 @@
                                 <td class="fw-semibold" style="color:#180733">{{ $pertanyaan->teks_pertanyaan }}</td>
                                 <td>
                                     @if ($pertanyaan->tipe_input === 'teks')
-                                        <span class="badge bg-info-subtle text-info border">Teks bebas</span>
+                                        <span class="sp-badge-chip-gold">Teks bebas</span>
                                     @else
-                                        <span class="badge bg-light text-dark border">Skala · {{ $pertanyaan->gaya_tampilan === 'dropdown' ? 'Dropdown' : 'Radio' }}</span>
+                                        <span class="sp-badge-chip-light">Skala · {{ $pertanyaan->gaya_tampilan === 'dropdown' ? 'Dropdown' : 'Radio' }}</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if ($pertanyaan->unsurPelayanan)
-                                        <span class="badge bg-primary-subtle text-purple border">{{ $pertanyaan->unsurPelayanan->kode }}</span>
+                                        <span class="sp-badge-chip-light">{{ $pertanyaan->unsurPelayanan->kode }}</span>
                                     @else
-                                        <span class="badge bg-secondary-subtle text-secondary border">Tambahan</span>
+                                        <span class="sp-badge-chip-muted">Tambahan</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if ($pertanyaan->is_active)
-                                        <span class="badge bg-success-subtle text-success border">Aktif</span>
+                                        <span class="badge-status-active">Aktif</span>
                                     @else
-                                        <span class="badge bg-secondary-subtle text-secondary border">Nonaktif</span>
+                                        <span class="badge-status-inactive">Nonaktif</span>
                                     @endif
                                 </td>
                                 <td>

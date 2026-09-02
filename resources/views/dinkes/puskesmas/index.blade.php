@@ -1,17 +1,18 @@
 @extends('layouts.dinkes')
 
-@section('title', 'Puskesmas / RSU')
+@section('title', 'Data Faskes')
 
 @section('content')
 
     <style>
         .sp-page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-        .sp-page-head h3 { font-weight: 800; color: #180733; margin: 0; }
-        .sp-page-head p { margin: 2px 0 0; color: #635C7A; font-size: .88rem; }
+        .sp-page-head h3 { font-weight: 800; color: var(--purple-900); margin: 0; }
+        .sp-page-head p { margin: 4px 0 0; color: var(--ink-muted); font-size: .85rem; }
 
-        .sp-filter-card { border-radius: 14px; }
+        .sp-filter-card { border: 1px solid rgba(24,7,51,.06); border-radius: 14px; background: #fff; }
         .sp-filter-card .input-group-text { background: #fff; border-right: none; color: #9CA3AF; }
-        .sp-filter-card .form-control, .sp-filter-card .form-select { border-left: none; }
+        .sp-filter-card .form-control,
+        .sp-filter-card .form-select { background: var(--surface-1); }
         .sp-filter-card .input-group:focus-within .input-group-text,
         .sp-filter-card .input-group:focus-within .form-control { border-color: #A78BFA; }
 
@@ -21,18 +22,19 @@
         .sp-table-card .table-responsive::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 99px; }
         .sp-table-card .table-responsive::-webkit-scrollbar-track { background: transparent; }
         .sp-table-card .table { margin-bottom: 0; font-size: .82rem; }
-        .sp-table-card tbody tr:hover { background: #FAF8FF; }
-        .sp-table-card td, .sp-table-card th { vertical-align: middle; padding: .6rem .85rem; white-space: nowrap; }
-        .sp-table-card thead th { font-size: .72rem; }
+        .sp-table-card tbody tr:hover { background: var(--surface-1); }
+        .sp-table-card td, .sp-table-card th { vertical-align: middle; padding: .65rem .9rem; white-space: nowrap; }
+        .sp-table-card thead th { font-size: .7rem; }
+        .sp-table-card td.sp-wrap { white-space: normal; }
 
-        .badge-status-active   { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
-        .badge-status-inactive { background: #F3F1FA; color: #6B6480; border: 1px solid #E4DEF7; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
+        .badge-status-active   { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-weight: 600; padding: .4em .75em; border-radius: 99px; font-size: .76rem; }
+        .badge-status-inactive { background: #F3F1FA; color: #6B6480; border: 1px solid #E4DEF7; font-weight: 600; padding: .4em .75em; border-radius: 99px; font-size: .76rem; }
 
         .sp-icon-btn {
             width: 32px; height: 32px;
             display: inline-flex; align-items: center; justify-content: center;
             border-radius: 8px; border: 1px solid rgba(109,40,217,.15);
-            background: #fff; color: #6D28D9;
+            background: #fff; color: #6D28D9; text-decoration: none;
             transition: .15s;
         }
         .sp-icon-btn:hover { background: #6D28D9; color: #fff; border-color: #6D28D9; }
@@ -41,7 +43,7 @@
             display: none;
             align-items: center;
             gap: 12px;
-            background: #FAF8FF;
+            background: var(--surface-1);
             border: 1px solid #E4DEF7;
             border-radius: 12px;
             padding: 10px 16px;
@@ -85,9 +87,10 @@
         .sp-pagination .page-item.disabled .page-link { color: #C4BFD6; background: #fff; border-color: rgba(109,40,217,.08); }
     </style>
 
+    {{-- Page Header --}}
     <div class="sp-page-head">
         <div>
-            <h3>Puskesmas / RSU</h3>
+            <h3>Data Faskes</h3>
             <p>{{ $daftarPuskesmas->total() }} unit terdaftar dalam jaringan layanan.</p>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUnit"
@@ -96,39 +99,40 @@
         </button>
     </div>
 
-    <!-- card pencarian & filter -->
-    <div class="card sp-filter-card border-0 shadow-sm rounded-3 mb-4">
+    {{-- Filter Card --}}
+    <div class="card sp-filter-card shadow-sm mb-4">
         <div class="card-body p-3 p-md-4">
             <form method="GET" action="{{ route('dinkes.puskesmas.index') }}">
                 <div class="row g-3 align-items-end">
-                    <!-- Field Pencarian -->
+                    {{-- Search --}}
                     <div class="col-lg-5 col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:.78rem;color:var(--ink-muted)">Cari</label>
                         <div class="input-group">
-                            <span class="input-group-text border-end-0 text-muted" style="background:#FAF8FF">
+                            <span class="input-group-text border-end-0">
                                 <i class="fa-solid fa-search"></i>
                             </span>
                             <input type="text" name="cari" value="{{ $pencarian }}"
                                 class="form-control border-start-0 ps-0"
-                                style="background:#FAF8FF"
                                 placeholder="Nama, alamat, atau kecamatan...">
                         </div>
                     </div>
 
-                    <!-- Field Urutan -->
-                    <div class="col-lg-3 col-md-6">
-                        <select name="urutan" class="form-select" style="background-color:#FAF8FF">
+                    {{-- Sort --}}
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:.78rem;color:var(--ink-muted)">Urutkan</label>
+                        <select name="urutan" class="form-select">
                             <option value="az" @selected($urutan === 'az')>A ke Z (Ascending)</option>
                             <option value="za" @selected($urutan === 'za')>Z ke A (Descending)</option>
                         </select>
                     </div>
 
-                    <!-- Tombol Aksi -->
-                    <div class="col-lg-4 col-md-12 ms-auto">
+                    {{-- Buttons --}}
+                    <div class="col-lg-3 col-md-12">
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary w-100 fw-medium">
-                                <i class="fa-solid fa-filter me-1"></i> Terapkan
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
                             </button>
-                            <a href="{{ route('dinkes.puskesmas.index') }}" class="btn btn-light text-secondary border w-100 fw-medium">
+                            <a href="{{ route('dinkes.puskesmas.index') }}" class="btn btn-outline-secondary flex-fill">
                                 <i class="fa-solid fa-rotate-left me-1"></i> Reset
                             </a>
                         </div>
@@ -138,6 +142,7 @@
         </div>
     </div>
 
+    {{-- Bulk Action Bar --}}
     <form method="POST" action="{{ route('dinkes.puskesmas.aksi-massal') }}" id="form-aksi-massal">
         @csrf
 
@@ -145,30 +150,31 @@
             <span class="small text-muted"><strong id="jumlah-terpilih">0</strong> unit dipilih</span>
             <button type="submit" name="aksi" value="nonaktifkan" class="btn btn-sm btn-outline-primary"
                     onclick="return confirm('Nonaktifkan semua unit yang dipilih?')">
-                <i class="fa-solid fa-pause me-1"></i> Nonaktifkan Terpilih
+                <i class="fa-solid fa-pause me-1"></i> Nonaktifkan
             </button>
             <button type="submit" name="aksi" value="hapus" class="btn btn-sm btn-outline-danger"
                     onclick="return confirm('Hapus PERMANEN unit yang dipilih? Unit yang sudah punya data survei tidak akan ikut terhapus, cuma dinonaktifkan otomatis.')">
-                <i class="fa-solid fa-trash me-1"></i> Hapus Terpilih
+                <i class="fa-solid fa-trash me-1"></i> Hapus
             </button>
         </div>
 
+        {{-- Table Card --}}
         <div class="card sp-table-card">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead>
                         <tr>
                             <th style="width:36px"><input type="checkbox" id="pilih-semua"></th>
-                            <th>No</th>
+                            <th style="width:44px">No</th>
                             <th>Nama</th>
-                            <th>Jenis</th>
+                            <th style="width:90px">Jenis</th>
                             <th>Alamat</th>
-                            <th>Kecamatan</th>
-                            <th>No. Telepon</th>
-                            <th>Jumlah akun</th>
+                            <th style="width:120px">Kecamatan</th>
+                            <th style="width:110px">No. Telepon</th>
+                            <th style="width:70px">Akun</th>
                             <th>Email Admin</th>
-                            <th>Status</th>
-                            <th style="width:150px">Aksi</th>
+                            <th style="width:80px">Status</th>
+                            <th style="width:110px">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,13 +182,13 @@
                             @php $admin = $item->users->first(fn ($u) => $u->hasRole('admin-puskesmas')); @endphp
                             <tr>
                                 <td><input type="checkbox" name="dipilih[]" value="{{ $item->id }}" class="cek-item"></td>
-                                <td>{{ $loop->iteration + ($daftarPuskesmas->currentPage() - 1) * $daftarPuskesmas->perPage() }}</td>
-                                <td class="fw-semibold" style="color:#180733">{{ $item->nama }}</td>
-                                <td>{{ strtoupper($item->jenis) }}</td>
-                                <td>{{ $item->alamat ?? '-' }}</td>
+                                <td class="text-muted">{{ $loop->iteration + ($daftarPuskesmas->currentPage() - 1) * $daftarPuskesmas->perPage() }}</td>
+                                <td class="fw-semibold" style="color:var(--purple-900)">{{ $item->nama }}</td>
+                                <td><span class="text-uppercase" style="font-size:.78rem;font-weight:600;color:var(--ink-muted)">{{ $item->jenis }}</span></td>
+                                <td class="sp-wrap">{{ $item->alamat ?? '-' }}</td>
                                 <td>{{ $item->kecamatan ?? '-' }}</td>
                                 <td>{{ $item->no_telepon ?? '-' }}</td>
-                                <td>{{ $item->users_count }}</td>
+                                <td class="text-center">{{ $item->users_count }}</td>
                                 <td>{{ $admin->email ?? '-' }}</td>
                                 <td>
                                     @if ($item->is_active)
@@ -217,11 +223,11 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-4">
+                                <td colspan="11" class="text-center text-muted py-4">
                                     @if ($pencarian)
-                                        Tidak ada unit yang cocok dengan pencarian "{{ $pencarian }}".
+                                        Tidak ada unit yang cocok dengan pencarian "<strong>{{ $pencarian }}</strong>".
                                     @else
-                                        Belum ada data
+                                        Belum ada data faskes.
                                     @endif
                                 </td>
                             </tr>
@@ -232,11 +238,12 @@
         </div>
     </form>
 
+    {{-- Pagination --}}
     <div class="mt-3 sp-pagination">
         {{ $daftarPuskesmas->links('pagination::bootstrap-5') }}
     </div>
 
-    <!-- ============ Modal: Tambah / Edit Unit ============ -->
+    {{-- ============ Modal: Tambah / Edit Unit ============ --}}
     <div class="modal fade sp-modal" id="modalUnit" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">

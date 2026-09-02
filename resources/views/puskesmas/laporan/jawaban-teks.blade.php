@@ -14,7 +14,7 @@
     </style>
 
     <div class="mb-3">
-        <a href="{{ route('puskesmas.laporan.index', ['periode_survei_id' => $periode->id]) }}" class="btn btn-sm btn-light border text-secondary rounded-3">
+        <a href="{{ route('puskesmas.laporan.index', ['periode_survei_id' => $periode->id]) }}" class="btn btn-sm btn-outline-primary rounded-3">
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Laporan
         </a>
     </div>

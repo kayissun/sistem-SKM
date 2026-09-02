@@ -95,7 +95,7 @@ class SkmCalculatorService
             $jumlahPertanyaan = $pertanyaanUnsurIni->count();
 
             if ($jumlahPertanyaan === 0) {
-                $unsurBelumTerpetakan[] = $unsur->kode . ' - ' . $unsur->pertanyaan;
+                $unsurBelumTerpetakan[] = $unsur->kode . ' - ' . $unsur->nama_unsur;
             }
 
             $totalNilai = SurveiJawabanDetail::whereIn('pertanyaan_survei_id', $pertanyaanUnsurIni->pluck('id'))
@@ -115,7 +115,7 @@ class SkmCalculatorService
             $nrrTertimbang = $unsurAktif->count() > 0 ? $nrr * (1 / $unsurAktif->count()) : 0;
 
             $hasilPerUnsur[$unsur->kode] = [
-                'pertanyaan' => $unsur->pertanyaan,
+                'nama_unsur' => $unsur->nama_unsur,
                 'jumlah_pertanyaan_unit' => $jumlahPertanyaan,
                 'total_nilai' => $totalNilai,
                 'nrr' => round($nrr, 3),
@@ -255,16 +255,18 @@ class SkmCalculatorService
 
     public function peringkatPrioritas(array $hasil): Collection
     {
+        // Ambil nama_unsur dari tabel unsur_pelayanan
+        $petaNamaUnsur = UnsurPelayanan::aktif()
+            ->pluck('nama_unsur', 'kode')
+            ->all();
+
         return collect($hasil['per_unsur'] ?? [])
-            ->map(function ($u, $kode) {
-                // Pastikan pertanyaan diambil sebagai String meskipun berbentuk Array/Collection
-                $pertanyaanTeks = is_array($u['pertanyaan'] ?? null)
-                    ? ($u['pertanyaan'][0]['teks_pertanyaan'] ?? $u['pertanyaan'][0]['pertanyaan'] ?? '-')
-                    : ($u['pertanyaan'] ?? '-');
+            ->map(function ($u, $kode) use ($petaNamaUnsur) {
+                $namaUnsur = $petaNamaUnsur[$kode] ?? $kode;
 
                 return [
                     'kode' => $kode,
-                    'pertanyaan' => $pertanyaanTeks,
+                    'nama_unsur' => $namaUnsur,
                     'nrr' => $u['nrr'] ?? 0,
                 ];
             })

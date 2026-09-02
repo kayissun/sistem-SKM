@@ -4,28 +4,173 @@
 
 @section('content')
     <style>
-        .tl-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
-        .tl-head h3 { color:#180733; font-weight:800; margin:0 0 4px; }
-        .tl-head p { color:#635C7A; margin:0; font-size:.88rem; }
-        .unsur-header { background:#FEF3C7; }
-        .badge-tl { font-weight:600; padding:.35em .7em; border-radius:99px; font-size:.75rem; }
-        .faskes-card { border-left:4px solid #7C3AED; }
+        /* ============ COLOR TOKENS ============ */
+        :root {
+            --purple-900: #180733;
+            --purple-800: #2E1065;
+            --purple-700: #6D28D9;
+            --purple-600: #7C3AED;
+            --purple-500: #8B5CF6;
+            --purple-100: #EDE9FE;
+            --gold-700: #A66A0E;
+            --gold-600: #C88719;
+            --gold-400: #E4A63B;
+            --gold-100: #FCF1DC;
+            --surface-0: #FFFFFF;
+            --surface-1: #FAF8FF;
+            --surface-2: #F3EEFF;
+            --ink: #14102B;
+            --ink-muted: #625B78;
+        }
+
+        /* ============ PAGE HEAD ============ */
+        .tl-head { 
+            display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:20px;
+        }
+        .tl-head h3 { 
+            color:var(--purple-900); font-weight:800; margin:0 0 4px; font-size:1.75rem;
+        }
+        .tl-head p { 
+            color:var(--ink-muted); margin:0; font-size:.88rem;
+        }
+
+        /* ============ FILTER FORM ============ */
+        .tl-filter { 
+            border-radius:14px; border:none; 
+        }
+        .tl-filter .form-label { 
+            font-size:.72rem; letter-spacing:.02em; color:var(--ink-muted); font-weight:700;
+        }
+        .tl-filter .form-control, .tl-filter .form-select { 
+            border-color:rgba(109,40,217,.15); background:var(--surface-1); border-radius:10px; 
+            font-size:.9rem; color:var(--purple-900);
+        }
+        .tl-filter .form-control:focus, .tl-filter .form-select:focus { 
+            box-shadow: 0 0 0 .2rem rgba(109,40,217,.12); border-color:var(--purple-700);
+        }
+        .tl-filter .btn-primary { 
+            background:var(--purple-700); border-color:var(--purple-700); border-radius:10px; font-weight:600;
+        }
+        .tl-filter .btn-primary:hover { 
+            background:var(--purple-800); border-color:var(--purple-800);
+        }
+        .tl-filter .btn-outline-secondary {
+            border-color:rgba(109,40,217,.2); color:var(--ink-muted); border-radius:10px;
+        }
+        .tl-filter .btn-outline-secondary:hover {
+            background:var(--purple-100); color:var(--purple-900);
+        }
+
+        /* ============ STAT CARDS ============ */
+        .tl-stat-card {
+            border:none; border-radius:14px; box-shadow:0 2px 6px rgba(46,16,101,.04);
+            border-left:4px solid var(--purple-700); transition:.15s;
+        }
+        .tl-stat-card:hover {
+            box-shadow:0 6px 16px rgba(46,16,101,.08);
+        }
+        .tl-stat-card .card-body {
+            padding:1.25rem;
+        }
+        .tl-stat-card .small {
+            color:var(--ink-muted); font-size:.8rem;
+        }
+        .tl-stat-card .fs-3 {
+            color:var(--purple-900); font-weight:800;
+        }
+
+        /* ============ FASKES CARDS & TABLES ============ */
+        .faskes-card {
+            border:none; border-radius:14px; box-shadow:0 2px 6px rgba(46,16,101,.04);
+            overflow:hidden; transition:.15s;
+        }
+        .faskes-card:hover {
+            box-shadow:0 6px 16px rgba(46,16,101,.08);
+        }
+        .faskes-card .card-header {
+            background:var(--surface-1); border-bottom:2px solid rgba(109,40,217,.1);
+            padding:1rem;
+        }
+        .faskes-card .card-header strong {
+            color:var(--purple-900); font-size:1rem;
+        }
+
+        /* ============ TABLE STYLING ============ */
+        .tl-table { 
+            font-size:.82rem; margin-bottom:0;
+        }
+        .tl-table thead {
+            background:var(--surface-1); border-bottom:2px solid rgba(109,40,217,.1);
+        }
+        .tl-table th { 
+            color:var(--purple-900); font-weight:700; padding:.75rem .85rem; white-space:nowrap;
+        }
+        .tl-table tbody tr {
+            transition:background .15s; border-bottom:1px solid rgba(109,40,217,.05);
+        }
+        .tl-table tbody tr:hover {
+            background:var(--surface-1);
+        }
+        .tl-table td { padding:.75rem .85rem; }
+        .tl-table a { 
+            color:var(--purple-700); font-weight:600; text-decoration:none; transition:.15s;
+        }
+        .tl-table a:hover {
+            color:var(--purple-800);
+        }
+
+        /* ============ BADGES & ELEMENTS ============ */
+        .badge-tl { 
+            font-weight:600; padding:.4em .7em; border-radius:8px; font-size:.75rem;
+        }
+        .badge-status {
+            display:inline-block; padding:3px 10px; border-radius:6px; font-weight:600; font-size:.75rem;
+        }
+        .badge-status.submitted {
+            background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;
+        }
+        .badge-status.draft {
+            background:#FEF3C7; color:#854D0E; border:1px solid #FDE68A;
+        }
+
+        /* ============ PROGRESS BAR ============ */
+        .tl-progress {
+            display:flex; align-items:center; gap:8px;
+        }
+        .tl-progress .progress {
+            height:6px; border-radius:99px; overflow:hidden;
+            background:var(--surface-2);
+        }
+        .tl-progress .progress-bar {
+            background:linear-gradient(90deg, #10B981, #34D399); height:100%;
+        }
+
+        /* ============ EMPTY STATE ============ */
+        .alert-warning {
+            background:linear-gradient(135deg, #FFFBEB, #FEF3C7);
+            border:1px solid var(--gold-400);
+            color:var(--gold-700);
+            border-radius:10px; font-weight:500;
+        }
     </style>
 
     <!-- Header -->
     <div class="tl-head">
         <div>
-            <h3><i class="fa-solid fa-clipboard-check me-2"></i>Monitoring Tindak Lanjut</h3>
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--purple-700); background:var(--purple-100); padding:3px 10px; border-radius:99px; margin-bottom:8px;">
+                <i class="fa-solid fa-clipboard-check"></i> Monitoring
+            </span>
+            <h3><i class="fa-solid fa-clipboard-check me-2" style="color:var(--purple-700)"></i>Tindak Lanjut Perbaikan</h3>
             <p>Pantau tindak lanjut perbaikan dari seluruh puskesmas/RSU beserta capaiannya.</p>
         </div>
     </div>
 
     <!-- Filter -->
-    <form method="GET" class="card border-0 shadow-sm mb-4">
+    <form method="GET" class="card tl-filter border-0 shadow-sm mb-4">
         <div class="card-body row g-3 align-items-end">
-            <!-- Input Cari Faskes + Tombol Aksi -->
+            <!-- Input Cari Faskes -->
             <div class="col-md-5">
-                <label class="form-label small text-muted fw-semibold">
+                <label class="form-label">
                     <i class="fa-solid fa-magnifying-glass me-1"></i> Cari Faskes
                 </label>
                 <div class="input-group">
@@ -43,7 +188,7 @@
 
             <!-- Filter Periode Survei -->
             <div class="col-md-4">
-                <label class="form-label small text-muted fw-semibold">
+                <label class="form-label">
                     <i class="fa-solid fa-calendar-days me-1"></i> Periode Survei
                 </label>
                 <select name="periode_survei_id" class="form-select" onchange="this.form.submit()">
@@ -57,8 +202,8 @@
 
             <!-- Filter Status TL -->
             <div class="col-md-3">
-                <label class="form-label small text-muted fw-semibold">
-                    <i class="fa-solid fa-flag me-1"></i> Status TL
+                <label class="form-label">
+                    <i class="fa-solid fa-flag me-1"></i> Status
                 </label>
                 <select name="status" class="form-select" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
@@ -70,14 +215,15 @@
     </form>
 
     @if (!$periode)
-        <div class="alert alert-warning">Belum ada periode survei. Buat periode terlebih dahulu.</div>
+        <div class="alert alert-warning">
+            <i class="fa-solid fa-circle-exclamation me-1"></i> Belum ada periode survei. Buat periode terlebih dahulu.
+        </div>
     @elseif ($dataFaskes->isEmpty())
         <div class="alert alert-warning">
-            <i class="fa-solid fa-triangle-exclamation me-1"></i>
-            Belum ada data faskes dengan responden pada periode ini.
+            <i class="fa-solid fa-circle-exclamation me-1"></i> Belum ada data faskes dengan responden pada periode ini.
         </div>
     @else
-        {{-- Ringkasan --}}
+        {{-- Ringkasan Statistik --}}
         @php
             $totalFaskes = $dataFaskes->count();
             $totalTlAll = $dataFaskes->sum('totalTl');
@@ -86,34 +232,34 @@
         @endphp
         <div class="row g-3 mb-4">
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body py-3">
-                        <div class="small text-muted">Faskes Aktif</div>
-                        <div class="fs-3 fw-bold" style="color:#180733">{{ $totalFaskes }}</div>
+                <div class="card tl-stat-card">
+                    <div class="card-body text-center">
+                        <div class="small">Faskes Aktif</div>
+                        <div class="fs-3">{{ $totalFaskes }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body py-3">
-                        <div class="small text-muted">Total Tindak Lanjut</div>
-                        <div class="fs-3 fw-bold text-info">{{ $totalTlAll }}</div>
+                <div class="card tl-stat-card" style="border-left-color:var(--purple-600)">
+                    <div class="card-body text-center">
+                        <div class="small">Total TL</div>
+                        <div class="fs-3">{{ $totalTlAll }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body py-3">
-                        <div class="small text-muted">Tercapai</div>
-                        <div class="fs-3 fw-bold text-success">{{ $totalTercapai }}</div>
+                <div class="card tl-stat-card" style="border-left-color:#10B981">
+                    <div class="card-body text-center">
+                        <div class="small">Tercapai</div>
+                        <div class="fs-3" style="color:#10B981">{{ $totalTercapai }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body py-3">
-                        <div class="small text-muted">Total Progres</div>
-                        <div class="fs-3 fw-bold" style="color:#180733">{{ $totalProgressAll }}</div>
+                <div class="card tl-stat-card" style="border-left-color:var(--gold-600)">
+                    <div class="card-body text-center">
+                        <div class="small">Total Progres</div>
+                        <div class="fs-3" style="color:var(--gold-600)">{{ $totalProgressAll }}</div>
                     </div>
                 </div>
             </div>
@@ -127,111 +273,94 @@
                 $tindakLanjuts = $item['tindakLanjuts'];
             @endphp
             <div class="card mb-4 border-0 shadow-sm faskes-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong style="color:#180733;font-size:1rem;">{{ $puskesmas->nama }}</strong>
-                        <span class="small text-muted ms-2">SKM: <strong>{{ $hasil['nilai_akhir_skm'] }}</strong> — {{ $hasil['mutu_akhir'] }}</span>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <span class="badge bg-primary rounded-pill">{{ $item['totalTl'] }} TL</span>
-                        @if ($item['totalProgress'] > 0)
-                            <span class="small text-muted">{{ $item['tercapaiCount'] }}/{{ $item['totalProgress'] }} tercapai</span>
-                        @endif
+                <div class="card-header">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <strong style="color:var(--purple-900); font-size:1rem;">{{ $puskesmas->nama }}</strong>
+                            <span class="small text-muted ms-3">
+                                <i class="fa-solid fa-chart-line me-1" style="color:var(--purple-700)"></i>
+                                SKM: <strong>{{ $hasil['nilai_akhir_skm'] }}</strong> — {{ $hasil['mutu_akhir'] }}
+                            </span>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge-tl badge-status submitted me-2">{{ $item['totalTl'] }} TL</span>
+                            @if ($item['totalProgress'] > 0)
+                                <span class="small text-muted">{{ $item['tercapaiCount'] }}/{{ $item['totalProgress'] }} tercapai</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    {{-- Tabel Nilai Unsur --}}
+                    {{-- Tabel Tindak Lanjut (Gabungan) --}}
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm text-center align-middle bg-white mb-0" style="font-size:.78rem">
+                        <table class="table tl-table align-middle">
                             <thead>
                                 <tr>
-                                    <th rowspan="2" class="align-middle text-start">Nama Faskes</th>
-                                    <th rowspan="2" class="align-middle">SKM</th>
-                                    <th colspan="{{ count($kodeUnsur) }}" class="unsur-header">Nilai Unsur Pelayanan</th>
-                                </tr>
-                                <tr>
-                                    @foreach ($kodeUnsur as $kode)
-                                        <th class="unsur-header">{{ $kode }}</th>
-                                    @endforeach
+                                    <th style="width:40px">No</th>
+                                    <th>Unsur</th>
+                                    <th style="width:100px">Nilai Awal</th>
+                                    <th>Rencana Perbaikan</th>
+                                    <th style="width:90px">TW/Tahun</th>
+                                    <th style="width:80px">Status</th>
+                                    <th style="width:140px">Progres</th>
+                                    <th style="width:70px">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="text-start fw-semibold">{{ $puskesmas->nama }}</td>
-                                    <td><strong>{{ $hasil['nilai_akhir_skm'] }}</strong></td>
-                                    @foreach ($kodeUnsur as $kode)
-                                        @php $skor = $hasil['per_unsur'][$kode]['nrr_skala_100'] ?? 0; @endphp
+                                @foreach ($tindakLanjuts as $tl)
+                                    @php
+                                        $totalProg = $tl->progress->count();
+                                        $tercapaiProg = $tl->progress->where('tercapai', true)->count();
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
                                         <td>
-                                            @if ($skor >= 88.31)
-                                                <span class="text-success fw-semibold">{{ number_format($skor, 1) }}</span>
-                                            @elseif ($skor >= 76.61)
-                                                <span>{{ number_format($skor, 1) }}</span>
-                                            @elseif ($skor >= 65.00)
-                                                <span class="text-warning fw-semibold">{{ number_format($skor, 1) }}</span>
+                                            <div class="fw-semibold" style="color:var(--purple-900)">{{ $tl->unsurPelayanan->kode ?? '-' }}</div>
+                                            <div class="small text-muted">{{ $tl->unsurPelayanan->nama_unsur ?? '-' }}</div>
+                                        </td>
+                                        <td class="fw-bold">{{ $tl->nilai_kondisi !== null ? number_format($tl->nilai_kondisi, 1) : '-' }}</td>
+                                        <td class="small">{{ Str::limit($tl->tindakan_perbaikan, 70) }}</td>
+                                        <td>
+                                            <span class="badge-tl" style="background:var(--surface-2); color:var(--ink-muted)">
+                                                TW-{{ $tl->triwulan }} {{ $tl->tahun }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-status {{ $tl->status === 'submitted' ? 'submitted' : 'draft' }}">
+                                                {{ $tl->status_label }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if ($totalProg > 0)
+                                                <div class="tl-progress">
+                                                    <div class="progress flex-grow-1">
+                                                        <div class="progress-bar" style="width:{{ ($tercapaiProg / $totalProg) * 100 }}%"></div>
+                                                    </div>
+                                                    <span class="small text-muted" style="white-space:nowrap">{{ $tercapaiProg }}/{{ $totalProg }}</span>
+                                                </div>
                                             @else
-                                                <span class="text-danger fw-semibold">{{ number_format($skor, 1) }}</span>
+                                                <span class="small text-muted">—</span>
                                             @endif
                                         </td>
-                                    @endforeach
-                                </tr>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('dinkes.tindak-lanjut.show', $tl) }}" class="btn btn-sm btn-outline-primary" title="Tinjau Detail">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                                <a href="{{ route('dinkes.tindak-lanjut.rekap-puskesmas', $puskesmas) }}" class="btn btn-sm btn-outline-secondary" title="Rekap">
+                                                    <i class="fa-solid fa-chart-pie"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
 
-                    {{-- Daftar TL untuk faskes ini --}}
-                    @if ($tindakLanjuts->isNotEmpty())
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" style="font-size:.82rem">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="text-muted" style="width:40px">No</th>
-                                        <th class="text-muted">Unsur</th>
-                                        <th class="text-muted">Triwulan</th>
-                                        <th class="text-muted">Rencana Perbaikan</th>
-                                        <th class="text-muted">Status</th>
-                                        <th class="text-muted">Progres</th>
-                                        <th class="text-muted" style="width:60px">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($tindakLanjuts as $tl)
-                                        @php
-                                            $totalProg = $tl->progress->count();
-                                            $tercapaiProg = $tl->progress->where('tercapai', true)->count();
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $loop->iteration }}</td>
-                                            <td>
-                                                <div class="fw-semibold">{{ $tl->unsurPelayanan->kode ?? '-' }}</div>
-                                                <div class="small text-muted">{{ $tl->unsurPelayanan->nama_unsur ?? '-' }}</div>
-                                            </td>
-                                            <td><span class="badge bg-light text-dark border">TW-{{ $tl->triwulan }} {{ $tl->tahun }}</span></td>
-                                            <td class="small">{{ Str::limit($tl->tindakan_perbaikan, 80) }}</td>
-                                            <td><span class="badge-tl {{ $tl->status_badge_class }}">{{ $tl->status_label }}</span></td>
-                                            <td>
-                                                @if ($totalProg > 0)
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <div class="progress flex-grow-1" style="height:6px;">
-                                                            <div class="progress-bar bg-success" style="width:{{ ($tercapaiProg / $totalProg) * 100 }}%"></div>
-                                                        </div>
-                                                        <span class="small text-muted">{{ $tercapaiProg }}/{{ $totalProg }}</span>
-                                                    </div>
-                                                @else
-                                                    <span class="small text-muted">—</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <a href="{{ route('dinkes.tindak-lanjut.show', $tl) }}" class="btn btn-sm btn-outline-primary" title="Tinjau">
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-3 text-muted small">
+                    @if ($tindakLanjuts->isEmpty())
+                        <div class="text-center py-4 text-muted small">
+                            <i class="fa-regular fa-folder-open fa-2x mb-2 d-block opacity-50"></i>
                             Belum ada tindak lanjut dari faskes ini.
                         </div>
                     @endif

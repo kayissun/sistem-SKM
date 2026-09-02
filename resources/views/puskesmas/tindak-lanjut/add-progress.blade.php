@@ -56,7 +56,7 @@
                                         <input class="form-check-input" type="radio" name="tercapai" value="1"
                                                id="tercapai-ya" @checked(old('tercapai', '1') == '1') required>
                                         <label class="form-check-label fw-semibold" for="tercapai-ya">
-                                            <i class="fa-solid fa-circle-check text-success me-1"></i> Tercapai
+                                            <i class="fa-solid fa-circle-check text-gold-emphasis me-1"></i> Tercapai
                                         </label>
                                     </div>
                                     <div class="form-check">
