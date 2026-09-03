@@ -429,7 +429,7 @@
         </span>
         <h1>Survei Kepuasan Masyarakat <em class="accent">Dinas Kesehatan Daerah</em> Kabupaten Purworejo</h1>
         <p class="lead">
-          Susun kuesioner presisi untuk tiap unit, kumpulkan masukan warga melalui QR Code, dan pantau Indeks Kepuasan Masyarakat secara real-time — satu sistem untuk seluruh Fasilitas Kesehatan.
+          Susun kuesioner presisi untuk tiap unit, kumpulkan masukan masyarakat melalui QR Code, dan pantau Indeks Kepuasan Masyarakat secara real-time — satu sistem untuk seluruh Fasilitas Kesehatan.
         </p>
         <div class="hero-cta">
           <a href="{{ route('login') }}" class="btn btn-primary">
@@ -511,14 +511,14 @@
   <section id="kenapa" class="section-alt">
     <div class="container">
       <div class="section-head" data-aos="fade-up">
-        <span class="eyebrow"><i class="fa-solid fa-circle-question"></i> Kenapa SIPUAS?</span>
+        <span class="eyebrow"><i class="fa-solid fa-circle-question"></i> Kenapa SKM?</span>
         <h2>Jawaban atas kebutuhan mutu layanan kesehatan yang terukur</h2>
-        <p>Dari loket puskesmas hingga meja pimpinan dinas, SIPUAS menyatukan data kepuasan warga menjadi satu acuan yang sama.</p>
+        <p>Dari loket puskesmas hingga meja pimpinan dinas, SKM menyatukan data kepuasan masyarakat menjadi satu acuan yang sama.</p>
       </div>
       <div class="why-grid">
         <div class="why-media" data-aos="fade-right" data-aos-duration="700">
           <img src="{{ asset('images/petugas-loket.jpg') }}" alt="Petugas layanan kesehatan Puskesmas">
-          <span class="tag"><i class="fa-solid fa-hand-holding-heart"></i> Melayani warga Purworejo</span>
+          <span class="tag"><i class="fa-solid fa-hand-holding-heart"></i> Melayani masyarakat Purworejo</span>
         </div>
         <div class="why-list">
           <div class="why-row" data-aos="fade-up" data-aos-duration="600" data-aos-delay="0" data-aos-easing="ease-out-back">
@@ -579,7 +579,7 @@
       <div class="section-head" data-aos="fade-up">
         <span class="eyebrow"><i class="fa-solid fa-gavel"></i> Landasan Hukum</span>
         <h2>Dasar Regulasi SKM</h2>
-        <p>Pelaksanaan SKM digital ini berpijak pada peraturan resmi yang mengatur mutu pelayanan publik.</p>
+        <p>Pelaksanaan SKM ini berpijak pada peraturan resmi yang mengatur mutu pelayanan publik.</p>
       </div>
       <div class="law-grid">
         <div class="law-card" data-aos="fade-up" data-aos-duration="500">
@@ -628,11 +628,11 @@
       <div class="faq-list">
         <details class="faq-item" open data-aos="fade-up" data-aos-duration="450">
           <summary>Apa itu SKM? <span class="icon"><i class="fa-solid fa-plus"></i></span></summary>
-          <div class="faq-body">SKM adalah sistem digital Survei Kepuasan Masyarakat milik Dinas Kesehatan Daerah Kabupaten Purworejo, digunakan seluruh Fasilitas Kesehatan untuk mengumpulkan dan merekap penilaian warga terhadap layanan kesehatan.</div>
+          <div class="faq-body">SKM adalah sistem informasi Survei Kepuasan Masyarakat milik Dinas Kesehatan Daerah Kabupaten Purworejo, digunakan seluruh Fasilitas Kesehatan untuk mengumpulkan dan merekap penilaian masyarakat terhadap layanan kesehatan.</div>
         </details>
         <details class="faq-item" data-aos="fade-up" data-aos-duration="450" data-aos-delay="60">
           <summary>Siapa yang wajib mengisi survei ini? <span class="icon"><i class="fa-solid fa-plus"></i></span></summary>
-          <div class="faq-body">Setiap warga yang baru saja menerima layanan di loket, poli, atau unit kesehatan yang telah memasang QR Code SKM dipersilakan mengisi, namun sifatnya sukarela.</div>
+          <div class="faq-body">Setiap masyarakat yang baru saja menerima layanan di loket, poli, atau unit kesehatan yang telah memasang QR Code SKM dipersilakan mengisi, namun sifatnya sukarela.</div>
         </details>
         <details class="faq-item" data-aos="fade-up" data-aos-duration="450" data-aos-delay="120">
           <summary>Bagaimana cara mengakses formulir survei? <span class="icon"><i class="fa-solid fa-plus"></i></span></summary>
@@ -677,8 +677,8 @@
           <h4>Jaringan Layanan</h4>
           <ul>
             <li><i class="fa-solid fa-building-columns"></i>Dinkesda Purworejo</li>
+            <li><i class="fa-solid fa-hospital"></i>RSU</li>
             <li><i class="fa-solid fa-hospital"></i>Puskesmas</li>
-            <li><i class="fa-solid fa-house-medical"></i>RSU</li>
           </ul>
         </div>
       </div>
