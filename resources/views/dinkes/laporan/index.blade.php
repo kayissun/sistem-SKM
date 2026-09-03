@@ -383,8 +383,12 @@
                                     <td class="text-start fw-semibold" style="color:var(--purple-900, #180733)">{{ $baris['puskesmas'] }}</td>
                                     <td><span class="sp-badge-soft">{{ $namaPeriodeLengkap ?? $periode?->nama }}</span></td>
                                     @foreach ($kodeUnsur as $kode)
-                                        <td class="sp-nilai-cell">
-                                            {{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}
+                                        @php
+                                            $unsurData = $baris['per_unsur'][$kode] ?? null;
+                                            $nrr = $unsurData['nrr'] ?? (isset($unsurData['nrr_skala_100']) ? $unsurData['nrr_skala_100'] / 25 : 0);
+                                        @endphp
+                                        <td class="sp-nilai-cell" title="{{ $unsurData['nama_unsur'] ?? $kode }}: {{ number_format($nrr, 3) }}">
+                                            {{ number_format($nrr, 3) }}
                                         </td>
                                     @endforeach
                                     <td class="sp-ikm">{{ $baris['nilai_akhir_skm'] }}</td>

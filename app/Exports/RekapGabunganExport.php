@@ -46,7 +46,7 @@ class RekapGabunganExport implements FromCollection, WithHeadings, WithMapping, 
         $this->nomorBaris++;
 
         $nilaiPerUnsur = array_map(
-            fn ($kode) => $baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0,
+            fn ($kode) => $baris['per_unsur'][$kode]['nrr'] ?? (isset($baris['per_unsur'][$kode]['nrr_skala_100']) ? round($baris['per_unsur'][$kode]['nrr_skala_100'] / 25, 3) : 0),
             $this->kodeUnsur
         );
 

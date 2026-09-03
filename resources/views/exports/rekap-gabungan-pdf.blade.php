@@ -84,7 +84,11 @@
                     <td class="label">{{ $baris['puskesmas'] }}</td>
                     <td>{{ $namaPeriodeLengkap ?? $periode?->nama }}</td>
                     @foreach ($kodeUnsur as $kode)
-                        <td>{{ number_format($baris['per_unsur'][$kode]['nrr_skala_100'] ?? 0, 2) }}</td>
+                        @php
+                            $unsurData = $baris['per_unsur'][$kode] ?? null;
+                            $nrr = $unsurData['nrr'] ?? (isset($unsurData['nrr_skala_100']) ? $unsurData['nrr_skala_100'] / 25 : 0);
+                        @endphp
+                        <td>{{ number_format($nrr, 3) }}</td>
                     @endforeach
                     <td>{{ number_format($baris['nilai_akhir_skm'], 2) }}</td>
                     <td>{{ $baris['mutu_akhir'] }}</td>
