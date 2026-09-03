@@ -58,7 +58,8 @@ class KlasterController extends Controller
 
         $namaPeriode = $periodeTren->pluck('nama', 'id');
         $kelompok = $hasil['kelompok']->map(function ($kelompok) use ($riwayat, $namaPeriode, $periode) {
-            $kelompok['anggota'] = $kelompok['anggota']->map(function ($anggota) use ($riwayat, $namaPeriode, $periode) {
+            $kelompok['anggota'] = $kelompok['anggota']->map(function ($anggota) use ($riwayat, $namaPeriode, $periode, $kelompok) {
+                $anggota['klaster_label'] = $kelompok['label'];
                 $anggota['tren'] = $riwayat->get($anggota['id'], collect())
                     ->sortBy('periode')
                     ->map(fn ($item) => [

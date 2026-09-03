@@ -102,12 +102,14 @@ class ClusteringService
 
                 foreach ($ids as $id) {
                     foreach ($kodeUnsur as $kode) {
-                        $centroid[$kode] += $hasilPerUnit[$id]['per_unsur'][$kode]['nrr_skala_100'];
+                        $nrr = $hasilPerUnit[$id]['per_unsur'][$kode]['nrr'] 
+                            ?? round(($hasilPerUnit[$id]['per_unsur'][$kode]['nrr_skala_100'] ?? 0) / 25, 3);
+                        $centroid[$kode] += $nrr;
                     }
                 }
 
                 foreach ($centroid as $k => $v) {
-                    $centroid[$k] = round($v / count($ids), 2);
+                    $centroid[$k] = round($v / count($ids), 3);
                 }
 
                 /**
@@ -116,7 +118,9 @@ class ClusteringService
                 $anggotaDetail = collect($ids)->map(function ($id) use ($hasilPerUnit, $kodeUnsur) {
                     $perUnsur = [];
                     foreach ($kodeUnsur as $kode) {
-                        $perUnsur[$kode] = $hasilPerUnit[$id]['per_unsur'][$kode]['nrr_skala_100'] ?? 0;
+                        $nrr = $hasilPerUnit[$id]['per_unsur'][$kode]['nrr'] 
+                            ?? round(($hasilPerUnit[$id]['per_unsur'][$kode]['nrr_skala_100'] ?? 0) / 25, 3);
+                        $perUnsur[$kode] = $nrr;
                     }
 
                     return [
