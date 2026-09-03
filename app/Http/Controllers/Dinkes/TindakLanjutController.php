@@ -50,6 +50,10 @@ class TindakLanjutController extends Controller
             $kodeUnsur = $unsurAktif->pluck('kode')->all();
             $namaUnsur = $unsurAktif->pluck('nama_unsur', 'kode')->all();
 
+            $periodeSebelumnya = PeriodeSurvei::where('tanggal_mulai', '<', $periode->tanggal_mulai)
+                ->orderByDesc('tanggal_mulai')
+                ->first();
+
             $faskesQuery = $daftarPuskesmas;
             if ($search) {
                 $faskesQuery = $faskesQuery->filter(
@@ -61,8 +65,13 @@ class TindakLanjutController extends Controller
                 $hasil = $service->hitung($puskesmas, $periode);
                 if ($hasil['jumlah_responden'] === 0) continue;
 
+                $hasilSebelumnya = null;
+                if ($periodeSebelumnya) {
+                    $hasilSebelumnya = $service->hitung($puskesmas, $periodeSebelumnya);
+                }
+
                 $queryTlFaskes = TindakLanjut::where('puskesmas_id', $puskesmas->id)
-                    ->with('unsurPelayanan', 'progress');
+                    ->with(['unsurPelayanan', 'progress.createdBy']);
                 if ($status) $queryTlFaskes->where('status', $status);
 
                 $tindakLanjutsFaskes = $queryTlFaskes->orderByDesc('tahun')
@@ -70,19 +79,15 @@ class TindakLanjutController extends Controller
                     ->get();
 
                 $totalTl = $tindakLanjutsFaskes->count();
-                $tercapaiCount = 0;
-                foreach ($tindakLanjutsFaskes as $tl) {
-                    $tercapaiCount += $tl->progress->where('tercapai', true)->count();
-                }
                 $totalProgress = $tindakLanjutsFaskes->sum(fn($tl) => $tl->progress->count());
 
                 $dataFaskes->push([
-                    'puskesmas' => $puskesmas,
-                    'hasil' => $hasil,
-                    'tindakLanjuts' => $tindakLanjutsFaskes,
-                    'totalTl' => $totalTl,
-                    'totalProgress' => $totalProgress,
-                    'tercapaiCount' => $tercapaiCount,
+                    'puskesmas'       => $puskesmas,
+                    'hasil'           => $hasil,
+                    'hasilSebelumnya' => $hasilSebelumnya,
+                    'tindakLanjuts'   => $tindakLanjutsFaskes,
+                    'totalTl'         => $totalTl,
+                    'totalProgress'   => $totalProgress,
                 ]);
             }
         }
@@ -99,7 +104,7 @@ class TindakLanjutController extends Controller
      */
     public function show(TindakLanjut $tindakLanjut)
     {
-        $tindakLanjut->load(['puskesmas', 'unsurPelayanan', 'progress']);
+        $tindakLanjut->load(['puskesmas', 'unsurPelayanan', 'progress.createdBy', 'verifiedBy']);
 
         return view('dinkes.tindak-lanjut.show', compact('tindakLanjut'));
     }

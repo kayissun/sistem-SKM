@@ -16,7 +16,7 @@
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label small text-muted mb-1 fw-semibold">
-                        <i class="fa-solid fa-calendar-days me-1"></i> Periode Survei
+                        <i class="fa-solid fa-calendar-days me-1"></i> Periode Survei SKM
                     </label>
                     <select name="periode_survei_id" class="form-select border rounded-3" onchange="this.form.submit()">
                         @foreach ($daftarPeriode as $p)
@@ -28,10 +28,10 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-muted mb-1 fw-semibold">
-                        <i class="fa-solid fa-clock me-1"></i> Triwulan
+                        <i class="fa-solid fa-clock me-1"></i> Filter Triwulan TL
                     </label>
                     <select name="triwulan" class="form-select border rounded-3" onchange="this.form.submit()">
-                        <option value="">Semua</option>
+                        <option value="">Semua Triwulan</option>
                         @for ($t = 1; $t <= 4; $t++)
                             <option value="{{ $t }}" @selected($triwulan == $t)>Triwulan {{ $t }}</option>
                         @endfor
@@ -39,13 +39,18 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-muted mb-1 fw-semibold">
-                        <i class="fa-solid fa-calendar me-1"></i> Tahun
+                        <i class="fa-solid fa-calendar me-1"></i> Filter Tahun TL
                     </label>
                     <select name="tahun" class="form-select border rounded-3" onchange="this.form.submit()">
-                        <option value="">Semua</option>
-                        @for ($y = date('Y'); $y >= date('Y') - 3; $y--)
+                        <option value="">Semua Tahun</option>
+                        @php
+                            $listTahun = $tahunTersedia->isNotEmpty() 
+                                ? $tahunTersedia->merge([now()->year])->unique()->sortDesc() 
+                                : collect([now()->year, now()->year - 1]);
+                        @endphp
+                        @foreach ($listTahun as $y)
                             <option value="{{ $y }}" @selected($tahun == $y)>{{ $y }}</option>
-                        @endfor
+                        @endforeach
                     </select>
                 </div>
             </form>
@@ -62,8 +67,19 @@
                             <i class="fa-solid fa-star"></i>
                         </div>
                         <div>
-                            <div class="label">Nilai SKM Faskes</div>
-                            <div class="value">{{ $hasil['nilai_akhir_skm'] }}</div>
+                            <div class="label">Nilai SKM Periode Ini</div>
+                            <div class="value">
+                                {{ $hasil['nilai_akhir_skm'] }}
+                                @if ($hasilSebelumnya && $hasilSebelumnya['jumlah_responden'] > 0)
+                                    @php
+                                        $diffSkm = $hasil['nilai_akhir_skm'] - $hasilSebelumnya['nilai_akhir_skm'];
+                                    @endphp
+                                    <small class="fs-6 ms-1 {{ $diffSkm >= 0 ? 'text-success' : 'text-danger' }}">
+                                        <i class="fa-solid {{ $diffSkm >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i>
+                                        {{ $diffSkm >= 0 ? '+' : '' }}{{ number_format($diffSkm, 2) }}
+                                    </small>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -88,7 +104,7 @@
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                         <div>
-                            <div class="label">Total Unsur Aktif</div>
+                            <div class="label">Total Unsur Dinilai</div>
                             <div class="value">{{ count($hasil['per_unsur']) }}</div>
                         </div>
                     </div>
@@ -102,12 +118,18 @@
                 ->map(fn($data, $kode) => [...$data, 'kode' => $kode])
                 ->sortBy('nrr_skala_100')
                 ->values();
+
+            // Tentukan triwulan & tahun dari periode survei
+            $twPeriode = $periode && $periode->tanggal_mulai ? (int) ceil($periode->tanggal_mulai->month / 3) : (int) ceil(now()->month / 3);
+            $thPeriode = $periode && $periode->tanggal_mulai ? (int) $periode->tanggal_mulai->year : (int) now()->year;
         @endphp
 
         <div class="card sp-section-card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fa-solid fa-layer-group me-2"></i>Nilai Unsur & Aksi Tindak Lanjut</span>
-                <span class="small text-muted">Diurutkan dari skor terendah ke tertinggi</span>
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <span><i class="fa-solid fa-arrow-down-short-wide me-2"></i>Prioritas Perbaikan Unsur (Terlemah &rarr; Tertinggi)</span>
+                    <span class="small text-muted ms-2">Berdasarkan hasil survei {{ $periode?->nama }}</span>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="sp-table-card table align-middle mb-0">
@@ -116,10 +138,11 @@
                             <th style="width:45px" class="text-center">No</th>
                             <th style="width:70px" class="text-center">Kode</th>
                             <th>Nama Unsur</th>
-                            <th style="width:80px" class="text-center">Skor</th>
-                            <th style="width:110px" class="text-center">Kategori</th>
-                            <th style="width:120px" class="text-center">Status TL</th>
-                            <th style="width:130px" class="text-center">Aksi</th>
+                            <th style="width:90px" class="text-center">Skor Saat Ini</th>
+                            <th style="width:110px" class="text-center">Tren SKM</th>
+                            <th style="width:120px" class="text-center">Kategori</th>
+                            <th style="width:120px" class="text-center">Status Rencana</th>
+                            <th style="width:140px" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -132,7 +155,19 @@
                                 else { $level = 'danger'; $label = 'Perlu Perbaikan'; }
 
                                 $unsurModel = $unsurAktif->firstWhere('kode', $item['kode']);
-                                $sudahAdaTl = $tindakLanjuts->first(fn($tl) => $tl->unsur_pelayanan_id == ($unsurModel?->id));
+                                
+                                // Cek apakah sudah ada TL untuk unsur ini di triwulan/tahun periode ini
+                                $sudahAdaTl = $tindakLanjuts->first(function($tl) use ($unsurModel, $twPeriode, $thPeriode) {
+                                    return $tl->unsur_pelayanan_id == ($unsurModel?->id)
+                                        && $tl->triwulan == $twPeriode
+                                        && $tl->tahun == $thPeriode;
+                                });
+
+                                // Perbandingan dengan periode sebelumnya jika ada
+                                $skorSebelumnya = null;
+                                if ($hasilSebelumnya && isset($hasilSebelumnya['per_unsur'][$item['kode']])) {
+                                    $skorSebelumnya = $hasilSebelumnya['per_unsur'][$item['kode']]['nrr_skala_100'] ?? null;
+                                }
                             @endphp
                             <tr>
                                 <td class="text-center text-muted">{{ $loop->iteration }}</td>
@@ -144,13 +179,31 @@
                                     <span class="fw-bold text-{{ $level }}">{{ number_format($skor, 1) }}</span>
                                 </td>
                                 <td class="text-center">
+                                    @if ($skorSebelumnya !== null)
+                                        @php $diff = $skor - $skorSebelumnya; @endphp
+                                        @if ($diff > 0)
+                                            <span class="badge bg-success bg-opacity-10 text-success" title="Naik dari {{ number_format($skorSebelumnya, 1) }}">
+                                                <i class="fa-solid fa-arrow-up me-1"></i>+{{ number_format($diff, 1) }}
+                                            </span>
+                                        @elseif ($diff < 0)
+                                            <span class="badge bg-danger bg-opacity-10 text-danger" title="Turun dari {{ number_format($skorSebelumnya, 1) }}">
+                                                <i class="fa-solid fa-arrow-down me-1"></i>{{ number_format($diff, 1) }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary bg-opacity-10 text-muted">Tetap</span>
+                                        @endif
+                                    @else
+                                        <span class="text-muted small">&mdash;</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
                                     <span class="badge bg-{{ $level }} bg-opacity-10 text-{{ $level }}" style="font-size:.72rem">{{ $label }}</span>
                                 </td>
                                 <td class="text-center">
                                     @if ($sudahAdaTl)
                                         <span class="badge-tl {{ $sudahAdaTl->status_badge_class }}">{{ $sudahAdaTl->status_label }}</span>
                                     @else
-                                        <span class="text-muted small">&mdash;</span>
+                                        <span class="text-muted small">Belum diajukan</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -160,7 +213,7 @@
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
                                             @if ($sudahAdaTl->isEditable())
-                                                <a href="{{ route('puskesmas.tindak-lanjut.edit', $sudahAdaTl) }}" class="sp-icon-btn" title="Edit">
+                                                <a href="{{ route('puskesmas.tindak-lanjut.edit', $sudahAdaTl) }}" class="sp-icon-btn" title="Edit Rencana">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </a>
                                                 <form method="POST" action="{{ route('puskesmas.tindak-lanjut.submit', $sudahAdaTl) }}" class="d-inline">
@@ -172,9 +225,9 @@
                                             @endif
                                         </div>
                                     @else
-                                        <a href="{{ route('puskesmas.tindak-lanjut.create', ['periode_survei_id' => $periode?->id, 'unsur' => $item['kode']]) }}"
-                                           class="btn btn-sm btn-primary rounded-3">
-                                            <i class="fa-solid fa-plus me-1"></i> Ajukan TL
+                                        <a href="{{ route('puskesmas.tindak-lanjut.create', ['periode_survei_id' => $periode?->id, 'unsur' => $item['kode'], 'triwulan' => $twPeriode, 'tahun' => $thPeriode]) }}"
+                                           class="btn btn-sm btn-primary rounded-3" style="font-size:.78rem">
+                                            <i class="fa-solid fa-plus me-1"></i> Ajukan Rencana
                                         </a>
                                     @endif
                                 </td>
@@ -189,27 +242,27 @@
     {{-- ===== DAFTAR TINDAK LANJUT YANG SUDAH DIBUAT ===== --}}
     <div class="card sp-section-card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fa-solid fa-list-check me-2"></i>Daftar Tindak Lanjut</span>
+            <span><i class="fa-solid fa-list-check me-2"></i>Daftar Rencana Tindak Lanjut</span>
             <span class="badge bg-primary rounded-pill">{{ $tindakLanjuts->count() }} item</span>
         </div>
         <div class="table-responsive">
             @if ($tindakLanjuts->isEmpty())
-                <div class="sp-empty-state">
-                    <i class="fa-regular fa-folder-open"></i>
-                    Belum ada tindak lanjut. Pilih unsur di atas atau klik <strong>Ajukan TL</strong>.
+                <div class="sp-empty-state text-center py-4 text-muted">
+                    <i class="fa-regular fa-folder-open fa-2x mb-2 d-block opacity-50"></i>
+                    Belum ada rencana tindak lanjut. Pilih unsur di atas untuk membuat rencana perbaikan.
                 </div>
             @else
                 <table class="sp-table-card table align-middle mb-0">
                     <thead>
                         <tr>
                             <th style="width:40px">No</th>
-                            <th>Unsur</th>
+                            <th>Unsur Pelayanan</th>
                             <th>Triwulan</th>
                             <th>Tahun</th>
-                            <th>Nilai</th>
+                            <th>Nilai Awal</th>
                             <th>Status</th>
-                            <th>Foto</th>
-                            <th>Progres</th>
+                            <th>Foto Kondisi</th>
+                            <th>Progres Kegiatan</th>
                             <th style="width:140px">Aksi</th>
                         </tr>
                     </thead>
@@ -217,7 +270,6 @@
                         @foreach ($tindakLanjuts as $i => $tl)
                             @php
                                 $totalProgress = $tl->progress->count();
-                                $tercapaiCount = $tl->progress->where('tercapai', true)->count();
                             @endphp
                             <tr>
                                 <td>{{ $i + 1 }}</td>
@@ -232,7 +284,7 @@
                                 <td>
                                     @if ($tl->foto && count($tl->foto) > 0)
                                         <span class="badge" style="background:#FCF1DC;color:#A66A0E;border:1px solid #F0DFB2;">
-                                            <i class="fa-solid fa-camera me-1"></i>{{ count($tl->foto) }}
+                                            <i class="fa-solid fa-camera me-1"></i>{{ count($tl->foto) }} foto
                                         </span>
                                     @else
                                         <span class="text-muted">&mdash;</span>
@@ -240,19 +292,16 @@
                                 </td>
                                 <td>
                                     @if ($totalProgress > 0)
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="progress flex-grow-1" style="height:6px;">
-                                                <div class="progress-bar bg-gold" style="width:{{ ($tercapaiCount / $totalProgress) * 100 }}%"></div>
-                                            </div>
-                                            <span class="small text-muted">{{ $tercapaiCount }}/{{ $totalProgress }}</span>
-                                        </div>
+                                        <a href="{{ route('puskesmas.tindak-lanjut.show', $tl) }}" class="badge bg-success bg-opacity-10 text-success text-decoration-none border border-success border-opacity-25">
+                                            <i class="fa-solid fa-images me-1"></i>{{ $totalProgress }} update kegiatan
+                                        </a>
                                     @else
-                                        <span class="small text-muted">&mdash;</span>
+                                        <span class="small text-muted">Belum ada progres</span>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
-                                        <a href="{{ route('puskesmas.tindak-lanjut.show', $tl) }}" class="sp-icon-btn" title="Detail">
+                                        <a href="{{ route('puskesmas.tindak-lanjut.show', $tl) }}" class="sp-icon-btn" title="Detail & Tambah Progres">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
                                         @if ($tl->isEditable())

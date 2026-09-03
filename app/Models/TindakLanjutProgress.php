@@ -14,22 +14,22 @@ class TindakLanjutProgress extends Model
 
     protected $fillable = [
         'tindak_lanjut_id',
-        'triwulan_target',
-        'tahun_target',
-        'nilai_akhir',
-        'tercapai',
+        'foto',
         'keterangan',
+        'created_by',
     ];
 
     protected $casts = [
-        'triwulan_target' => 'integer',
-        'tahun_target' => 'integer',
-        'nilai_akhir' => 'float',
-        'tercapai' => 'boolean',
+        'foto' => 'array',
     ];
 
     public function tindakLanjut(): BelongsTo
     {
         return $this->belongsTo(TindakLanjut::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

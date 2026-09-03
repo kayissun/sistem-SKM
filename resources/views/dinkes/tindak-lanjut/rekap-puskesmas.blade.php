@@ -173,7 +173,6 @@
                             @foreach ($items as $tl)
                                 @php
                                     $totalProgress = $tl->progress->count();
-                                    $tercapaiCount = $tl->progress->where('tercapai', true)->count();
                                 @endphp
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
@@ -189,14 +188,11 @@
                                     </td>
                                     <td>
                                         @if ($totalProgress > 0)
-                                            <div style="display:flex; align-items:center; gap:8px">
-                                                <div class="progress-bar-custom flex-grow-1">
-                                                    <div class="bar" style="width:{{ ($tercapaiCount / $totalProgress) * 100 }}%"></div>
-                                                </div>
-                                                <span class="small text-muted" style="white-space:nowrap">{{ $tercapaiCount }}/{{ $totalProgress }}</span>
-                                            </div>
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size:.75rem">
+                                                <i class="fa-solid fa-camera me-1"></i>{{ $totalProgress }} laporan
+                                            </span>
                                         @else
-                                            <span class="small text-muted">-</span>
+                                            <span class="small text-muted">— Belum ada —</span>
                                         @endif
                                     </td>
                                     <td class="small text-muted">{{ Str::limit($tl->catatan_dinkes, 60) ?? '-' }}</td>

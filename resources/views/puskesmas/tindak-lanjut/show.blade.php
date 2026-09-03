@@ -83,26 +83,20 @@
                             <td>Triwulan {{ $tindakLanjut->triwulan }} / {{ $tindakLanjut->tahun }}</td>
                         </tr>
                         <tr>
-                            <td class="text-muted fw-semibold">Nilai Kondisi</td>
+                            <td class="text-muted fw-semibold">Nilai Awal (SKM)</td>
                             <td class="fw-bold">{{ $tindakLanjut->nilai_kondisi !== null ? number_format($tindakLanjut->nilai_kondisi, 1) : '-' }}</td>
                         </tr>
                         <tr>
-                            <td class="text-muted fw-semibold">Tindakan Perbaikan</td>
+                            <td class="text-muted fw-semibold">Rencana Perbaikan</td>
                             <td>{!! nl2br(e($tindakLanjut->tindakan_perbaikan)) !!}</td>
                         </tr>
-                        @if ($tindakLanjut->bukti)
-                            <tr>
-                                <td class="text-muted fw-semibold">Bukti (Teks)</td>
-                                <td>{!! nl2br(e($tindakLanjut->bukti)) !!}</td>
-                            </tr>
-                        @endif
                         @if ($tindakLanjut->foto && count($tindakLanjut->foto) > 0)
                             <tr>
-                                <td class="text-muted fw-semibold"><i class="fa-solid fa-camera me-1"></i> Foto Bukti</td>
+                                <td class="text-muted fw-semibold"><i class="fa-solid fa-camera me-1"></i> Foto Kondisi Awal</td>
                                 <td>
                                     <div class="foto-grid">
                                         @foreach ($tindakLanjut->foto as $path)
-                                            <img src="{{ asset('storage/' . $path) }}" alt="Foto bukti" onclick="bukaFotoModal('{{ asset('storage/' . $path) }}')">
+                                            <img src="{{ asset('storage/' . $path) }}" alt="Foto kondisi awal" onclick="bukaFotoModal('{{ asset('storage/' . $path) }}')">
                                         @endforeach
                                     </div>
                                 </td>
@@ -128,46 +122,50 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-timeline me-2"></i>Progres Capaian</span>
-                    <span class="badge bg-primary rounded-pill">{{ $tindakLanjut->progress->count() }}</span>
+                    <span><i class="fa-solid fa-timeline me-2"></i>Laporan Progres Kegiatan</span>
+                    <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="btn btn-sm btn-primary">
+                        <i class="fa-solid fa-plus me-1"></i> Tambah Progres
+                    </a>
                 </div>
                 <div class="card-body">
                     @if ($tindakLanjut->progress->isEmpty())
                         <div class="text-center py-4 text-muted">
-                            <i class="fa-regular fa-clock fa-2x mb-2 d-block opacity-50"></div>
-                            Belum ada progres capaian.
+                            <i class="fa-regular fa-clock fa-2x mb-2 d-block opacity-50"></i>
+                            Belum ada dokumentasi progres kegiatan.
                             <br>
-                            <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="btn btn-sm btn-outline-primary mt-2">
-                                Tambah Progres
+                            <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="btn btn-sm btn-outline-primary mt-3">
+                                <i class="fa-solid fa-camera me-1"></i> Tambah Dokumentasi Pertama
                             </a>
                         </div>
                     @else
                         <div class="tl-timeline">
-                            @foreach ($tindakLanjut->progress->sortByDesc('triwulan_target')->sortByDesc('tahun_target') as $prog)
+                            @foreach ($tindakLanjut->progress->sortByDesc('created_at') as $prog)
                                 <div class="tl-item">
-                                    <div class="tl-dot {{ $prog->tercapai ? 'tercapai' : 'belum' }}"></div>
-                                    <div class="card border-0 shadow-sm" style="background:{{ $prog->tercapai ? '#FCF1DC' : '#FFFBEB' }}">
+                                    <div class="tl-dot tercapai"></div>
+                                    <div class="card border-0 shadow-sm mb-3" style="background:#FAF8FF;">
                                         <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <span class="fw-bold" style="color:#180733;">
-                                                        TW-{{ $prog->triwulan_target }} {{ $prog->tahun_target }}
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <span class="fw-bold small" style="color:#180733;">
+                                                    <i class="fa-regular fa-calendar-check me-1 text-primary"></i>
+                                                    {{ $prog->created_at ? $prog->created_at->translatedFormat('d M Y H:i') : '-' }}
+                                                </span>
+                                                @if ($prog->createdBy)
+                                                    <span class="badge bg-light text-muted border" style="font-size:.7rem;">
+                                                        <i class="fa-solid fa-user me-1"></i>{{ $prog->createdBy->name }}
                                                     </span>
-                                                    @if ($prog->nilai_akhir !== null)
-                                                        <span class="ms-2 badge {{ $prog->tercapai ? 'bg-gold' : 'badge-outline-gold' }}">
-                                                            {{ $prog->tercapai ? 'Tercapai' : 'Belum Tercapai' }}
-                                                        </span>
-                                                    @endif
-                                                </div>
+                                                @endif
                                             </div>
-                                            @if ($prog->nilai_akhir !== null)
-                                                <div class="mt-1 small">
-                                                    <span class="text-muted">Nilai:</span>
-                                                    <span class="fw-bold">{{ number_format($prog->nilai_akhir, 1) }}</span>
-                                                </div>
-                                            @endif
+
                                             @if ($prog->keterangan)
-                                                <div class="mt-1 small text-muted">{!! nl2br(e($prog->keterangan)) !!}</div>
+                                                <p class="small text-dark mb-2" style="white-space: pre-line;">{{ $prog->keterangan }}</p>
+                                            @endif
+
+                                            @if ($prog->foto && count($prog->foto) > 0)
+                                                <div class="foto-grid mt-2">
+                                                    @foreach ($prog->foto as $fpath)
+                                                        <img src="{{ asset('storage/' . $fpath) }}" alt="Foto progres" onclick="bukaFotoModal('{{ asset('storage/' . $fpath) }}')" style="width:70px;height:70px;">
+                                                    @endforeach
+                                                </div>
                                             @endif
                                         </div>
                                     </div>

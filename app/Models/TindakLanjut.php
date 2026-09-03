@@ -20,7 +20,6 @@ class TindakLanjut extends Model
         'tahun',
         'nilai_kondisi',
         'tindakan_perbaikan',
-        'bukti',
         'foto',
         'status',
         'catatan_dinkes',

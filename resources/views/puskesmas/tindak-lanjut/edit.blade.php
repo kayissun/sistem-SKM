@@ -61,21 +61,13 @@
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-header"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Tindakan Perbaikan</div>
                     <div class="card-body">
-                        <div class="mb-3">
+                        <div class="mb-0">
                             <label class="form-label fw-semibold">
                                 <i class="fa-solid fa-pen me-1 text-primary"></i> Tindakan Perbaikan <span class="text-danger">*</span>
                             </label>
                             <textarea name="tindakan_perbaikan" class="form-control @error('tindakan_perbaikan') is-invalid @enderror"
                                       rows="5" required>{{ old('tindakan_perbaikan', $tindakLanjut->tindakan_perbaikan) }}</textarea>
                             @error('tindakan_perbaikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                <i class="fa-solid fa-align-left me-1 text-primary"></i> Bukti Pendukung (Teks)
-                            </label>
-                            <textarea name="bukti" class="form-control @error('bukti') is-invalid @enderror"
-                                      rows="3">{{ old('bukti', $tindakLanjut->bukti) }}</textarea>
-                            @error('bukti') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
                 </div>

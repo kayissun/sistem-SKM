@@ -181,30 +181,24 @@
                             <td>Triwulan {{ $tindakLanjut->triwulan }} / {{ $tindakLanjut->tahun }}</td>
                         </tr>
                         <tr>
-                            <td>Nilai Kondisi</td>
+                            <td>Nilai Awal (SKM)</td>
                             <td>
-                                <span class="fw-bold fs-5">
+                                <span class="fw-bold fs-5" style="color:var(--purple-700)">
                                     {{ $tindakLanjut->nilai_kondisi !== null ? number_format($tindakLanjut->nilai_kondisi, 1) : '-' }}
                                 </span>
                             </td>
                         </tr>
                         <tr>
-                            <td>Tindakan Perbaikan</td>
+                            <td>Rencana Perbaikan</td>
                             <td>{!! nl2br(e($tindakLanjut->tindakan_perbaikan)) !!}</td>
                         </tr>
-                        @if ($tindakLanjut->bukti)
-                            <tr>
-                                <td>Bukti Pendukung</td>
-                                <td>{!! nl2br(e($tindakLanjut->bukti)) !!}</td>
-                            </tr>
-                        @endif
                         @if ($tindakLanjut->foto && count($tindakLanjut->foto) > 0)
                             <tr>
-                                <td><i class="fa-solid fa-images me-1" style="color:var(--purple-700)"></i> Foto Bukti</td>
+                                <td><i class="fa-solid fa-camera me-1" style="color:var(--purple-700)"></i> Foto Kondisi Awal</td>
                                 <td>
                                     <div class="foto-grid">
                                         @foreach ($tindakLanjut->foto as $path)
-                                            <img src="{{ asset('storage/' . $path) }}" alt="Foto bukti" 
+                                            <img src="{{ asset('storage/' . $path) }}" alt="Foto kondisi awal" 
                                                  onclick="bukaFotoModal('{{ asset('storage/' . $path) }}')">
                                         @endforeach
                                     </div>
@@ -222,45 +216,51 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>
                         <i class="fa-solid fa-timeline me-2" style="color:var(--purple-700)"></i>
-                        Progres Capaian
+                        Dokumentasi Progres Kegiatan
                     </span>
                     <span style="background:var(--purple-700); color:#fff; padding:4px 10px; border-radius:6px; font-size:.75rem; font-weight:600">
-                        {{ $tindakLanjut->progress->count() }}
+                        {{ $tindakLanjut->progress->count() }} Laporan
                     </span>
                 </div>
                 <div class="card-body">
                     @if ($tindakLanjut->progress->isEmpty())
                         <div class="text-center py-5 text-muted">
                             <i class="fa-regular fa-clock fa-2x mb-3 d-block opacity-50"></i>
-                            <div class="small">Belum ada progres capaian</div>
+                            <div class="small">Belum ada dokumentasi progres kegiatan dari faskes ini</div>
                         </div>
                     @else
                         <div class="tl-timeline">
-                            @foreach ($tindakLanjut->progress->sortByDesc('tahun_target')->sortByDesc('triwulan_target') as $prog)
+                            @foreach ($tindakLanjut->progress->sortByDesc('created_at') as $prog)
                                 <div class="tl-item">
-                                    <div class="tl-dot {{ $prog->tercapai ? 'tercapai' : 'belum' }}"></div>
-                                    <div class="tl-card {{ $prog->tercapai ? 'tercapai' : 'belum' }}">
+                                    <div class="tl-dot tercapai"></div>
+                                    <div class="tl-card" style="background:#FAF8FF; border:1px solid rgba(109,40,217,.1);">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <div>
-                                                    <span class="fw-bold" style="color:var(--purple-900)">
-                                                        TW-{{ $prog->triwulan_target }} {{ $prog->tahun_target }}
+                                                <span class="fw-bold small" style="color:var(--purple-900)">
+                                                    <i class="fa-regular fa-calendar-check me-1 text-primary"></i>
+                                                    {{ $prog->created_at ? $prog->created_at->translatedFormat('d M Y H:i') : '-' }}
+                                                </span>
+                                                @if ($prog->createdBy)
+                                                    <span class="badge bg-light text-muted border" style="font-size:.7rem;">
+                                                        <i class="fa-solid fa-user me-1"></i>{{ $prog->createdBy->name }}
                                                     </span>
-                                                    @if ($prog->nilai_akhir !== null)
-                                                        <span class="ms-2 badge-status {{ $prog->tercapai ? 'tercapai' : 'belum' }}">
-                                                            {{ $prog->tercapai ? '✓ Tercapai' : '✕ Belum Tercapai' }}
-                                                        </span>
-                                                    @endif
-                                                </div>
+                                                @endif
                                             </div>
-                                            @if ($prog->nilai_akhir !== null)
-                                                <div class="small mb-2">
-                                                    <span style="color:var(--ink-muted)">Nilai Target:</span>
-                                                    <span class="fw-bold" style="color:var(--purple-900)">{{ number_format($prog->nilai_akhir, 1) }}</span>
+
+                                            @if ($prog->keterangan)
+                                                <div class="small mb-2" style="color:var(--ink-muted); white-space: pre-line;">
+                                                    {!! nl2br(e($prog->keterangan)) !!}
                                                 </div>
                                             @endif
-                                            @if ($prog->keterangan)
-                                                <div class="small" style="color:var(--ink-muted)">{!! nl2br(e($prog->keterangan)) !!}</div>
+
+                                            @if ($prog->foto && count($prog->foto) > 0)
+                                                <div class="foto-grid mt-2">
+                                                    @foreach ($prog->foto as $fpath)
+                                                        <img src="{{ asset('storage/' . $fpath) }}" alt="Foto progres" 
+                                                             onclick="bukaFotoModal('{{ asset('storage/' . $fpath) }}')"
+                                                             style="width:75px;height:75px;">
+                                                    @endforeach
+                                                </div>
                                             @endif
                                         </div>
                                     </div>

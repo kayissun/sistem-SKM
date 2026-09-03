@@ -49,11 +49,17 @@
         <div class="col-lg-8">
             <form method="POST" action="{{ route('puskesmas.tindak-lanjut.store') }}" enctype="multipart/form-data">
                 @csrf
+                @if ($periode)
+                    <input type="hidden" name="periode_survei_id" value="{{ $periode->id }}">
+                @endif
 
                 {{-- Unsur Pelayanan (pre-fill dari index) --}}
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-header">
                         <i class="fa-solid fa-clipboard-list me-2"></i>Form Rencana Tindak Lanjut
+                        @if ($periode)
+                            <span class="badge bg-primary bg-opacity-10 text-primary ms-2">{{ $periode->nama }}</span>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -65,18 +71,24 @@
                                     {{-- Unsur sudah dipilih dari index --}}
                                     <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:#F3EEFF;border:1px solid #C4B5FD;">
                                         <div class="fw-bold fs-4" style="color:#7C3AED;">{{ $selectedUnsur->kode }}</div>
-                                        <div>
+                                        <div class="flex-grow-1">
                                             <div class="fw-semibold" style="color:#180733">{{ $selectedUnsur->nama_unsur }}</div>
                                             @if ($hasil && isset($hasil['per_unsur'][$selectedUnsur->kode]))
-                                                <div class="small text-muted">Skor: {{ number_format($hasil['per_unsur'][$selectedUnsur->kode]['nrr_skala_100'] ?? 0, 1) }}</div>
+                                                <div class="small text-muted">
+                                                    Skor Saat Ini: <strong>{{ number_format($hasil['per_unsur'][$selectedUnsur->kode]['nrr_skala_100'] ?? 0, 1) }}</strong>
+                                                    (Otomatis tercatat sebagai nilai awal)
+                                                </div>
                                             @endif
                                         </div>
+                                        <a href="{{ route('puskesmas.tindak-lanjut.create', ['periode_survei_id' => $periode?->id]) }}" class="btn btn-sm btn-outline-secondary" title="Ganti unsur">
+                                            Ganti
+                                        </a>
                                     </div>
                                     <input type="hidden" name="unsur_pelayanan_id" value="{{ $selectedUnsurId }}">
                                 @else
                                     {{-- Manual pilih --}}
                                     <select name="unsur_pelayanan_id" class="form-select @error('unsur_pelayanan_id') is-invalid @enderror" required>
-                                        <option value="">— Pilih Unsur —</option>
+                                        <option value="">— Pilih Unsur Pelayanan —</option>
                                         @foreach ($unsurAktif as $unsur)
                                             @php
                                                 $skor = $hasil['per_unsur'][$unsur->kode]['nrr_skala_100'] ?? null;
@@ -87,7 +99,7 @@
                                                 @selected($selectedUnsurId == $unsur->id)>
                                                 {{ $unsur->kode }} — {{ $unsur->nama_unsur }}
                                                 @if($skor !== null) (Skor: {{ number_format($skor, 1) }}) @endif
-                                                @if($sudahAda) ✓ Sudah ada TL @endif
+                                                @if($sudahAda) ✓ Sudah ada rencana @endif
                                             </option>
                                         @endforeach
                                     </select>
@@ -97,11 +109,11 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
-                                    <i class="fa-solid fa-clock me-1 text-primary"></i> Triwulan <span class="text-danger">*</span>
+                                    <i class="fa-solid fa-clock me-1 text-primary"></i> Triwulan Periode <span class="text-danger">*</span>
                                 </label>
                                 <select name="triwulan" class="form-select @error('triwulan') is-invalid @enderror" required>
                                     @for ($t = 1; $t <= 4; $t++)
-                                        <option value="{{ $t }}" @selected(old('triwulan', 1) == $t)>TW-{{ $t }}</option>
+                                        <option value="{{ $t }}" @selected(old('triwulan', $triwulanDipilih) == $t)>Triwulan {{ $t }}</option>
                                     @endfor
                                 </select>
                                 @error('triwulan') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -112,8 +124,8 @@
                                     <i class="fa-solid fa-calendar me-1 text-primary"></i> Tahun <span class="text-danger">*</span>
                                 </label>
                                 <select name="tahun" class="form-select @error('tahun') is-invalid @enderror" required>
-                                    @for ($y = date('Y') + 1; $y >= date('Y') - 2; $y--)
-                                        <option value="{{ $y }}" @selected(old('tahun', date('Y')) == $y)>{{ $y }}</option>
+                                    @for ($y = now()->year + 1; $y >= now()->year - 2; $y--)
+                                        <option value="{{ $y }}" @selected(old('tahun', $tahunDipilih) == $y)>{{ $y }}</option>
                                     @endfor
                                 </select>
                                 @error('tahun') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -125,8 +137,9 @@
                                 </label>
                                 <textarea name="tindakan_perbaikan" class="form-control @error('tindakan_perbaikan') is-invalid @enderror"
                                           rows="5" required
-                                          placeholder="Jelaskan langkah-langkah konkret yang akan dilakukan untuk meningkatkan skor unsur ini...">{{ old('tindakan_perbaikan') }}</textarea>
+                                          placeholder="Contoh: Mengadakan pelatihan 3S (Senyum, Sapa, Salam) bagi seluruh staf loket pendaftaran dan customer service...">{{ old('tindakan_perbaikan') }}</textarea>
                                 @error('tindakan_perbaikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <div class="form-text text-muted">Tuliskan rencana kegiatan perbaikan secara jelas dan realistis.</div>
                             </div>
                         </div>
                     </div>

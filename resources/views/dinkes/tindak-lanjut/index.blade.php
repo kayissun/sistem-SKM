@@ -227,39 +227,30 @@
         @php
             $totalFaskes = $dataFaskes->count();
             $totalTlAll = $dataFaskes->sum('totalTl');
-            $totalTercapai = $dataFaskes->sum('tercapaiCount');
             $totalProgressAll = $dataFaskes->sum('totalProgress');
         @endphp
         <div class="row g-3 mb-4">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card tl-stat-card">
                     <div class="card-body text-center">
-                        <div class="small">Faskes Aktif</div>
+                        <div class="small">Faskes Mengisi Survei</div>
                         <div class="fs-3">{{ $totalFaskes }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card tl-stat-card" style="border-left-color:var(--purple-600)">
                     <div class="card-body text-center">
-                        <div class="small">Total TL</div>
+                        <div class="small">Total Rencana TL</div>
                         <div class="fs-3">{{ $totalTlAll }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card tl-stat-card" style="border-left-color:#10B981">
                     <div class="card-body text-center">
-                        <div class="small">Tercapai</div>
-                        <div class="fs-3" style="color:#10B981">{{ $totalTercapai }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card tl-stat-card" style="border-left-color:var(--gold-600)">
-                    <div class="card-body text-center">
-                        <div class="small">Total Progres</div>
-                        <div class="fs-3" style="color:var(--gold-600)">{{ $totalProgressAll }}</div>
+                        <div class="small">Total Dokumentasi Kegiatan</div>
+                        <div class="fs-3" style="color:#10B981">{{ $totalProgressAll }}</div>
                     </div>
                 </div>
             </div>
@@ -270,6 +261,7 @@
             @php
                 $puskesmas = $item['puskesmas'];
                 $hasil = $item['hasil'];
+                $hasilSebelumnya = $item['hasilSebelumnya'] ?? null;
                 $tindakLanjuts = $item['tindakLanjuts'];
             @endphp
             <div class="card mb-4 border-0 shadow-sm faskes-card">
@@ -281,12 +273,19 @@
                                 <i class="fa-solid fa-chart-line me-1" style="color:var(--purple-700)"></i>
                                 SKM: <strong>{{ $hasil['nilai_akhir_skm'] }}</strong> — {{ $hasil['mutu_akhir'] }}
                             </span>
+                            @if ($hasilSebelumnya && $hasilSebelumnya['jumlah_responden'] > 0)
+                                @php
+                                    $diff = $hasil['nilai_akhir_skm'] - $hasilSebelumnya['nilai_akhir_skm'];
+                                @endphp
+                                <span class="badge ms-2 {{ $diff >= 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger' }}" style="font-size:.75rem">
+                                    <i class="fa-solid {{ $diff >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' }} me-1"></i>
+                                    {{ $diff >= 0 ? '+' : '' }}{{ number_format($diff, 2) }} vs TW Lalu
+                                </span>
+                            @endif
                         </div>
                         <div class="col-md-4 text-end">
-                            <span class="badge-tl badge-status submitted me-2">{{ $item['totalTl'] }} TL</span>
-                            @if ($item['totalProgress'] > 0)
-                                <span class="small text-muted">{{ $item['tercapaiCount'] }}/{{ $item['totalProgress'] }} tercapai</span>
-                            @endif
+                            <span class="badge-tl badge-status submitted me-2">{{ $item['totalTl'] }} Rencana TL</span>
+                            <span class="small text-muted">{{ $item['totalProgress'] }} update kegiatan</span>
                         </div>
                     </div>
                 </div>
@@ -297,12 +296,12 @@
                             <thead>
                                 <tr>
                                     <th style="width:40px">No</th>
-                                    <th>Unsur</th>
+                                    <th>Unsur Pelayanan</th>
                                     <th style="width:100px">Nilai Awal</th>
                                     <th>Rencana Perbaikan</th>
                                     <th style="width:90px">TW/Tahun</th>
                                     <th style="width:80px">Status</th>
-                                    <th style="width:140px">Progres</th>
+                                    <th style="width:140px">Dokumentasi</th>
                                     <th style="width:70px">Aksi</th>
                                 </tr>
                             </thead>
@@ -310,7 +309,6 @@
                                 @foreach ($tindakLanjuts as $tl)
                                     @php
                                         $totalProg = $tl->progress->count();
-                                        $tercapaiProg = $tl->progress->where('tercapai', true)->count();
                                     @endphp
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
@@ -332,14 +330,11 @@
                                         </td>
                                         <td>
                                             @if ($totalProg > 0)
-                                                <div class="tl-progress">
-                                                    <div class="progress flex-grow-1">
-                                                        <div class="progress-bar" style="width:{{ ($tercapaiProg / $totalProg) * 100 }}%"></div>
-                                                    </div>
-                                                    <span class="small text-muted" style="white-space:nowrap">{{ $tercapaiProg }}/{{ $totalProg }}</span>
-                                                </div>
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size:.75rem">
+                                                    <i class="fa-solid fa-camera me-1"></i>{{ $totalProg }} laporan
+                                                </span>
                                             @else
-                                                <span class="small text-muted">—</span>
+                                                <span class="small text-muted">— Belum ada —</span>
                                             @endif
                                         </td>
                                         <td>
