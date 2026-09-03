@@ -72,7 +72,7 @@
                     <table class="table table-borderless mb-0">
                         <tr>
                             <td class="text-muted fw-semibold" style="width:160px">Status</td>
-                            <td><span class="badge {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td>
+                            <td><span class="badge-status {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td>
                         </tr>
                         <tr>
                             <td class="text-muted fw-semibold">Unsur</td>

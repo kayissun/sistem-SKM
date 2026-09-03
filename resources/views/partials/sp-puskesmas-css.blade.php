@@ -13,8 +13,8 @@
         border-bottom: 1px solid rgba(24, 7, 51, .08);
     }
     .sp-pagehead .eyebrow {
-        font-size: .72rem;
-        font-weight: 800;
+        font-size: .7rem;
+        font-weight: 700;
         letter-spacing: .08em;
         text-transform: uppercase;
         color: #A66A0E;
@@ -33,7 +33,7 @@
     }
     .sp-pagehead h1 {
         font-weight: 800;
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         color: #180733;
         margin: 0;
         letter-spacing: -.01em;
@@ -45,50 +45,54 @@
         flex-wrap: wrap;
     }
     .sp-pagehead .meta-item {
-        font-size: .82rem;
+        font-size: .78rem;
         color: #625B78;
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 6px;
     }
     .sp-pagehead .meta-item i { color: #7C3AED; }
 
     /* --- Page sub-header (for index pages) --- */
     .sp-page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
     .sp-page-head h3 { font-weight: 800; color: #180733; margin: 0; }
-    .sp-page-head p { margin: 2px 0 0; color: #635C7A; font-size: .88rem; }
+    .sp-page-head p { margin: 2px 0 0; color: #625B78; font-size: .88rem; }
 
     /* --- Stat cards --- */
     .sp-stat-card {
-        border: 1px solid rgba(24, 7, 51, .06);
-        border-radius: 16px;
+        border: 1px solid rgba(109, 40, 217, .12);
+        border-radius: 14px;
+        box-shadow: 0 2px 6px rgba(46, 16, 101, .04);
         transition: box-shadow .18s, transform .18s;
     }
     .sp-stat-card:hover {
-        box-shadow: 0 10px 26px rgba(46, 16, 101, .10);
+        box-shadow: 0 6px 16px rgba(46, 16, 101, .08);
         transform: translateY(-2px);
     }
     .sp-stat-card .icon {
-        width: 46px; height: 46px;
-        border-radius: 12px;
+        width: 40px; height: 40px;
+        border-radius: 11px;
         display: flex; align-items: center; justify-content: center;
-        color: #fff; font-size: 1.05rem;
-        margin-bottom: 14px;
+        color: #fff; font-size: .95rem;
+        flex-shrink: 0;
     }
     .sp-stat-card .label {
-        font-size: .78rem;
+        font-size: .72rem;
         color: #625B78;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .03em;
+        letter-spacing: .04em;
+        margin-bottom: 2px;
     }
-    .sp-stat-card .value { font-weight: 800; color: #180733; margin: 4px 0 10px; }
+    .sp-stat-card .value { font-size: 1.35rem; font-weight: 800; color: #180733; line-height: 1.2; margin-bottom: 4px; }
     .sp-stat-card a {
-        font-size: .83rem; font-weight: 700; color: #6D28D9;
+        font-size: .78rem; font-weight: 700; color: #6D28D9;
         text-decoration: none;
         display: inline-flex; align-items: center; gap: 5px;
+        transition: gap .15s;
     }
+    .sp-stat-card a:hover { gap: 8px; }
     .sp-stat-card a:hover { color: #2E1065; gap: 8px; }
     .sp-stat-card a i { transition: margin .15s; }
 
@@ -101,30 +105,30 @@
     .sp-section-card .card-header {
         background: #FAF8FF;
         border-bottom: 1px solid rgba(24, 7, 51, .06);
-        font-weight: 800;
+        font-weight: 700;
         color: #180733;
-        font-size: .95rem;
-        padding: 14px 20px;
+        font-size: .88rem;
+        padding: 13px 20px;
     }
 
     /* --- Quick access links --- */
     .sp-quick a {
         display: flex; align-items: center; gap: 12px;
-        padding: 14px 16px;
+        padding: 13px 16px;
         border-radius: 12px;
-        border: 1px solid rgba(109, 40, 217, .10);
+        border: 1px solid rgba(109, 40, 217, .08);
         background: #fff;
-        font-weight: 600; font-size: .88rem; color: #14102B;
+        font-weight: 600; font-size: .84rem; color: #14102B;
         text-decoration: none;
         transition: .15s;
     }
-    .sp-quick a:hover { background: #FAF8FF; border-color: rgba(109, 40, 217, .25); }
+    .sp-quick a:hover { background: #FAF8FF; border-color: rgba(109, 40, 217, .2); }
     .sp-quick a i {
-        width: 34px; height: 34px;
+        width: 32px; height: 32px;
         border-radius: 9px;
         background: #EDE9FE; color: #6D28D9;
         display: flex; align-items: center; justify-content: center;
-        font-size: .9rem; flex-shrink: 0;
+        font-size: .85rem; flex-shrink: 0;
     }
 
     /* --- Filter card --- */
@@ -148,9 +152,14 @@
     .sp-table-card tbody tr:last-child td { border-bottom: none; }
 
     /* --- Badge status (sesuai aturan warna putih-ungu-emas) --- */
-    .badge-status-active   { background: #FCF1DC; color: #A66A0E; border: 1px solid #F0DFB2; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
-    .badge-status-inactive { background: #F3F1FA; color: #6B6480; border: 1px solid #E4DEF7; font-weight: 600; padding: .4em .75em; border-radius: 99px; }
-    .badge-tl { font-weight: 600; padding: .35em .7em; border-radius: 99px; font-size: .75rem; }
+    .badge-status-active   { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-weight: 600; padding: .4em .75em; border-radius: 99px; font-size: .76rem; }
+    .badge-status-inactive { background: #F3F1FA; color: #6B6480; border: 1px solid #E4DEF7; font-weight: 600; padding: .4em .75em; border-radius: 99px; font-size: .76rem; }
+    .badge-tl { font-weight: 600; padding: .4em .7em; border-radius: 8px; font-size: .75rem; }
+    .badge-tl.submitted { background: #DCFCE7; color: #166534; }
+    .badge-tl.draft { background: #FEF3C7; color: #854D0E; }
+    .badge-status { display: inline-block; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: .8rem; }
+    .badge-status.submitted { background: #DCFCE7; color: #166534; }
+    .badge-status.draft { background: #FEF3C7; color: #854D0E; }
 
     /* --- Icon button --- */
     .sp-icon-btn {
@@ -208,7 +217,7 @@
     }
     .sp-pagination .page-link:hover { background: #F3EEFF; color: #2E1065; }
     .sp-pagination .page-item.active .page-link {
-        background: linear-gradient(135deg,#7C3AED,#2A0B5E);
+        background: #6D28D9;
         border-color: transparent;
         color: #fff;
     }
@@ -219,6 +228,9 @@
         text-align: center;
         padding: 46px 20px;
         color: #625B78;
+        border: 1px dashed rgba(109,40,217,.25);
+        background: #FAF8FF;
+        border-radius: 16px;
     }
     .sp-empty-state i {
         font-size: 1.8rem;
@@ -277,10 +289,10 @@
     .sp-form-card .card-header {
         background: #FAF8FF;
         border-bottom: 1px solid rgba(24, 7, 51, .06);
-        font-weight: 800;
+        font-weight: 700;
         color: #180733;
-        font-size: .95rem;
-        padding: 14px 20px;
+        font-size: .88rem;
+        padding: 13px 20px;
     }
     .sp-form-card .card-body { padding: 24px; }
 
@@ -298,17 +310,15 @@
     }
     .form-select:hover { border-color: #A78BFA; }
     .form-select:focus {
-        border-color: #7C3AED !important;
-        box-shadow: 0 0 0 .2rem rgba(124,58,237,.15) !important;
-        outline: none;
+        border-color: #A78BFA;
+        box-shadow: 0 0 0 .2rem rgba(109,40,217,.12);
     }
 
     /* --- Form control: purple focus --- */
     .form-control:hover { border-color: #A78BFA; }
     .form-control:focus {
-        border-color: #7C3AED !important;
-        box-shadow: 0 0 0 .2rem rgba(124,58,237,.15) !important;
-        outline: none;
+        border-color: #A78BFA;
+        box-shadow: 0 0 0 .2rem rgba(109,40,217,.12);
     }
 
     /* --- Rekomendasi box --- */

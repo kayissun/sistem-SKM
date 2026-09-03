@@ -198,13 +198,13 @@
         /* ---------- Buttons ---------- */
         .btn { border-radius: 10px; font-weight: 600; font-size: .84rem; }
         .btn-primary {
-            background: var(--gradient-primary);
+            background: var(--purple-700);
             border: none;
             box-shadow: 0 6px 14px -4px rgba(46,16,101,.35);
         }
-        .btn-primary:hover, .btn-primary:focus {
-            background: linear-gradient(135deg, #8B5CF6 0%, #341176 100%);
-            box-shadow: 0 8px 16px -4px rgba(46,16,101,.45);
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background: var(--purple-700);
+            box-shadow: 0 6px 14px -4px rgba(46,16,101,.35);
         }
         .btn-outline-primary { color: var(--purple-700); border-color: rgba(109,40,217,.3); }
         .btn-outline-primary:hover { background: var(--purple-100); color: var(--purple-800); border-color: var(--purple-700); }

@@ -78,34 +78,40 @@
         <div class="row g-3 mb-4">
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
-                    <div class="card-body">
+                    <div class="card-body d-flex align-items-center gap-3">
                         <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
                             <i class="fa-solid fa-star"></i>
                         </div>
-                        <div class="label">Nilai SKM</div>
-                        <div class="value fs-2">{{ $hasil['nilai_akhir_skm'] }}</div>
+                        <div>
+                            <div class="label">Nilai SKM</div>
+                            <div class="value">{{ $hasil['nilai_akhir_skm'] }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
-                    <div class="card-body">
+                    <div class="card-body d-flex align-items-center gap-3">
                         <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
                             <i class="fa-solid fa-medal"></i>
                         </div>
-                        <div class="label">Mutu Pelayanan</div>
-                        <div class="value fs-5">{{ $hasil['mutu_akhir'] }}</div>
+                        <div>
+                            <div class="label">Mutu Pelayanan</div>
+                            <div class="value">{{ $hasil['mutu_akhir'] }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
-                    <div class="card-body">
+                    <div class="card-body d-flex align-items-center gap-3">
                         <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
                             <i class="fa-solid fa-users"></i>
                         </div>
-                        <div class="label">Total Responden</div>
-                        <div class="value fs-2">{{ $hasil['jumlah_responden'] }}</div>
+                        <div>
+                            <div class="label">Total Responden</div>
+                            <div class="value">{{ $hasil['jumlah_responden'] }}</div>
+                        </div>
                     </div>
                 </div>
             </div>

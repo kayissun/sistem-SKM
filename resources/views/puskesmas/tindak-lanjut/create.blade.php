@@ -151,7 +151,7 @@
                 </div>
 
                 <div class="d-flex gap-2 justify-content-end">
-                    <a href="{{ route('puskesmas.tindak-lanjut.index') }}" class="btn btn-light border">Batal</a>
+                    <a href="{{ route('puskesmas.tindak-lanjut.index') }}" class="btn btn-outline-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">
                         <i class="fa-solid fa-save me-1"></i> Simpan Draft
                     </button>

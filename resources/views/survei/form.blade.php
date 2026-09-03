@@ -280,14 +280,14 @@ function surveiApp() {
 .skm-scale-input:checked + .skm-scale-option .skm-scale-num { background: var(--gold-400); }
 
 .skm-btn { border-radius: 999px; padding: 12px 18px; font-weight: 600; border: none; cursor: pointer; min-height: 44px; }
-.skm-primary { background: linear-gradient(135deg,#7c3aed,#4c1d95); color: #fff; }
+.skm-primary { background: var(--purple-700); color: #fff; }
 .skm-secondary { background: #fff; border: 1px solid var(--purple-100); color: var(--purple-700); }
 
 /* Panel aksesibilitas mengambang */
 .skm-a11y-fab {
     position: fixed; right: 20px; bottom: 20px; z-index: 1050;
     width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg,#7c3aed,#4c1d95); color: #fff; border: none;
+    background: var(--purple-700); color: #fff; border: none;
     font-size: 1.4rem; box-shadow: 0 10px 25px rgba(24,7,51,.35); cursor: pointer;
 }
 .skm-a11y-panel {

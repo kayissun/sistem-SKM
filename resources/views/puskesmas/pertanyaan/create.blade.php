@@ -163,7 +163,7 @@
                 <div class="sp-empty-state">
                     <i class="bi bi-inbox" style="font-size:2.2rem;"></i>
                     <p class="mb-3">Belum ada pertanyaan survei.</p>
-                    <button type="button" @click="tambahKartu()" :disabled="saving" class="btn btn-primary btn-sm rounded-pill px-4">
+                    <button type="button" @click="tambahKartu()" :disabled="saving" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-1"></i> Buat Pertanyaan Pertama
                     </button>
                 </div>

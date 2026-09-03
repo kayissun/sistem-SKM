@@ -37,7 +37,7 @@
             <h3>Pertanyaan Survei</h3>
             <p>Kelola daftar pertanyaan yang akan ditampilkan pada form survei kepuasan masyarakat.</p>
         </div>
-        <a href="{{ route('puskesmas.pertanyaan.create') }}" class="btn btn-primary btn-sm rounded-3 fw-medium">
+        <a href="{{ route('puskesmas.pertanyaan.create') }}" class="btn btn-primary">
             <i class="fa-solid fa-plus me-1"></i> Bangun Pertanyaan
         </a>
     </div>

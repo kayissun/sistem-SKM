@@ -95,13 +95,8 @@ class TindakLanjut extends Model
 
     public function getStatusBadgeClassAttribute(): string
     {
-        return match ($this->status) {
-            self::STATUS_DRAFT => 'bg-secondary',
-            self::STATUS_SUBMITTED => 'bg-info',
-            self::STATUS_APPROVED => 'bg-success',
-            self::STATUS_REJECTED => 'bg-danger',
-            default => 'bg-secondary',
-        };
+        // Sama dengan konvensi badge Dinkes: submitted = hijau, selainnya = kuning/amber.
+        return $this->status === self::STATUS_SUBMITTED ? 'submitted' : 'draft';
     }
 
     public function isEditable(): bool

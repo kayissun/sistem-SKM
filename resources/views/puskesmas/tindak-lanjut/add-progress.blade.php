@@ -77,7 +77,7 @@
                         </div>
                     </div>
                     <div class="card-footer d-flex gap-2 justify-content-end">
-                        <a href="{{ route('puskesmas.tindak-lanjut.show', $tindakLanjut) }}" class="btn btn-light border">Batal</a>
+                        <a href="{{ route('puskesmas.tindak-lanjut.show', $tindakLanjut) }}" class="btn btn-outline-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="fa-solid fa-save me-1"></i> Simpan Progres
                         </button>

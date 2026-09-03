@@ -114,7 +114,7 @@
                 </div>
 
                 <div class="d-flex gap-2 justify-content-end">
-                    <a href="{{ route('puskesmas.tindak-lanjut.show', $tindakLanjut) }}" class="btn btn-light border">Batal</a>
+                    <a href="{{ route('puskesmas.tindak-lanjut.show', $tindakLanjut) }}" class="btn btn-outline-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">
                         <i class="fa-solid fa-save me-1"></i> Simpan Perubahan
                     </button>
@@ -127,7 +127,7 @@
                 <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="fa-solid fa-info-circle me-1 text-primary"></i> Info Tindak Lanjut</h6>
                     <table class="table table-sm table-borderless mb-0">
-                        <tr><td class="text-muted" style="width:100px">Status</td><td><span class="badge {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td></tr>
+                        <tr><td class="text-muted" style="width:100px">Status</td><td><span class="badge-status {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td></tr>
                         <tr><td class="text-muted">Unsur</td><td class="fw-semibold">{{ $tindakLanjut->unsurPelayanan->kode }}</td></tr>
                         <tr><td class="text-muted">Triwulan</td><td>TW-{{ $tindakLanjut->triwulan }}</td></tr>
                         <tr><td class="text-muted">Tahun</td><td>{{ $tindakLanjut->tahun }}</td></tr>

@@ -178,25 +178,29 @@
 <div class="row g-3">
     <div class="col-md-4">
         <div class="card h-100 sp-stat-card">
-            <div class="card-body">
+            <div class="card-body d-flex align-items-center gap-3">
                 <div class="icon gold">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>
-                <div class="label">Periode Survei Aktif</div>
-                <div class="value fs-5">{{ $periodeAktif->nama ?? 'Belum ada' }}</div>
+                <div>
+                    <div class="label">Periode Survei Aktif</div>
+                    <div class="value">{{ $periodeAktif->nama ?? 'Belum ada' }}</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
         <div class="card h-100 sp-stat-card">
-            <div class="card-body">
+            <div class="card-body d-flex align-items-center gap-3">
                 <div class="icon purple">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
-                <div class="label">Responden Periode Ini</div>
-                <div class="value fs-2">{{ $hasilPeriodeAktif['jumlah_responden'] ?? 0 }}</div>
-                <a href="{{ route('puskesmas.laporan.index') }}">Lihat laporan</a>
+                <div>
+                    <div class="label">Responden Periode Ini</div>
+                    <div class="value">{{ $hasilPeriodeAktif['jumlah_responden'] ?? 0 }}</div>
+                    <a href="{{ route('puskesmas.laporan.index') }}">Lihat laporan</a>
+                </div>
             </div>
         </div>
     </div>
@@ -204,13 +208,15 @@
     @if ($hasilPeriodeAktif && $hasilPeriodeAktif['jumlah_responden'] > 0)
     <div class="col-md-4">
         <div class="card h-100 sp-stat-card">
-            <div class="card-body">
+            <div class="card-body d-flex align-items-center gap-3">
                 <div class="icon green">
                     <i class="fa-solid fa-star"></i>
                 </div>
-                <div class="label">Nilai SKM Periode Ini</div>
-                <div class="value fs-2">{{ $hasilPeriodeAktif['nilai_akhir_skm'] }}</div>
-                <span class="small fw-bold text-purple">{{ $hasilPeriodeAktif['mutu_akhir'] }}</span>
+                <div>
+                    <div class="label">Nilai SKM Periode Ini</div>
+                    <div class="value">{{ $hasilPeriodeAktif['nilai_akhir_skm'] }}</div>
+                    <span class="small fw-bold text-purple">{{ $hasilPeriodeAktif['mutu_akhir'] }}</span>
+                </div>
             </div>
         </div>
     </div>

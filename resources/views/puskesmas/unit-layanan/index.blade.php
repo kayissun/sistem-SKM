@@ -55,20 +55,16 @@
 <div x-data="unitManager()" x-init="init()" class="pb-4">
 
     {{-- ===== PAGE HEADER ===== --}}
-    <div class="sp-pagehead">
+    <div class="sp-page-head">
         <div>
-            <h1>
-                <span class="ms-1">Unit Layanan / Poli</span>
-            </h1>
-            <p class="ul-subtitle">
+            <h3>Unit Layanan / Poli</h3>
+            <p>
                 {{ $daftarUnitLayanan->count() }} unit terdaftar — muncul sebagai pilihan dropdown di form survei publik.
             </p>
         </div>
-        <div class="meta">
-            <button @click="openCreateModal()" class="btn btn-primary btn-sm ul-btn-primary">
-                <i class="fa-solid fa-plus me-1"></i> Tambah Unit
-            </button>
-        </div>
+        <button @click="openCreateModal()" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i> Tambah Unit
+        </button>
     </div>
 
     {{-- ===== BULK ACTION BAR ===== --}}
@@ -137,7 +133,7 @@
                         <td colspan="4" class="text-center py-5 ul-empty">
                             <i class="fa-regular fa-folder-open d-block mb-2" style="font-size:2rem; opacity:.4;"></i>
                             <p class="mb-3">Belum ada unit layanan.</p>
-                            <button @click="openCreateModal()" class="btn btn-sm rounded-pill px-4 ul-btn-primary">
+                            <button @click="openCreateModal()" class="btn btn-primary">
                                 <i class="fa-solid fa-plus me-1"></i> Tambah Unit Pertama
                             </button>
                         </td>
@@ -173,9 +169,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"
-                            style="border-radius:8px;">Batal</button>
-                        <button type="submit" class="btn btn-sm ul-btn-primary" style="border-radius:8px;">
+                        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
                             <i class="fa-solid fa-save me-1"></i> Simpan
                         </button>
                     </div>
@@ -210,9 +205,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"
-                            style="border-radius:8px;">Batal</button>
-                        <button type="submit" class="btn btn-sm ul-btn-primary" style="border-radius:8px;">
+                        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
                             <i class="fa-solid fa-save me-1"></i> Simpan Perubahan
                         </button>
                     </div>

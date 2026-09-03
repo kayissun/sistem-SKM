@@ -57,34 +57,40 @@
         <div class="row g-3 mb-4">
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
-                    <div class="card-body">
+                    <div class="card-body d-flex align-items-center gap-3">
                         <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
                             <i class="fa-solid fa-star"></i>
                         </div>
-                        <div class="label">Nilai SKM Faskes</div>
-                        <div class="value fs-2">{{ $hasil['nilai_akhir_skm'] }}</div>
+                        <div>
+                            <div class="label">Nilai SKM Faskes</div>
+                            <div class="value">{{ $hasil['nilai_akhir_skm'] }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
-                    <div class="card-body">
+                    <div class="card-body d-flex align-items-center gap-3">
                         <div class="icon" style="background: linear-gradient(135deg,#7C3AED,#2A0B5E)">
                             <i class="fa-solid fa-medal"></i>
                         </div>
-                        <div class="label">Mutu Pelayanan</div>
-                        <div class="value fs-5">{{ $hasil['mutu_akhir'] }}</div>
+                        <div>
+                            <div class="label">Mutu Pelayanan</div>
+                            <div class="value">{{ $hasil['mutu_akhir'] }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card h-100 sp-stat-card">
-                    <div class="card-body">
+                    <div class="card-body d-flex align-items-center gap-3">
                         <div class="icon" style="background: linear-gradient(135deg,#C88719,#E4A63B)">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
-                        <div class="label">Total Unsur Aktif</div>
-                        <div class="value fs-2">{{ count($hasil['per_unsur']) }}</div>
+                        <div>
+                            <div class="label">Total Unsur Aktif</div>
+                            <div class="value">{{ count($hasil['per_unsur']) }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -142,7 +148,7 @@
                                 </td>
                                 <td class="text-center">
                                     @if ($sudahAdaTl)
-                                        <span class="badge-tl {{ $sudahAdaTl->status_badge_class }}" style="font-size:.72rem">{{ $sudahAdaTl->status_label }}</span>
+                                        <span class="badge-tl {{ $sudahAdaTl->status_badge_class }}">{{ $sudahAdaTl->status_label }}</span>
                                     @else
                                         <span class="text-muted small">&mdash;</span>
                                     @endif
