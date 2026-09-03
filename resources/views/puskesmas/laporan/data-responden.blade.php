@@ -2,9 +2,25 @@
 
 @section('title', 'Data Responden')
 
+<style>
+    .sp-back-link {
+            color: var(--ink-muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+        .sp-back-link:hover {
+            color: var(--purple-700);
+        }
+</style>
+
 @section('content')
     <div class="mb-3">
-        <a href="{{ route('puskesmas.laporan.index') }}" class="btn btn-sm btn-light border text-secondary rounded-3">
+        <a href="{{ route('puskesmas.laporan.index') }}" class="sp-back-link">
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Laporan
         </a>
     </div>

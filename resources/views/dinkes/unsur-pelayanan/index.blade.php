@@ -93,42 +93,6 @@
         </button>
     </div>
 
-    {{-- Stat Cards --}}
-    @php
-        $totalUnsur = $daftarUnsur->count();
-        $aktif = $daftarUnsur->where('is_active', true)->count();
-        $nonaktif = $totalUnsur - $aktif;
-    @endphp
-    <div class="sp-stat-row">
-        <div class="sp-stat-card">
-            <div class="icon" style="background:linear-gradient(135deg,#7C3AED,#5B21B6)">
-                <i class="fa-solid fa-layer-group"></i>
-            </div>
-            <div>
-                <div class="label">Total Unsur</div>
-                <div class="value">{{ $totalUnsur }}</div>
-            </div>
-        </div>
-        <div class="sp-stat-card">
-            <div class="icon" style="background:linear-gradient(135deg,#10B981,#047857)">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <div>
-                <div class="label">Aktif</div>
-                <div class="value">{{ $aktif }}</div>
-            </div>
-        </div>
-        <div class="sp-stat-card">
-            <div class="icon" style="background:linear-gradient(135deg,#F59E0B,#D97706)">
-                <i class="fa-solid fa-pause-circle"></i>
-            </div>
-            <div>
-                <div class="label">Nonaktif</div>
-                <div class="value">{{ $nonaktif }}</div>
-            </div>
-        </div>
-    </div>
-
     {{-- Bulk Action Bar --}}
     <form method="POST" action="{{ route('dinkes.unsur-pelayanan.aksi-massal') }}" id="form-aksi-massal">
         @csrf

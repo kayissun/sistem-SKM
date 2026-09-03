@@ -3,8 +3,15 @@
 @section('title', 'Tambah Dokumentasi Progres')
 
 @section('content')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        .sp-btn-cta {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg,#7C3AED,#4C1D95);
+            color: #fff; border: none; border-radius: 10px;
+            padding: 10px 20px; font-size: .88rem; font-weight: 600;
+            text-decoration: none;
+        }
+        .sp-btn-cta:hover { filter: brightness(1.05); color: #fff; }
         .upload-zone {
             border: 2px dashed #C4B5FD;
             border-radius: 12px;
@@ -28,7 +35,7 @@
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Detail
         </a>
         <h3 class="mt-2" style="color:#180733;font-weight:800;">
-            <i class="fa-solid fa-camera-retro me-2"></i>Tambah Dokumentasi Progres Kegiatan
+            <i class="fa-solid fa-camera-retro me-2" style="color:#6D28D9"></i>Tambah Dokumentasi Progres Kegiatan
         </h3>
         <p class="text-muted" style="font-size:.88rem;">
             {{ $tindakLanjut->unsurPelayanan->kode }} — {{ $tindakLanjut->unsurPelayanan->nama_unsur }}
@@ -74,8 +81,8 @@
                     </div>
                     <div class="card-footer d-flex gap-2 justify-content-end bg-white border-top-0 pt-0 pb-3 pe-3">
                         <a href="{{ route('puskesmas.tindak-lanjut.show', $tindakLanjut) }}" class="btn btn-outline-secondary">Batal</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-save me-1"></i> Simpan Dokumentasi
+                        <button type="submit" class="sp-btn-cta">
+                            <i class="fa-solid fa-save"></i> Simpan Dokumentasi
                         </button>
                     </div>
                 </div>

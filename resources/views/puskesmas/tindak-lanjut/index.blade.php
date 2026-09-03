@@ -3,9 +3,29 @@
 @section('title', 'Tindak Lanjut')
 
 @section('content')
+    <style>
+        .sp-btn-cta {
+            display: inline-flex; align-items: center;
+            background: linear-gradient(135deg,#7C3AED,#4C1D95);
+            color: #fff; border: none; border-radius: 10px;
+            padding: 6px 14px; font-size: .78rem; font-weight: 600;
+            text-decoration: none;
+        }
+        .sp-btn-cta:hover { filter: brightness(1.05); color: #fff; }
+        .sp-badge-count {
+            background: #EDE9FE; color: #6D28D9; font-weight: 600;
+            padding: 5px 14px; border-radius: 999px; font-size: .8rem;
+        }
+        .sp-badge-neutral {
+            background: #F3EEFF; color: #4C1D95; border: 1px solid #EDE9FE; font-weight: 500;
+        }
+        .sp-text-blue { color: #0D6EFD; }
+        .sp-badge-blue { background: rgba(13,110,253,.1); color: #0D6EFD; }
+    </style>
+
     <div class="sp-page-head">
         <div>
-            <h3><i class="fa-solid fa-clipboard-check me-2"></i>Tindak Lanjut</h3>
+            <h3>Tindak Lanjut</h3>
             <p>Lihat nilai IKM per unsur dan ajukan tindak lanjut untuk unsur yang perlu diperbaiki.</p>
         </div>
     </div>
@@ -127,7 +147,7 @@
         <div class="card sp-section-card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <span><i class="fa-solid fa-arrow-down-short-wide me-2"></i>Prioritas Perbaikan Unsur (Terlemah &rarr; Tertinggi)</span>
+                    <span><i class="fa-solid fa-arrow-down-short-wide me-2" style="color:#6D28D9"></i>Prioritas Perbaikan Unsur (Terlemah &rarr; Tertinggi)</span>
                     <span class="small text-muted ms-2">Berdasarkan hasil survei {{ $periode?->nama }}</span>
                 </div>
             </div>
@@ -176,7 +196,7 @@
                                     <div class="fw-semibold" style="color:#180733;font-size:.82rem">{{ $unsurModel->nama_unsur ?? $item['kode'] }}</div>
                                 </td>
                                 <td class="text-center">
-                                    <span class="fw-bold text-{{ $level }}">{{ number_format($skor, 1) }}</span>
+                                    <span class="fw-bold {{ $level === 'primary' ? 'sp-text-blue' : 'text-'.$level }}">{{ number_format($skor, 1) }}</span>
                                 </td>
                                 <td class="text-center">
                                     @if ($skorSebelumnya !== null)
@@ -197,7 +217,7 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge bg-{{ $level }} bg-opacity-10 text-{{ $level }}" style="font-size:.72rem">{{ $label }}</span>
+                                    <span class="badge {{ $level === 'primary' ? 'sp-badge-blue' : 'bg-'.$level.' bg-opacity-10 text-'.$level }}" style="font-size:.72rem">{{ $label }}</span>
                                 </td>
                                 <td class="text-center">
                                     @if ($sudahAdaTl)
@@ -226,7 +246,7 @@
                                         </div>
                                     @else
                                         <a href="{{ route('puskesmas.tindak-lanjut.create', ['periode_survei_id' => $periode?->id, 'unsur' => $item['kode'], 'triwulan' => $twPeriode, 'tahun' => $thPeriode]) }}"
-                                           class="btn btn-sm btn-primary rounded-3" style="font-size:.78rem">
+                                           class="sp-btn-cta">
                                             <i class="fa-solid fa-plus me-1"></i> Ajukan Rencana
                                         </a>
                                     @endif
@@ -242,8 +262,8 @@
     {{-- ===== DAFTAR TINDAK LANJUT YANG SUDAH DIBUAT ===== --}}
     <div class="card sp-section-card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fa-solid fa-list-check me-2"></i>Daftar Rencana Tindak Lanjut</span>
-            <span class="badge bg-primary rounded-pill">{{ $tindakLanjuts->count() }} item</span>
+            <span><i class="fa-solid fa-list-check me-2" style="color:#6D28D9"></i>Daftar Rencana Tindak Lanjut</span>
+            <span class="sp-badge-count">{{ $tindakLanjuts->count() }} item</span>
         </div>
         <div class="table-responsive">
             @if ($tindakLanjuts->isEmpty())
@@ -277,7 +297,7 @@
                                     <div class="fw-semibold" style="color:#180733">{{ $tl->unsurPelayanan->kode ?? '-' }}</div>
                                     <div class="small text-muted">{{ $tl->unsurPelayanan->nama_unsur ?? '-' }}</div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border">TW-{{ $tl->triwulan }}</span></td>
+                                <td><span class="badge sp-badge-neutral">TW-{{ $tl->triwulan }}</span></td>
                                 <td>{{ $tl->tahun }}</td>
                                 <td class="fw-bold">{{ $tl->nilai_kondisi !== null ? number_format($tl->nilai_kondisi, 1) : '-' }}</td>
                                 <td><span class="badge-tl {{ $tl->status_badge_class }}">{{ $tl->status_label }}</span></td>

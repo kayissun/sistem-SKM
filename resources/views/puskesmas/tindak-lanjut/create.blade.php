@@ -3,8 +3,15 @@
 @section('title', 'Buat Tindak Lanjut')
 
 @section('content')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        .sp-btn-cta {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg,#7C3AED,#4C1D95);
+            color: #fff; border: none; border-radius: 10px;
+            padding: 10px 20px; font-size: .88rem; font-weight: 600;
+            text-decoration: none;
+        }
+        .sp-btn-cta:hover { filter: brightness(1.05); color: #fff; }
         .upload-zone {
             border: 2px dashed #C4B5FD;
             border-radius: 12px;
@@ -34,7 +41,7 @@
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali
         </a>
         <h3 class="mt-2" style="color:#180733;font-weight:800;">
-            <i class="fa-solid fa-pen-to-square me-2"></i>Buat Tindak Lanjut Baru
+            <i class="fa-solid fa-pen-to-square me-2" style="color:#6D28D9"></i>Buat Tindak Lanjut Baru
         </h3>
         <p class="text-muted" style="font-size:.88rem;">Laporkan unsur pelayanan yang perlu diperbaiki beserta rencana tindakan.</p>
     </div>
@@ -165,8 +172,8 @@
 
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="{{ route('puskesmas.tindak-lanjut.index') }}" class="btn btn-outline-secondary">Batal</a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-save me-1"></i> Simpan Draft
+                    <button type="submit" class="sp-btn-cta">
+                        <i class="fa-solid fa-save"></i> Simpan Draft
                     </button>
                 </div>
             </form>
@@ -178,9 +185,9 @@
                 <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="fa-solid fa-lightbulb text-warning me-1"></i> Tips Pengisian</h6>
                     <ul class="small mb-0 text-muted" style="list-style:none;padding:0;">
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-gold-emphasis me-1"></i> Jelaskan rencana perbaikan secara spesifik.</li>
-                        <li class="mb-2"><i class="fa-solid fa-check-circle text-gold-emphasis me-1"></i> Upload foto dokumentasi kondisi saat ini.</li>
-                        <li class="mb-0"><i class="fa-solid fa-check-circle text-gold-emphasis me-1"></i> Klik <strong>Kirim</strong> untuk submit ke Dinkes setelah selesai.</li>
+                        <li class="mb-2"><i class="fa-solid fa-check-circle me-1" style="color:#C88719"></i> Jelaskan rencana perbaikan secara spesifik.</li>
+                        <li class="mb-2"><i class="fa-solid fa-check-circle me-1" style="color:#C88719"></i> Upload foto dokumentasi kondisi saat ini.</li>
+                        <li class="mb-0"><i class="fa-solid fa-check-circle me-1" style="color:#C88719"></i> Klik <strong>Kirim</strong> untuk submit ke Dinkes setelah selesai.</li>
                     </ul>
                 </div>
             </div>

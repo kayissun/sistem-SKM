@@ -29,6 +29,8 @@
             background: #fff; color: #6D28D9; transition: .15s; text-decoration: none;
         }
         .sp-icon-btn:hover { background: #6D28D9; color: #fff; border-color: #6D28D9; }
+        .sp-icon-btn.danger { color: #DC2626; border-color: rgba(220,38,38,.15); }
+        .sp-icon-btn.danger:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
     </style>
 
     <!-- Header -->
@@ -118,7 +120,7 @@
                                               onsubmit="return confirm('Hapus pertanyaan ini?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="sp-icon-btn" title="Hapus" style="color:#DC2626;">
+                                            <button class="sp-icon-btn danger" title="Hapus">
                                                 <i class="fa-solid fa-trash text-sm"></i>
                                             </button>
                                         </form>

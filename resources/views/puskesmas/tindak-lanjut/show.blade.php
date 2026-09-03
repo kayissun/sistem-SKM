@@ -3,8 +3,18 @@
 @section('title', 'Detail Tindak Lanjut')
 
 @section('content')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        .sp-btn-cta {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg,#7C3AED,#4C1D95);
+            color: #fff; border: none; border-radius: 10px;
+            padding: 6px 16px; font-size: .82rem; font-weight: 600;
+            text-decoration: none;
+        }
+        .sp-btn-cta:hover { filter: brightness(1.05); color: #fff; }
+        .sp-badge-neutral {
+            background: #F3EEFF; color: #4C1D95; border: 1px solid #EDE9FE; font-weight: 500;
+        }
         .tl-timeline { position:relative; padding-left:32px; }
         .tl-timeline::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:2px; background:#E4DEF7; }
         .tl-timeline .tl-item { position:relative; margin-bottom:20px; }
@@ -57,8 +67,8 @@
                         </button>
                     </form>
                 @endif
-                <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="btn btn-outline-success btn-sm">
-                    <i class="fa-solid fa-plus me-1"></i> Tambah Progres
+                <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="sp-btn-cta">
+                    <i class="fa-solid fa-plus"></i> Tambah Progres
                 </a>
             </div>
         </div>
@@ -72,7 +82,7 @@
                     <table class="table table-borderless mb-0">
                         <tr>
                             <td class="text-muted fw-semibold" style="width:160px">Status</td>
-                            <td><span class="badge-status {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td>
+                            <td><span class="badge-tl {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td>
                         </tr>
                         <tr>
                             <td class="text-muted fw-semibold">Unsur</td>
@@ -123,8 +133,8 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fa-solid fa-timeline me-2"></i>Laporan Progres Kegiatan</span>
-                    <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="btn btn-sm btn-primary">
-                        <i class="fa-solid fa-plus me-1"></i> Tambah Progres
+                    <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="sp-btn-cta">
+                        <i class="fa-solid fa-plus"></i> Tambah Progres
                     </a>
                 </div>
                 <div class="card-body">
@@ -133,8 +143,8 @@
                             <i class="fa-regular fa-clock fa-2x mb-2 d-block opacity-50"></i>
                             Belum ada dokumentasi progres kegiatan.
                             <br>
-                            <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="btn btn-sm btn-outline-primary mt-3">
-                                <i class="fa-solid fa-camera me-1"></i> Tambah Dokumentasi Pertama
+                            <a href="{{ route('puskesmas.tindak-lanjut.progress.create', $tindakLanjut) }}" class="sp-btn-cta mt-3">
+                                <i class="fa-solid fa-camera"></i> Tambah Dokumentasi Pertama
                             </a>
                         </div>
                     @else
@@ -150,7 +160,7 @@
                                                     {{ $prog->created_at ? $prog->created_at->translatedFormat('d M Y H:i') : '-' }}
                                                 </span>
                                                 @if ($prog->createdBy)
-                                                    <span class="badge bg-light text-muted border" style="font-size:.7rem;">
+                                                    <span class="badge sp-badge-neutral" style="font-size:.7rem;">
                                                         <i class="fa-solid fa-user me-1"></i>{{ $prog->createdBy->name }}
                                                     </span>
                                                 @endif

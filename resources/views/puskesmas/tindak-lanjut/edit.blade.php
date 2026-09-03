@@ -3,8 +3,15 @@
 @section('title', 'Edit Tindak Lanjut')
 
 @section('content')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        .sp-btn-cta {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg,#7C3AED,#4C1D95);
+            color: #fff; border: none; border-radius: 10px;
+            padding: 10px 20px; font-size: .88rem; font-weight: 600;
+            text-decoration: none;
+        }
+        .sp-btn-cta:hover { filter: brightness(1.05); color: #fff; }
         .upload-zone {
             border: 2px dashed #C4B5FD;
             border-radius: 12px;
@@ -45,7 +52,7 @@
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Detail
         </a>
         <h3 class="mt-2" style="color:#180733;font-weight:800;">
-            <i class="fa-solid fa-pen me-2"></i>Edit Tindak Lanjut
+            <i class="fa-solid fa-pen me-2" style="color:#6D28D9"></i>Edit Tindak Lanjut
         </h3>
         <p class="text-muted" style="font-size:.88rem;">
             {{ $tindakLanjut->unsurPelayanan->kode }} — {{ $tindakLanjut->unsurPelayanan->nama_unsur }}
@@ -95,7 +102,7 @@
 
                         {{-- Upload new --}}
                         <div class="upload-zone" onclick="document.getElementById('input-foto-baru').click()">
-                            <i class="fa-solid fa-cloud-arrow-up d-block mb-2"></div>
+                            <i class="fa-solid fa-cloud-arrow-up d-block mb-2"></i>
                             <div class="fw-semibold" style="color:#180733;">Klik atau seret foto baru ke sini</div>
                             <div class="small text-muted">Maks 5 foto &middot; JPG/PNG &middot; Maks 2MB per foto</div>
                             <input type="file" name="foto_baru[]" id="input-foto-baru" multiple accept="image/*" class="d-none" onchange="previewFotoBaru(this)">
@@ -107,8 +114,8 @@
 
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="{{ route('puskesmas.tindak-lanjut.show', $tindakLanjut) }}" class="btn btn-outline-secondary">Batal</a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-save me-1"></i> Simpan Perubahan
+                    <button type="submit" class="sp-btn-cta">
+                        <i class="fa-solid fa-save"></i> Simpan Perubahan
                     </button>
                 </div>
             </form>
@@ -119,7 +126,7 @@
                 <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="fa-solid fa-info-circle me-1 text-primary"></i> Info Tindak Lanjut</h6>
                     <table class="table table-sm table-borderless mb-0">
-                        <tr><td class="text-muted" style="width:100px">Status</td><td><span class="badge-status {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td></tr>
+                        <tr><td class="text-muted" style="width:100px">Status</td><td><span class="badge-tl {{ $tindakLanjut->status_badge_class }}">{{ $tindakLanjut->status_label }}</span></td></tr>
                         <tr><td class="text-muted">Unsur</td><td class="fw-semibold">{{ $tindakLanjut->unsurPelayanan->kode }}</td></tr>
                         <tr><td class="text-muted">Triwulan</td><td>TW-{{ $tindakLanjut->triwulan }}</td></tr>
                         <tr><td class="text-muted">Tahun</td><td>{{ $tindakLanjut->tahun }}</td></tr>

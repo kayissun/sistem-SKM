@@ -45,7 +45,8 @@
     .ul-table tbody tr:hover td { background: var(--surface-1); }
     .ul-table .unit-name { font-weight: 600; color: var(--purple-900); font-size: .88rem; }
     .ul-check { accent-color: var(--purple-700); }
-    .ul-btn-hapus-icon { color: #B91C1C; border-color: rgba(185,28,28,.15); }
+    .sp-icon-btn.danger { color: #DC2626; border-color: rgba(220,38,38,.15); }
+    .sp-icon-btn.danger:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
 
     /* ===== Modal ===== */
     .ul-modal-input { border-radius: 10px; padding: 10px 14px; }
@@ -121,7 +122,7 @@
                                       onsubmit="return confirm('Hapus unit layanan ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="sp-icon-btn ul-btn-hapus-icon" title="Hapus">
+                                    <button class="sp-icon-btn danger" title="Hapus">
                                         <i class="fa-solid fa-trash" style="font-size:.72rem;"></i>
                                     </button>
                                 </form>
