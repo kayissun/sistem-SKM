@@ -57,8 +57,7 @@
         </div>
 
         <x-primary-button class="w-full">
-            {{ __('Log in') }}
-            <i class="fa-solid fa-arrow-right"></i>
+            {{ __('Login') }}
         </x-primary-button>
     </form>
 

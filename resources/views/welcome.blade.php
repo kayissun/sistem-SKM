@@ -434,7 +434,6 @@
         <div class="hero-cta">
           <a href="{{ route('login') }}" class="btn btn-primary">
             Masuk Sekarang
-            <i class="fa-solid fa-arrow-right"></i>
           </a>
           <a href="#cara-kerja" class="btn btn-outline">Lihat Cara Kerja</a>
         </div>
@@ -613,7 +612,6 @@
         </div>
         <a href="{{ route('login') }}" class="btn btn-primary">
           Login
-          <i class="fa-solid fa-arrow-right"></i>
         </a>
       </div>
     </div>
